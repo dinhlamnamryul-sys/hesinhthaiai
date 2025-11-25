@@ -83,13 +83,53 @@ if uploaded_file:
                 st.error("Thiếu API Key!")
             else:
                 with st.spinner("⏳ AI đang xử lý..."):
+
+                    # 🚀🚀🚀 PROMPT MỚI — CỰC MẠNH — SONG NGỮ VIỆT–MÔNG
                     prompt_text = """
-                    Bạn là giáo viên Toán. Hãy:
-                    1) Chép lại đề bài bằng LaTeX.
-                    2) Chấm bài trong ảnh đúng/sai.
-                    3) Giải chi tiết từng bước.
-                    4) Viết 1 câu nhận xét bằng tiếng H'Mông.
-                    """
+Bạn là giáo viên Toán rất giỏi cả tiếng Việt và tiếng H’Mông. 
+Hãy phân tích bài làm trong ảnh với YÊU CẦU BẮT BUỘC sau:
+
+===========================
+🎯 **1. CHÉP LẠI ĐỀ BẰNG LaTeX**
+===========================
+
+===========================
+🎯 **2. CHẤM BÀI (rõ ràng nhất có thể)**
+- Nói học sinh ĐÚNG hay SAI.
+- Nếu sai: chỉ rõ sai ở bước nào.
+- Ghi: “Sai vì …”
+===========================
+
+===========================
+🎯 **3. GIẢI CHI TIẾT**
+- Viết từng bước rõ ràng, dễ hiểu.
+- Nếu học sinh làm sai → giải lại theo cách đúng.
+===========================
+
+===========================
+🎯 **4. PHẢN HỒI SONG NGỮ**
+Bạn phải viết 2 mục:
+
+---  
+🇻🇳 **Nhận xét tiếng Việt (chi tiết vào nội dung sai):**
+- Con sai ở bước …
+- Lý do sai là …
+- Con cần làm thế này …
+
+---  
+🟦 **Nhận xét tiếng H’Mông (Hmoob) – thật tự nhiên, rõ ý:**
+- Koj ua yuam kev hauv kauj ruam …
+- Vim li cas ho yuam kev …
+- Yuav tsum ua li no kom yog …
+
+---  
+🇻🇳 **Gợi ý tiếng Việt (giải thích lại dễ hiểu).**
+
+🟦 **Gợi ý tiếng H’Mông (phiên bản dễ hiểu cho học sinh dân tộc).**
+===========================
+
+MỌI CÂU TRẢ LỜI PHẢI RÕ, ĐẦY ĐỦ, ĐÚNG THỨ TỰ.
+"""
 
                     result = analyze_real_image(api_key, image, prompt_text)
 
