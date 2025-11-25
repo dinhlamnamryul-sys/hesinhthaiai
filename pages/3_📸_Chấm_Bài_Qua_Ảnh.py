@@ -6,19 +6,18 @@ from io import BytesIO
 
 st.set_page_config(page_title="Chấm bài qua ảnh AI", page_icon="📸", layout="wide")
 
-st.title("📸 CHẤM BÀI QUA ẢNH – AI TỰ ĐỘNG CHẤM & TÍNH ĐIỂM")
+st.title("📸 CHẤM BÀI QUA ẢNH – AI TỰ ĐỘNG CHẤM, SONG NGỮ, CHỈ RA LỖI SAI")
 
-# -------- LẤY API KEY --------
+# --- Nhập API Key ---
 api_key = st.secrets.get("GOOGLE_API_KEY", "")
 if not api_key:
     api_key = st.text_input("Nhập Google API Key:", type="password")
 
-# -------- HÀM GỌI GEMINI --------
+# --- Hàm gọi Gemini AI ---
 def call_gemini_image(api_key, prompt_text, image_file):
     MODEL = "models/gemini-2.0-flash"
     url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
 
-    # Mã hóa ảnh Base64
     img_bytes = image_file.read()
     img_base64 = base64.b64encode(img_bytes).decode()
 
@@ -46,14 +45,14 @@ def call_gemini_image(api_key, prompt_text, image_file):
     data = response.json()
     return data["candidates"][0]["content"]["parts"][0]["text"]
 
-# -------- GIAO DIỆN -----------
+# --- Giao diện ---
 st.subheader("📤 Tải ảnh bài làm học sinh")
 uploaded_img = st.file_uploader("Chọn ảnh (JPG/PNG)", type=["jpg", "jpeg", "png"])
 
 dap_an_gv = st.text_area(
     "📘 Nhập đáp án chuẩn (tùy chọn, nếu bỏ trống AI tự tạo đáp án)",
     height=150,
-    placeholder="VD: 1.A  2.B  3.C  4.D...\nHoặc bài tự luận mẫu..."
+    placeholder="VD: 1.A 2.B 3.C 4.D...\nHoặc bài tự luận mẫu..."
 )
 
 tong_diem = st.number_input("Tổng điểm bài làm", min_value=1, value=10)
@@ -64,46 +63,47 @@ if st.button("🎯 Chấm bài ngay"):
     elif not uploaded_img:
         st.error("❌ Bạn chưa tải ảnh bài làm học sinh!")
     else:
-        with st.spinner("⏳ AI đang phân tích, chấm bài và tính điểm..."):
+        with st.spinner("⏳ AI đang phân tích, chấm bài, chỉ ra lỗi sai và hướng dẫn..."):
             prompt = f"""
-Bạn là giáo viên bộ môn Toán – rất giỏi trong việc chấm bài.
-Hãy chấm bài làm của học sinh theo yêu cầu sau:
+Bạn là giáo viên Toán giỏi, biết song ngữ Việt – H’Mông. Hãy chấm bài làm học sinh từ ảnh sau.
 
-1. Nhận diện nội dung trong ảnh (OCR chính xác).
-2. Nếu giáo viên đã nhập đáp án chuẩn, hãy chấm theo đáp án đó.
-3. Nếu giáo viên KHÔNG nhập đáp án → tự tạo đáp án đúng.
-4. Tính điểm bài làm dựa trên tổng điểm {tong_diem}:
-   - Số câu đúng
-   - Số câu sai
-   - Điểm từng câu
-   - Điểm cuối cùng
-5. Kết quả xuất ra theo format:
+Yêu cầu:
+1️⃣ Nhận diện nội dung bài làm trong ảnh (OCR).
+2️⃣ Nếu có đáp án chuẩn, so sánh bài làm với đáp án. Nếu không, tự tạo đáp án chuẩn.
+3️⃣ Phân tích từng câu:
+   - Nếu đúng → ghi "Đúng" song song Việt – H’Mông
+   - Nếu sai → ghi:
+     - Câu nào sai
+     - Sai ở bước nào
+     - Lý do sai
+     - Hướng dẫn sửa đúng
+     (Tất cả song song: 🇻🇳 Tiếng Việt, 🟦 Tiếng H’Mông)
+4️⃣ Tính điểm từng câu và tổng điểm (theo tổng điểm {tong_diem})
+5️⃣ Xuất kết quả theo format dễ đọc, copy vào Word/Overleaf.
 
+Bố cục trả lời:
 ----- BÀI LÀM HỌC SINH -----
-(nội dung AI đọc từ ảnh)
+(Đọc từ ảnh)
 
 ----- NHẬN XÉT & CHẤM ĐIỂM -----
-- Số câu đúng
-- Số câu sai
-- Những lỗi sai cụ thể
-- Giải thích vì sao sai
-- Điểm cuối cùng
+- Câu 1: Đúng/Sai + Lỗi + Hướng dẫn (🇻🇳/🟦)
+- Câu 2: ...
+- ...
+- Tổng số câu đúng: ...
+- Tổng số câu sai: ...
+- Điểm cuối cùng: ...
 
 ----- ĐÁP ÁN CHUẨN -----
-(danh sách đáp án rõ ràng)
-
-Hãy trả lời ngắn gọn, rõ ràng, đúng trọng tâm.
+(Hiển thị song song 🇻🇳 / 🟦)
 Đáp án chuẩn giáo viên nhập:
 {dap_an_gv}
 """
-
             result = call_gemini_image(api_key, prompt, uploaded_img)
 
         st.success("🎉 Đã chấm xong bài!")
-        st.markdown("### 📄 Kết quả chấm bài (có điểm)")
+        st.markdown("### 📄 Kết quả chấm bài (song ngữ + chỉ ra lỗi sai)")
         st.markdown(result)
 
-        # Hiển thị ảnh đã upload
         st.markdown("### 🖼️ Ảnh bài làm học sinh")
         img = Image.open(uploaded_img)
         st.image(img, use_column_width=True)
