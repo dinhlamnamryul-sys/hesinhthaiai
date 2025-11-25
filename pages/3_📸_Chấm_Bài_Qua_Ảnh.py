@@ -4,120 +4,106 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸")
-st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông)")
+st.set_page_config(page_title="Chấm bài qua ảnh AI", page_icon="📸", layout="wide")
 
-# --- LẤY KEY ---
+st.title("📸 CHẤM BÀI QUA ẢNH – AI TỰ ĐỘNG CHẤM & TÍNH ĐIỂM")
+
+# -------- LẤY API KEY --------
 api_key = st.secrets.get("GOOGLE_API_KEY", "")
-
 if not api_key:
-    st.warning("⚠️ Chưa có API Key trong hệ thống.")
     api_key = st.text_input("Nhập Google API Key:", type="password")
 
-# --- HÀM PHÂN TÍCH ẢNH ---
-def analyze_real_image(api_key, image, prompt):
-    if image.mode == "RGBA":
-        image = image.convert("RGB")
-
-    buffered = BytesIO()
-    image.save(buffered, format="JPEG")
-    img_base64 = base64.b64encode(buffered.getvalue()).decode()
-
+# -------- HÀM GỌI GEMINI --------
+def call_gemini_image(api_key, prompt_text, image_file):
     MODEL = "models/gemini-2.0-flash"
     url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
+
+    # Mã hóa ảnh Base64
+    img_bytes = image_file.read()
+    img_base64 = base64.b64encode(img_bytes).decode()
 
     payload = {
         "contents": [
             {
                 "role": "user",
                 "parts": [
-                    {"text": prompt},
-                    {"inline_data": {"mime_type": "image/jpeg", "data": img_base64}}
+                    {"text": prompt_text},
+                    {
+                        "inline_data": {
+                            "mime_type": "image/jpeg",
+                            "data": img_base64
+                        }
+                    }
                 ]
             }
         ]
     }
 
-    try:
-        response = requests.post(url, json=payload)
-        if response.status_code != 200:
-            return f"❌ Lỗi API {response.status_code}: {response.text}"
-        data = response.json()
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-    except Exception as e:
-        return f"❌ Lỗi kết nối: {str(e)}"
+    response = requests.post(url, json=payload)
+    if response.status_code != 200:
+        return f"❌ Lỗi API {response.status_code}: {response.text}"
 
+    data = response.json()
+    return data["candidates"][0]["content"]["parts"][0]["text"]
 
-# -----------------------------
-# 🚀 **TÍNH NĂNG MỚI: CHỤP CAMERA**
-# -----------------------------
-st.subheader("📷 Hoặc chụp trực tiếp từ Camera")
-camera_photo = st.camera_input("Chụp ảnh bài làm tại đây")
+# -------- GIAO DIỆN -----------
+st.subheader("📤 Tải ảnh bài làm học sinh")
+uploaded_img = st.file_uploader("Chọn ảnh (JPG/PNG)", type=["jpg", "jpeg", "png"])
 
+dap_an_gv = st.text_area(
+    "📘 Nhập đáp án chuẩn (tùy chọn, nếu bỏ trống AI tự tạo đáp án)",
+    height=150,
+    placeholder="VD: 1.A  2.B  3.C  4.D...\nHoặc bài tự luận mẫu..."
+)
 
-# --- GIAO DIỆN TẢI ẢNH ---
-st.subheader("📤 Hoặc tải ảnh bài làm (PNG, JPG)")
-uploaded_file = st.file_uploader("Chọn ảnh:", type=["png", "jpg", "jpeg"])
+tong_diem = st.number_input("Tổng điểm bài làm", min_value=1, value=10)
 
+if st.button("🎯 Chấm bài ngay"):
+    if not api_key:
+        st.error("❌ Bạn chưa nhập API Key!")
+    elif not uploaded_img:
+        st.error("❌ Bạn chưa tải ảnh bài làm học sinh!")
+    else:
+        with st.spinner("⏳ AI đang phân tích, chấm bài và tính điểm..."):
+            prompt = f"""
+Bạn là giáo viên bộ môn Toán – rất giỏi trong việc chấm bài.
+Hãy chấm bài làm của học sinh theo yêu cầu sau:
 
-# --- CHỌN NGUỒN ẢNH ƯU TIÊN ---
-image = None
+1. Nhận diện nội dung trong ảnh (OCR chính xác).
+2. Nếu giáo viên đã nhập đáp án chuẩn, hãy chấm theo đáp án đó.
+3. Nếu giáo viên KHÔNG nhập đáp án → tự tạo đáp án đúng.
+4. Tính điểm bài làm dựa trên tổng điểm {tong_diem}:
+   - Số câu đúng
+   - Số câu sai
+   - Điểm từng câu
+   - Điểm cuối cùng
+5. Kết quả xuất ra theo format:
 
-if camera_photo is not None:
-    image = Image.open(camera_photo)
-elif uploaded_file is not None:
-    image = Image.open(uploaded_file)
+----- BÀI LÀM HỌC SINH -----
+(nội dung AI đọc từ ảnh)
 
+----- NHẬN XÉT & CHẤM ĐIỂM -----
+- Số câu đúng
+- Số câu sai
+- Những lỗi sai cụ thể
+- Giải thích vì sao sai
+- Điểm cuối cùng
 
-# Nếu có ảnh → hiển thị + xử lý
-if image:
-    col1, col2 = st.columns([1, 1.5])
+----- ĐÁP ÁN CHUẨN -----
+(danh sách đáp án rõ ràng)
 
-    with col1:
-        st.image(image, caption="Ảnh bài làm", use_column_width=True)
-
-    with col2:
-        st.subheader("🔍 Kết quả:")
-
-        if st.button("Phân tích ngay", type="primary"):
-            if not api_key:
-                st.error("Thiếu API Key!")
-            else:
-                with st.spinner("⏳ AI đang xử lý..."):
-
-                    # --- PROMPT SONG NGỮ ---
-                    prompt_text = """
-Bạn là giáo viên Toán giỏi, đọc ảnh bài làm của học sinh. 
-Yêu cầu:
-
-1️⃣ Chép lại đề bài bằng **LaTeX**, hiển thị song song:
-🇻🇳 (Tiếng Việt)
-🟦 (Tiếng H’Mông)
-
-2️⃣ Chấm bài từng bước:
-- Nói học sinh **Đúng / Sai** từng bước.
-- Nếu sai, ghi ngắn gọn **Sai ở bước nào & lý do**.
-- Hiển thị song song:
-🇻🇳 Nhận xét tiếng Việt
-🟦 Nhận xét H’Mông
-
-3️⃣ Giải chi tiết:
-- Viết từng bước bằng **LaTeX**, hiển thị song song:
-🇻🇳 Công thức / bước bằng tiếng Việt
-🟦 Công thức / bước bằng tiếng H’Mông
-- Nếu học sinh sai → giải lại đúng ở cả hai ngôn ngữ.
-
-MỌI CÂU TRẢ LỜI PHẢI:
-- Rõ ràng, đầy đủ, theo thứ tự.
-- Song song Việt – H’Mông từng bước.
-- Dễ copy vào Word hoặc Overleaf.
+Hãy trả lời ngắn gọn, rõ ràng, đúng trọng tâm.
+Đáp án chuẩn giáo viên nhập:
+{dap_an_gv}
 """
 
-                    result = analyze_real_image(api_key, image, prompt_text)
+            result = call_gemini_image(api_key, prompt, uploaded_img)
 
-                    if "❌" in result:
-                        st.error(result)
-                    else:
-                        st.success("🎉 Đã phân tích xong!")
-                        st.markdown(result)
+        st.success("🎉 Đã chấm xong bài!")
+        st.markdown("### 📄 Kết quả chấm bài (có điểm)")
+        st.markdown(result)
 
+        # Hiển thị ảnh đã upload
+        st.markdown("### 🖼️ Ảnh bài làm học sinh")
+        img = Image.open(uploaded_img)
+        st.image(img, use_column_width=True)
