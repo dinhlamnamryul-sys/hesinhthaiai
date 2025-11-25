@@ -1,9 +1,7 @@
 import streamlit as st
-import requests
-import json
-import base64
+import google.generativeai as genai
 from PIL import Image
-from io import BytesIO
+import time
 
 st.set_page_config(page_title="Chấm Bài AI", page_icon="📸")
 st.title("📸 Chấm Bài & Giải Toán Qua Ảnh")
@@ -17,51 +15,40 @@ if not api_key:
     st.warning("⚠️ Chưa có API Key hệ thống.")
     api_key = st.text_input("Nhập Google API Key:", type="password")
 
-# --- 2. HÀM GỌI TRỰC TIẾP (ĐÃ SỬA TÊN MODEL CHUẨN) ---
-def analyze_image_direct(api_key, image, prompt):
-    # 1. Xử lý ảnh (Sửa lỗi RGBA)
-    if image.mode == 'RGBA':
-        image = image.convert('RGB')
-    
-    buffered = BytesIO()
-    image.save(buffered, format="JPEG")
-    img_str = base64.b64encode(buffered.getvalue()).decode()
-
-    # 2. Nội dung gửi đi
-    headers = {'Content-Type': 'application/json'}
-    data = {
-        "contents": [{
-            "parts": [
-                {"text": prompt},
-                {"inline_data": {
-                    "mime_type": "image/jpeg",
-                    "data": img_str
-                }}
-            ]
-        }]
-    }
-
-    # 3. THỬ MODEL 1: GEMINI 1.5 FLASH (Nhanh nhất)
-    url_flash = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-    response = requests.post(url_flash, headers=headers, data=json.dumps(data))
-
-    # Nếu thành công (200) -> Trả về kết quả ngay
-    if response.status_code == 200:
-        return response.json().get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', "Không có nội dung.")
-    
-    # 4. NẾU FLASH LỖI (404) -> TỰ ĐỘNG THỬ MODEL 2: GEMINI PRO VISION (Ổn định nhất)
-    else:
-        # st.warning("Đang chuyển sang chế độ tương thích...") # (Ẩn dòng này cho gọn)
-        url_pro = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key={api_key}"
-        response_pro = requests.post(url_pro, headers=headers, data=json.dumps(data))
+# --- 2. HÀM TỰ ĐỘNG TÌM MODEL KHẢ DỤNG ---
+def get_best_model():
+    """Hỏi Google xem tài khoản này được dùng model nào"""
+    try:
+        # Lấy danh sách tất cả model
+        models = genai.list_models()
         
-        if response_pro.status_code == 200:
-            return response_pro.json().get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', "Không có nội dung.")
-        else:
-            # Nếu cả 2 đều lỗi thì mới báo
-            return f"Lỗi kết nối: {response.text} \n(Dự phòng: {response_pro.text})"
+        # Ưu tiên tìm model Flash (Nhanh) hoặc Pro (Thông minh)
+        priority_models = []
+        for m in models:
+            if 'generateContent' in m.supported_generation_methods:
+                # Lưu lại tên model (ví dụ: models/gemini-1.5-flash-001)
+                priority_models.append(m.name)
+        
+        # Chọn model tốt nhất
+        # Ưu tiên 1.5 Flash -> 1.5 Pro -> Pro Vision
+        for m_name in priority_models:
+            if 'flash' in m_name and '1.5' in m_name: return m_name
+        
+        for m_name in priority_models:
+            if 'pro' in m_name and '1.5' in m_name: return m_name
+            
+        for m_name in priority_models:
+            if 'vision' in m_name: return m_name
+            
+        # Nếu không tìm thấy cái nào quen thuộc, lấy cái đầu tiên trong danh sách
+        if priority_models:
+            return priority_models[0]
+            
+        return None
+    except Exception as e:
+        return None
 
-# --- 3. GIAO DIỆN ---
+# --- 3. GIAO DIỆN XỬ LÝ ---
 uploaded_file = st.file_uploader("Tải ảnh bài làm (PNG, JPG)", type=["png", "jpg", "jpeg"])
 
 if uploaded_file and api_key:
@@ -69,23 +56,33 @@ if uploaded_file and api_key:
     st.image(image, caption="Ảnh đã tải", use_column_width=True)
     
     if st.button("🔍 Phân tích ngay", type="primary"):
-        with st.spinner("Đang gửi dữ liệu sang Google..."):
-            try:
-                prompt = """
-                Bạn là giáo viên Toán. Hãy nhìn ảnh và thực hiện các bước:
-                1. Nhận diện đề bài và bài làm trong ảnh (Viết lại đề bằng công thức LaTeX chuẩn).
-                2. Chấm điểm: Kiểm tra bài làm đúng hay sai. Chỉ rõ lỗi sai nếu có.
-                3. Giải chi tiết: Viết lại lời giải đúng từng bước.
-                4. Dịch 1 câu nhận xét ngắn gọn sang tiếng H'Mông.
-                """
+        try:
+            with st.spinner("Đang khởi động AI..."):
+                # Cấu hình
+                genai.configure(api_key=api_key)
                 
-                result = analyze_image_direct(api_key, image, prompt)
+                # --- BƯỚC QUAN TRỌNG: Tự tìm model ---
+                active_model_name = get_best_model()
                 
-                if "Lỗi kết nối" in result:
-                    st.error(result)
+                if not active_model_name:
+                    st.error("❌ Lỗi: API Key này không tìm thấy model nào khả dụng. Hãy thử tạo Key mới.")
                 else:
+                    # st.info(f"Đang sử dụng mô hình: `{active_model_name}`") # Hiện tên model để debug
+                    
+                    model = genai.GenerativeModel(active_model_name)
+                    
+                    prompt = """
+                    Bạn là giáo viên Toán. Hãy nhìn ảnh và:
+                    1. Viết lại đề bài và bài làm (dùng LaTeX cho công thức).
+                    2. Kiểm tra bài làm đúng hay sai. Chỉ rõ lỗi sai.
+                    3. Giải lại bài toán chi tiết.
+                    4. Dịch một lời khen ngắn sang tiếng H'Mông.
+                    """
+                    
+                    response = model.generate_content([prompt, image])
                     st.success("Đã xong!")
-                    st.markdown(result)
+                    st.markdown(response.text)
                 
-            except Exception as e:
-                st.error(f"Có lỗi xảy ra: {e}")
+        except Exception as e:
+            st.error(f"Vẫn có lỗi xảy ra: {e}")
+            st.warning("Lời khuyên cuối cùng: Hãy vào Google AI Studio tạo một API Key mới tinh và thay thế Key cũ.")
