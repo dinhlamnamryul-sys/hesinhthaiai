@@ -13,17 +13,17 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1 class='main-title'>📸 Chấm Bài & Giải Toán Qua Ảnh (Real AI)</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-title'>📸 Chấm Bài & Giải Toán Qua Ảnh</h1>", unsafe_allow_html=True)
 
 # --- CẤU HÌNH API ---
 with st.sidebar:
     st.header("🔑 Cấu hình AI")
-    st.info("Để AI 'nhìn' thấy ảnh, bạn cần nhập Google API Key (Miễn phí).")
-    api_key = st.text_input("Nhập Google API Key:", type="password")
-    st.markdown("[👉 Lấy Key miễn phí tại đây](https://aistudio.google.com/app/apikey)")
+    st.info("Nhập API Key để kích hoạt trí tuệ nhân tạo.")
+    api_key = st.text_input("Google API Key:", type="password")
+    st.markdown("[👉 Lấy Key miễn phí](https://aistudio.google.com/app/apikey)")
 
 # --- GIAO DIỆN CHÍNH ---
-uploaded_file = st.file_uploader("Tải ảnh bài làm hoặc đề bài (PNG, JPG)", type=["png", "jpg", "jpeg"])
+uploaded_file = st.file_uploader("Tải ảnh bài làm (PNG, JPG)", type=["png", "jpg", "jpeg"])
 
 if uploaded_file:
     col1, col2 = st.columns([1, 1.5])
@@ -34,47 +34,37 @@ if uploaded_file:
     
     with col2:
         st.subheader("📝 Kết quả phân tích:")
-        
-        analyze_btn = st.button("🔍 Phân tích ngay (Gemini AI)", type="primary")
+        analyze_btn = st.button("🔍 Phân tích ngay", type="primary")
         
         if analyze_btn:
             if not api_key:
-                st.error("⚠️ Vui lòng nhập API Key ở thanh bên trái trước!")
+                st.error("⚠️ Hãy nhập API Key bên trái trước!")
             else:
                 try:
-                    with st.spinner("AI đang đọc đề và chấm bài... (Vui lòng đợi)"):
-                        # Cấu hình AI
+                    with st.spinner("Đang kết nối Google Gemini..."):
+                        # Cấu hình
                         genai.configure(api_key=api_key)
+                        
+                        # --- QUAN TRỌNG: SỬ DỤNG MODEL CHUẨN ---
                         model = genai.GenerativeModel('gemini-1.5-flash')
                         
-                        # Câu lệnh (Prompt) gửi cho AI
                         prompt = """
-                        Bạn là một giáo viên Toán giỏi của Việt Nam. Hãy thực hiện các nhiệm vụ sau dựa trên hình ảnh được cung cấp:
-                        1. Nhận diện nội dung đề bài và bài làm trong ảnh (nếu có).
-                        2. Giải bài toán đó một cách chi tiết, từng bước (Step-by-step).
-                        3. Nếu có bài làm của học sinh, hãy chấm điểm và chỉ ra lỗi sai (nếu có).
-                        4. Đưa ra lời khuyên để học sinh làm tốt hơn.
-                        5. Cuối cùng, hãy dịch một câu động viên ngắn sang tiếng H'Mông.
-                        
-                        Hãy trình bày kết quả đẹp mắt bằng Markdown, sử dụng công thức toán học LaTeX (dùng dấu $) nếu cần.
+                        Bạn là giáo viên Toán. Hãy nhìn hình ảnh và:
+                        1. Viết lại đề bài và bài làm trong ảnh (dùng công thức LaTeX).
+                        2. Kiểm tra xem bài làm đúng hay sai. Chỉ ra lỗi sai cụ thể.
+                        3. Giải lại bài toán thật chi tiết.
+                        4. Dịch một lời khen sang tiếng H'Mông.
                         """
                         
-                        # Gọi AI xử lý
                         response = model.generate_content([prompt, image])
                         
-                        # Hiển thị kết quả
-                        st.success("Đã phân tích xong!")
+                        st.success("Đã xong!")
                         st.markdown('<div class="result-box">', unsafe_allow_html=True)
                         st.markdown(response.text)
                         st.markdown('</div>', unsafe_allow_html=True)
                         
                 except Exception as e:
-                    st.error(f"Có lỗi xảy ra: {e}")
-                    st.warning("Hãy kiểm tra lại API Key của bạn xem đã đúng chưa.")
-
+                    st.error(f"Lỗi kết nối: {e}")
+                    st.warning("Mẹo: Hãy thử bấm 'Reboot' ứng dụng nếu vừa cập nhật thư viện.")
 else:
-    st.info("👈 Hãy tải ảnh lên để bắt đầu.")
-
-# Footer
-st.markdown("---")
-st.caption("© 2025 Trường PTDTBT TH&THCS Na Ư - Powered by Google Gemini")
+    st.info("👈 Tải ảnh lên để AI chấm bài.")
