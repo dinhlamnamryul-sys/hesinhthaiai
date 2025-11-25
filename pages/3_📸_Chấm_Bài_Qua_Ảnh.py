@@ -18,6 +18,7 @@ if not api_key:
 def analyze_real_image(api_key, image, prompt):
     if image.mode == "RGBA":
         image = image.convert("RGB")
+
     buffered = BytesIO()
     image.save(buffered, format="JPEG")
     img_base64 = base64.b64encode(buffered.getvalue()).decode()
@@ -46,15 +47,34 @@ def analyze_real_image(api_key, image, prompt):
     except Exception as e:
         return f"❌ Lỗi kết nối: {str(e)}"
 
-# --- GIAO DIỆN ---
-uploaded_file = st.file_uploader("📤 Tải ảnh bài làm (PNG, JPG)", type=["png", "jpg", "jpeg"])
 
-if uploaded_file:
-    col1, col2 = st.columns([1, 1.5])
+# -----------------------------
+# 🚀 **TÍNH NĂNG MỚI: CHỤP CAMERA**
+# -----------------------------
+st.subheader("📷 Hoặc chụp trực tiếp từ Camera")
+camera_photo = st.camera_input("Chụp ảnh bài làm tại đây")
+
+
+# --- GIAO DIỆN TẢI ẢNH ---
+st.subheader("📤 Hoặc tải ảnh bài làm (PNG, JPG)")
+uploaded_file = st.file_uploader("Chọn ảnh:", type=["png", "jpg", "jpeg"])
+
+
+# --- CHỌN NGUỒN ẢNH ƯU TIÊN ---
+image = None
+
+if camera_photo is not None:
+    image = Image.open(camera_photo)
+elif uploaded_file is not None:
     image = Image.open(uploaded_file)
 
+
+# Nếu có ảnh → hiển thị + xử lý
+if image:
+    col1, col2 = st.columns([1, 1.5])
+
     with col1:
-        st.image(image, caption="Ảnh thực tế", use_column_width=True)
+        st.image(image, caption="Ảnh bài làm", use_column_width=True)
 
     with col2:
         st.subheader("🔍 Kết quả:")
@@ -65,7 +85,7 @@ if uploaded_file:
             else:
                 with st.spinner("⏳ AI đang xử lý..."):
 
-                    # --- PROMPT SONG NGỮ TOÀN BỘ ---
+                    # --- PROMPT SONG NGỮ ---
                     prompt_text = """
 Bạn là giáo viên Toán giỏi, đọc ảnh bài làm của học sinh. 
 Yêu cầu:
@@ -94,8 +114,10 @@ MỌI CÂU TRẢ LỜI PHẢI:
 """
 
                     result = analyze_real_image(api_key, image, prompt_text)
+
                     if "❌" in result:
                         st.error(result)
                     else:
                         st.success("🎉 Đã phân tích xong!")
                         st.markdown(result)
+
