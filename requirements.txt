@@ -3,4 +3,4 @@ pandas
 gtts
 deep-translator
 Pillow
-google-generativeai
+google-generativeai>=0.7.0
