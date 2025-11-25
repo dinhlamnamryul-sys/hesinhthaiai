@@ -3,5 +3,7 @@ pandas
 gtts
 deep-translator
 Pillow
-v1/models/gemini-1.5-flash
+requests
+google-generativeai
+
 
