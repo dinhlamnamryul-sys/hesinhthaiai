@@ -1,8 +1,8 @@
 import streamlit as st
 import requests
 
-st.set_page_config(page_title="Sinh Đề KNTC Song Ngữ", page_icon="📝", layout="wide")
-st.title("📝 Sinh Đề Tự Động – Kết nối tri thức với cuộc sống (Việt – H’Mông)")
+st.set_page_config(page_title="Sinh Đề KNTC Tự Động", page_icon="📝", layout="wide")
+st.title("📝 Sinh Đề Tự Động – Kết nối tri thức với cuộc sống")
 
 # --- LẤY KEY ---
 api_key = st.secrets.get("GOOGLE_API_KEY", "")
@@ -30,7 +30,9 @@ def generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an):
     url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
 
     prompt = f"""
-Bạn là giáo viên Toán giỏi. Sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống":
+Bạn là giáo viên Toán giỏi. Hãy sinh đề kiểm tra theo sách 
+"Kết nối tri thức với cuộc sống":
+
 - Lớp: {lop}
 - Chương: {chuong}
 - Bài: {bai}
@@ -40,14 +42,12 @@ Bạn là giáo viên Toán giỏi. Sinh đề kiểm tra theo sách "Kết nố
 
 Yêu cầu:
 1. Mỗi bài có tiêu đề rõ ràng: "Bài X: Tên bài tập".
-2. Câu hỏi bằng LaTeX (inline: $...$, display: $$...$$).
-3. Câu hỏi và đáp án cách nhau ít nhất 2 dòng.
-4. Hiển thị song song:
-   - 🇻🇳 Câu hỏi / đáp án tiếng Việt
-   - 🟦 Câu hỏi / đáp án tiếng H’Mông
-5. Dùng danh sách số thứ tự 1., 2., 3., ...
-6. Mỗi câu hỏi / đáp án trong 2 cột (câu hỏi bên trái, đáp án bên phải).
-7. Ngắn gọn, dễ hiểu cho học sinh.
+2. Câu hỏi dùng LaTeX (inline: $...$, display: $$...$$).
+3. Nếu có đáp án → để phía dưới, cách câu hỏi 2 dòng.
+4. Danh sách đánh số: 1., 2., 3., ...
+5. Văn phong rõ ràng, mạch lạc, đúng chương trình KNTC.
+6. KHÔNG sinh tiếng H’Mông, chỉ sinh tiếng Việt.
+7. KHÔNG cần dạng song ngữ.
 """
 
     payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
@@ -61,23 +61,16 @@ Yêu cầu:
     except Exception as e:
         return f"❌ Lỗi kết nối: {str(e)}"
 
-# --- HIỂN THỊ KẾT QUẢ 2 CỘT ---
+# --- HIỂN THỊ KẾT QUẢ ---
 if st.button("🎯 Sinh đề ngay"):
     if not api_key:
         st.error("Thiếu API Key!")
     else:
         with st.spinner("⏳ AI đang tạo đề..."):
             result = generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an)
+
             if "❌" in result:
                 st.error(result)
             else:
                 st.success("🎉 Đã tạo xong đề!")
-
-                # Tách 2 cột
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.subheader("🇻🇳 Câu hỏi / đáp án tiếng Việt")
-                    st.markdown(result.replace("\n\n", "\n\n<br>\n\n"), unsafe_allow_html=True)
-                with col2:
-                    st.subheader("🟦 Câu hỏi / đáp án tiếng H’Mông")
-                    st.markdown(result.replace("\n\n", "\n\n<br>\n\n"), unsafe_allow_html=True)
+                st.markdown(result)
