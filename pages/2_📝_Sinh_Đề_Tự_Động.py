@@ -14,7 +14,7 @@ lop_options = [f"Lớp {i}" for i in range(1, 10)]
 chuong_options = {f"Lớp {i}": [f"Chương {j}" for j in range(1, 6)] for i in range(1, 10)}
 bai_options = {f"Chương {i}": [f"Bài {j}" for j in range(1, 6)] for i in range(1, 6)}
 
-# --- GIAO DIỆN CHỌN ---
+# --- GIAO DIỆN ---
 with st.sidebar:
     st.header("Thông tin sinh đề")
     lop = st.selectbox("Chọn lớp", lop_options)
@@ -24,13 +24,13 @@ with st.sidebar:
     loai_cau = st.selectbox("Loại câu hỏi", ["Trắc nghiệm", "Tự luận", "Trộn cả hai"])
     co_dap_an = st.checkbox("Có đáp án", value=True)
 
-# --- GỌI AI ---
+# --- HÀM GỌI AI ---
 def generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an):
     MODEL = "models/gemini-2.0-flash"
     url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
 
     prompt = f"""
-Bạn là giáo viên Toán giỏi. Hãy sinh đề kiểm tra theo sách 
+Bạn là giáo viên Toán. Hãy sinh đề kiểm tra theo sách 
 "Kết nối tri thức với cuộc sống":
 
 - Lớp: {lop}
@@ -40,25 +40,34 @@ Bạn là giáo viên Toán giỏi. Hãy sinh đề kiểm tra theo sách
 - Loại câu hỏi: {loai_cau}
 - {'Có đáp án' if co_dap_an else 'Không có đáp án'}
 
-🎯 **YÊU CẦU QUAN TRỌNG**
+🎯 YÊU CẦU RẤT QUAN TRỌNG:
 
-1. **Câu hỏi phải là dạng câu hỏi**, có dấu hỏi "?" và viết đúng cấu trúc.
-2. **Đáp án phải xuống dòng**, đặt độc lập, KHÔNG cùng dòng với câu hỏi.
-3. Giữa câu hỏi và đáp án **phải có đúng 2 dòng trống**.
-4. Nếu là trắc nghiệm → dạng:
-   - A. …
-   - B. …
-   - C. …
-   - D. …
-5. Nếu là tự luận → trình bày rõ ràng, LaTeX chuẩn.
-6. KHÔNG sinh song ngữ, chỉ tiếng Việt.
-7. Giữ định dạng:
-   **1. Câu hỏi ... ?**
+1. Câu hỏi phải là câu hỏi HOÀN CHỈNH, có dấu hỏi "?".
+2. Với TRẮC NGHIỆM:
+   - Mỗi lựa chọn bắt buộc nằm trên **một dòng riêng**, theo đúng mẫu:
+     A. ...
+     B. ...
+     C. ...
+     D. ...
+   - Tuyệt đối KHÔNG được viết nhiều đáp án trên cùng 1 dòng.
 
-   (2 dòng trống)
+3. Với TỰ LUẬN:
+   - Trình bày rõ ràng bằng LaTeX nếu có biểu thức.
 
-   **Đáp án:** …
-8. Tất cả công thức dùng LaTeX.
+4. Đáp án phải xuống dòng, đặt dưới câu hỏi **cách nhau đúng 2 dòng trống**.
+
+MẪU CHUẨN (BẮT BUỘC):
+1. Câu hỏi ... ?
+
+A. ...
+B. ...
+C. ...
+D. ...
+
+Đáp án: ...
+
+5. Không sinh tiếng H'Mông, chỉ sinh tiếng Việt.
+6. Toàn bộ công thức phải dùng LaTeX.
 """
 
     payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
@@ -84,6 +93,17 @@ if st.button("🎯 Sinh đề ngay"):
                 st.error(result)
             else:
                 st.success("🎉 Đã tạo xong đề!")
-                
-                # Giữ format xuống dòng đúng
-                st.markdown(result.replace("\n\n", "\n\n<br>\n\n"), unsafe_allow_html=True)
+
+                # --- XỬ LÝ ĐỂ MỖI ĐÁP ÁN XUỐNG DÒNG ---
+                formatted = result
+
+                # Tự động thêm <br> trước các lựa chọn nếu AI quên xuống dòng
+                formatted = formatted.replace("A.", "<br><br>A.")
+                formatted = formatted.replace("B.", "<br>B.")
+                formatted = formatted.replace("C.", "<br>C.")
+                formatted = formatted.replace("D.", "<br>D.")
+
+                # Giữ 2 dòng trống giữa câu hỏi và đáp án
+                formatted = formatted.replace("\n\n", "\n\n<br>\n\n")
+
+                st.markdown(formatted, unsafe_allow_html=True)
