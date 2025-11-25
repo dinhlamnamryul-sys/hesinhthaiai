@@ -1,60 +1,36 @@
 import streamlit as st
-import requests
-import json
 import base64
+from groq import Groq
 from PIL import Image
 from io import BytesIO
 
-st.set_page_config(page_title="Chấm Bài AI", page_icon="📸")
-st.title("📸 Chấm Bài & Giải Toán Qua Ảnh")
+st.set_page_config(page_title="Chấm Bài AI (Groq)", page_icon="📸")
+st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Siêu Tốc)")
 
-# --- 1. CẤU HÌNH API KEY ---
+# --- CẤU HÌNH API ---
+# Thử lấy key từ hệ thống, nếu không có thì hiện ô nhập
 api_key = None
-if "GOOGLE_API_KEY" in st.secrets:
-    api_key = st.secrets["GOOGLE_API_KEY"]
+if "GROQ_API_KEY" in st.secrets:
+    api_key = st.secrets["GROQ_API_KEY"]
 
-if not api_key:
-    st.warning("⚠️ Chưa có API Key hệ thống.")
-    api_key = st.text_input("Nhập Google API Key:", type="password")
-
-# --- 2. HÀM GỌI TRỰC TIẾP (HARDCORE) ---
-def analyze_image_direct(api_key, image, prompt):
-    # 1. Xử lý ảnh (Sửa lỗi RGBA -> RGB)
-    if image.mode == 'RGBA':
-        image = image.convert('RGB')
-    
-    buffered = BytesIO()
-    image.save(buffered, format="JPEG")
-    img_str = base64.b64encode(buffered.getvalue()).decode()
-
-    # --- ĐÂY LÀ CHÌA KHÓA: GỌI ĐÍCH DANH MODEL 1.5 FLASH ---
-    # Không dùng 'latest', không dùng 'auto', dùng chính xác tên này
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-    
-    headers = {'Content-Type': 'application/json'}
-    data = {
-        "contents": [{
-            "parts": [
-                {"text": prompt},
-                {"inline_data": {
-                    "mime_type": "image/jpeg",
-                    "data": img_str
-                }}
-            ]
-        }]
-    }
-
-    # Gửi đi
-    response = requests.post(url, headers=headers, data=json.dumps(data))
-    
-    if response.status_code == 200:
-        return response.json().get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', "Không có phản hồi.")
-    elif response.status_code == 429:
-        return "⚠️ Quá tải hệ thống (429). Vui lòng đợi 30 giây rồi thử lại."
+with st.sidebar:
+    if not api_key:
+        st.warning("Chưa có Key Groq.")
+        api_key = st.text_input("Nhập Groq API Key:", type="password")
+        st.markdown("[👉 Lấy Key Groq Miễn Phí](https://console.groq.com/keys)")
     else:
-        return f"Lỗi kết nối ({response.status_code}): {response.text}"
+        st.success("✅ Đã kết nối Groq AI")
 
-# --- 3. GIAO DIỆN ---
+# --- HÀM XỬ LÝ ẢNH CHO GROQ ---
+def encode_image(image):
+    buffered = BytesIO()
+    # Chuyển RGBA sang RGB nếu cần
+    if image.mode == "RGBA":
+        image = image.convert("RGB")
+    image.save(buffered, format="JPEG")
+    return base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+# --- GIAO DIỆN ---
 uploaded_file = st.file_uploader("Tải ảnh bài làm (PNG, JPG)", type=["png", "jpg", "jpeg"])
 
 if uploaded_file and api_key:
@@ -62,23 +38,36 @@ if uploaded_file and api_key:
     st.image(image, caption="Ảnh đã tải", use_column_width=True)
     
     if st.button("🔍 Phân tích ngay", type="primary"):
-        with st.spinner("AI đang chấm bài..."):
-            try:
-                prompt = """
-                Bạn là giáo viên Toán. Hãy nhìn ảnh và thực hiện:
-                1. Viết lại đề bài và bài làm (dùng LaTeX).
-                2. Kiểm tra bài làm đúng hay sai. Chỉ rõ lỗi.
-                3. Giải chi tiết từng bước.
-                4. Dịch lời nhận xét sang tiếng H'Mông.
-                """
+        try:
+            with st.spinner("AI đang chấm bài (Tốc độ cao)..."):
+                # 1. Chuẩn bị dữ liệu
+                base64_image = encode_image(image)
+                client = Groq(api_key=api_key)
                 
-                result = analyze_image_direct(api_key, image, prompt)
+                # 2. Gửi yêu cầu sang Groq (Model Llama-3.2 Vision)
+                chat_completion = client.chat.completions.create(
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {"type": "text", "text": "Bạn là giáo viên Toán Việt Nam. Hãy nhìn ảnh và: 1. Viết lại đề bài bằng LaTeX. 2. Kiểm tra bài làm đúng hay sai. 3. Giải chi tiết từng bước. 4. Dịch lời nhận xét sang tiếng H'Mông. Hãy trả lời hoàn toàn bằng tiếng Việt."},
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpeg;base64,{base64_image}",
+                                    },
+                                },
+                            ],
+                        }
+                    ],
+                    model="llama-3.2-11b-vision-preview",
+                )
                 
-                if "Lỗi kết nối" in result or "Quá tải" in result:
-                    st.error(result)
-                else:
-                    st.success("Đã xong!")
-                    st.markdown(result)
+                # 3. Hiển thị kết quả
+                result = chat_completion.choices[0].message.content
+                st.success("Đã xong!")
+                st.markdown(result)
                 
-            except Exception as e:
-                st.error(f"Lỗi lạ: {e}")
+        except Exception as e:
+            st.error(f"Lỗi: {e}")
+            st.info("Mẹo: Kiểm tra lại Key Groq của bạn.")
