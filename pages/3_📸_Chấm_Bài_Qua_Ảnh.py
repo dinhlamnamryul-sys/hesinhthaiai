@@ -56,4 +56,36 @@ def analyze_image_direct(api_key, image, prompt):
         response_pro = requests.post(url_pro, headers=headers, data=json.dumps(data))
         
         if response_pro.status_code == 200:
-            return response_pro.json().
+            return response_pro.json().get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', "Không có nội dung.")
+        else:
+            # Nếu cả 2 đều lỗi thì mới báo
+            return f"Lỗi kết nối: {response.text} \n(Dự phòng: {response_pro.text})"
+
+# --- 3. GIAO DIỆN ---
+uploaded_file = st.file_uploader("Tải ảnh bài làm (PNG, JPG)", type=["png", "jpg", "jpeg"])
+
+if uploaded_file and api_key:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Ảnh đã tải", use_column_width=True)
+    
+    if st.button("🔍 Phân tích ngay", type="primary"):
+        with st.spinner("Đang gửi dữ liệu sang Google..."):
+            try:
+                prompt = """
+                Bạn là giáo viên Toán. Hãy nhìn ảnh và thực hiện các bước:
+                1. Nhận diện đề bài và bài làm trong ảnh (Viết lại đề bằng công thức LaTeX chuẩn).
+                2. Chấm điểm: Kiểm tra bài làm đúng hay sai. Chỉ rõ lỗi sai nếu có.
+                3. Giải chi tiết: Viết lại lời giải đúng từng bước.
+                4. Dịch 1 câu nhận xét ngắn gọn sang tiếng H'Mông.
+                """
+                
+                result = analyze_image_direct(api_key, image, prompt)
+                
+                if "Lỗi kết nối" in result:
+                    st.error(result)
+                else:
+                    st.success("Đã xong!")
+                    st.markdown(result)
+                
+            except Exception as e:
+                st.error(f"Có lỗi xảy ra: {e}")
