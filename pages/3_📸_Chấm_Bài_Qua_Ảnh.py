@@ -17,17 +17,20 @@ if not api_key:
     st.warning("⚠️ Chưa có API Key hệ thống.")
     api_key = st.text_input("Nhập Google API Key:", type="password")
 
-# --- 2. HÀM GỌI TRỰC TIẾP (REST API) ---
+# --- 2. HÀM GỌI TRỰC TIẾP (ĐÃ SỬA LỖI ẢNH) ---
 def analyze_image_direct(api_key, image, prompt):
+    # --- SỬA LỖI RGBA: Chuyển ảnh sang chế độ màu chuẩn (RGB) ---
+    if image.mode == 'RGBA':
+        image = image.convert('RGB')
+    
     # Chuyển ảnh sang Base64
     buffered = BytesIO()
     image.save(buffered, format="JPEG")
     img_str = base64.b64encode(buffered.getvalue()).decode()
 
-    # --- SỬ DỤNG MODEL 'LATEST' ĐỂ TRÁNH LỖI 404 ---
+    # URL gọi model mới nhất
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
     
-    # Nội dung gửi đi
     headers = {'Content-Type': 'application/json'}
     data = {
         "contents": [{
@@ -41,13 +44,11 @@ def analyze_image_direct(api_key, image, prompt):
         }]
     }
 
-    # Gửi yêu cầu
     response = requests.post(url, headers=headers, data=json.dumps(data))
     
     if response.status_code == 200:
-        return response.json().get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', "Không nhận được phản hồi.")
+        return response.json().get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', "Không có phản hồi.")
     else:
-        # Nếu model flash lỗi, thử fallback sang model pro
         return f"Lỗi kết nối ({response.status_code}): {response.text}"
 
 # --- 3. GIAO DIỆN ---
@@ -68,13 +69,10 @@ if uploaded_file and api_key:
                 4. Dịch 1 câu nhận xét ngắn gọn sang tiếng H'Mông.
                 """
                 
-                # Gọi hàm trực tiếp
                 result = analyze_image_direct(api_key, image, prompt)
                 
-                # Kiểm tra nếu kết quả trả về là lỗi
                 if "Lỗi kết nối" in result:
                     st.error(result)
-                    st.info("Mẹo: Kiểm tra lại API Key xem có bị thừa khoảng trắng không.")
                 else:
                     st.success("Đã xong!")
                     st.markdown(result)
