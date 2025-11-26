@@ -88,21 +88,6 @@ st.markdown("""
         opacity: 0.9;
     }
     
-    /* 3. Style cho dòng tin tức nổi bật */
-    .news-ticker {
-        background-color: #fff3e0;
-        color: #e65100;
-        padding: 12px 20px;
-        border-radius: 10px;
-        border-left: 6px solid #ff6f00;
-        margin-bottom: 25px;
-        display: flex;
-        align-items: center;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        animation: fadeIn 1s ease-in;
-    }
-    .news-icon { font-size: 1.2rem; margin-right: 10px; }
-    
     /* Thẻ tính năng */
     .feature-card {
         background: white;
@@ -166,14 +151,6 @@ st.markdown("""
 <div class="main-header">
     <h1>🇻🇳 CỔNG GIÁO DỤC SỐ NA Ư</h1>
     <h3>"Tri thức vùng cao - Vươn xa thế giới"</h3>
-</div>
-""", unsafe_allow_html=True)
-
-# Tin tức nổi bật (Mới thêm)
-st.markdown("""
-<div class="news-ticker">
-    <span class="news-icon">🔔</span>
-    <strong>Thông báo mới:</strong>&nbsp; Chúc mừng đội tuyển Toán của trường đạt giải Nhất huyện! | Lịch thi học kỳ I sẽ bắt đầu từ tuần sau.
 </div>
 """, unsafe_allow_html=True)
 
