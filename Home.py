@@ -17,22 +17,45 @@ st.set_page_config(
     page_title="Cổng Giáo Dục Số - Trường Na Ư",
     page_icon=app_icon, 
     layout="wide",
-    initial_sidebar_state="expanded" # QUAN TRỌNG: Luôn mở rộng menu trái
+    initial_sidebar_state="expanded" # Yêu cầu mặc định mở rộng
 )
 
 # --- 2. CSS GIAO DIỆN ---
 st.markdown("""
 <style>
-    /* --- 1. KHÔI PHỤC MENU TRÁI (XÓA CÁC LỆNH ẨN CŨ) --- */
-    /* Tôi đã xóa các lệnh display: none liên quan đến Sidebar */
+    /* --- 1. CỨU HỘ MENU: ÉP BUỘC HIỆN MENU TRÁI --- */
+    section[data-testid="stSidebar"] {
+        display: block !important; /* Bắt buộc hiện */
+        visibility: visible !important;
+        width: 300px !important; /* Đảm bảo độ rộng */
+    }
+
+    /* Hiện lại nút mũi tên (góc trái trên) để đóng/mở menu */
+    button[data-testid="stSidebarCollapsedControl"] {
+        display: block !important;
+        visibility: visible !important;
+        z-index: 99999 !important; /* Nổi lên trên cùng */
+        color: #b71c1c !important; /* Tô màu đỏ cho dễ nhìn */
+    }
 
     /* --- 2. ẨN THANH CÔNG CỤ TRÊN CÙNG (HEADER) --- */
-    /* Nếu bạn muốn ẩn thanh share/github ở góc phải trên cùng thì giữ dòng dưới, nếu không thì xóa đi */
+    /* Giữ ẩn header nhưng chừa nút menu ra */
     [data-testid="stHeader"] {
+        background-color: rgba(0,0,0,0); /* Làm trong suốt nền */
+        color: transparent;
+    }
+    
+    /* Ẩn các nút Share, GitHub, 3 chấm ở góc phải */
+    [data-testid="stToolbar"] {
+        visibility: hidden !important;
+        display: none !important;
+    }
+    
+    [data-testid="stDecoration"] {
         visibility: hidden;
     }
 
-    /* --- 3. CÁC CSS TRANG TRÍ --- */
+    /* --- 3. CÁC CSS TRANG TRÍ KHÁC --- */
     .stApp { background-color: #f8f9fa; margin-bottom: 60px; }
     
     .main-header {
