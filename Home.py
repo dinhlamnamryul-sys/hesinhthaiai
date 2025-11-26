@@ -1,8 +1,7 @@
 import streamlit as st
 import os
-import time
 
-# --- 1. CẤU HÌNH TRANG WEB (Phải nằm đầu tiên) ---
+# --- 1. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
     page_title="Cổng Giáo Dục Số - Trường Na Ư",
     page_icon="🏫",
@@ -10,170 +9,92 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. HÀM ĐẾM LƯỢT TRUY CẬP ---
-def update_visit_count():
-    count_file = "visit_count.txt"
-    if not os.path.exists(count_file):
-        with open(count_file, "w") as f: f.write("5383"); return 5383
-    try:
-        with open(count_file, "r") as f: count = int(f.read().strip())
-    except: count = 5383
-    count += 1
-    with open(count_file, "w") as f: f.write(str(count))
-    return count
-
-if 'visit_count' not in st.session_state:
-    st.session_state.visit_count = update_visit_count()
-
-# --- 3. CSS TÙY CHỈNH GIAO DIỆN (ĐẸP & CHUYÊN NGHIỆP) ---
+# --- 2. CSS GIAO DIỆN ---
 st.markdown("""
 <style>
-    /* Ẩn menu mặc định */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+    /* Ẩn menu mặc định của Streamlit (để dùng menu của mình cho đẹp) */
+    [data-testid="stSidebarNav"] {display: none;}
     
     .stApp { background-color: #f8f9fa; }
-
-    /* HEADER */
+    
+    /* Header */
     .main-header {
         background: linear-gradient(135deg, #b71c1c 0%, #d32f2f 60%, #ff6f00 100%);
-        color: white;
-        padding: 30px 20px;
-        border-radius: 20px;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(183, 28, 28, 0.4);
-        border-bottom: 6px solid #fdd835;
-        margin-bottom: 20px;
-        position: relative;
-        overflow: hidden;
+        color: white; padding: 30px; border-radius: 20px; text-align: center;
+        box-shadow: 0 10px 30px rgba(183, 28, 28, 0.4); border-bottom: 6px solid #fdd835;
+        margin-bottom: 20px; position: relative; overflow: hidden;
     }
+    .main-header h1 { font-size: 2.5rem; font-weight: 900; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
     
-    /* Trang trí Header */
-    .main-header::before { content: "☁️"; font-size: 150px; opacity: 0.1; position: absolute; top: -50px; left: 20px; }
-    .main-header::after { content: "🌽"; font-size: 150px; opacity: 0.1; position: absolute; bottom: -40px; right: 20px; }
-    .main-header h1 { text-shadow: 2px 2px 5px rgba(0,0,0,0.3); font-size: 2.8rem; font-weight: 900; margin: 0; }
-    .main-header h3 { font-style: italic; font-weight: 300; margin-top: 5px; opacity: 0.95; }
-
-    /* OFFLINE BADGE */
-    .offline-badge {
-        display: inline-block; background-color: #e8f5e9; color: #2e7d32;
-        padding: 5px 15px; border-radius: 50px; font-size: 0.9rem; font-weight: bold;
-        border: 1px solid #c8e6c9; margin-bottom: 20px;
-    }
-
-    /* CARD TÍNH NĂNG */
+    /* Card tính năng */
     .feature-card {
-        background: white; padding: 20px 15px; border-radius: 20px;
-        text-align: center; border: 1px solid #f0f0f0;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-        transition: all 0.3s; height: 360px; /* Tăng chiều cao để chứa nội dung */
-        display: flex; flex-direction: column; justify-content: space-between;
+        background: white; padding: 20px; border-radius: 20px; text-align: center;
+        border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        height: 350px; display: flex; flex-direction: column; justify-content: space-between;
+        transition: transform 0.3s;
     }
-    .feature-card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-color: #ffcc80; }
+    .feature-card:hover { transform: translateY(-5px); border-color: #ff9800; }
     .icon-box { font-size: 3.5rem; margin-bottom: 10px; }
-    .card-title { color: #bf360c; font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; min-height: 50px; display: flex; align-items: center; justify-content: center;}
-    .card-desc { color: #555; font-size: 0.95rem; line-height: 1.4; margin-bottom: 15px; }
-
-    /* BUTTON */
+    .card-title { color: #d84315; font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; min-height: 50px; display: flex; align-items: center; justify-content: center;}
+    
+    /* Button */
     .stButton>button {
-        background: linear-gradient(90deg, #ef6c00, #ff9800); color: white;
-        border-radius: 30px; border: none; font-weight: 600;
-        padding: 8px 20px; width: 100%; transition: 0.2s;
+        width: 100%; border-radius: 50px; background: linear-gradient(90deg, #ff6f00, #ffca28);
+        border: none; color: white; font-weight: bold; padding: 10px 0;
+        transition: 0.2s;
     }
-    .stButton>button:hover { transform: scale(1.02); box-shadow: 0 5px 15px rgba(230, 81, 0, 0.3); }
+    .stButton>button:hover { transform: scale(1.05); }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 4. SIDEBAR ---
+# --- 3. SIDEBAR (THANH BÊN TRÁI) - ĐÃ KHÔI PHỤC ---
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2997/2997235.png", width=130) 
-    st.markdown("<h2 style='text-align: center; color: #b71c1c;'>🏫 TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h2>", unsafe_allow_html=True)
+    st.image("https://cdn-icons-png.flaticon.com/512/2997/2997235.png", width=120) 
+    st.markdown("<h3 style='text-align: center; color: #b71c1c; margin: 0;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    # --- MENU ĐIỀU HƯỚNG (BẤM LÀ CHUYỂN TRANG) ---
+    st.markdown("### 🚀 Menu Chức Năng")
+    
+    # Lưu ý: Các file này phải tồn tại trong thư mục 'pages' thì mới bấm được
+    st.page_link("Home.py", label="Trang Chủ", icon="🏠")
+    st.page_link("pages/1_Gia_Su_Toan.py", label="Gia Sư Toán AI", icon="🏔️")
+    st.page_link("pages/2_Sinh_De.py", label="Sinh Đề Tự Động", icon="⚡")
+    st.page_link("pages/3_Cham_Thi.py", label="Chấm Bài AI Vision", icon="🧿")
+    st.page_link("pages/4_Da_Phuong_Tien.py", label="Học Đa Phương Tiện", icon="📽️")
+
     st.markdown("---")
     st.write("🎵 **Giai điệu bản mường:**")
     st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3", start_time=0)
+    
+    # Bộ đếm (Giả lập)
+    if 'visit_count' not in st.session_state: st.session_state.visit_count = 5383
     st.success(f"👥 Lượt truy cập: **{st.session_state.visit_count}**")
 
-# --- 5. NỘI DUNG CHÍNH ---
+# --- 4. NỘI DUNG CHÍNH (MAIN PAGE) ---
 
-# Header
 st.markdown("""
 <div class="main-header">
     <h1>🇻🇳 CỔNG GIÁO DỤC SỐ NA Ư</h1>
     <h3>"Tri thức vùng cao - Vươn xa thế giới"</h3>
 </div>
-<center>
-    <div class="offline-badge">📶 Hệ thống đã kích hoạt Smart-Cache: Sẵn sàng hoạt động Offline</div>
-</center>
 """, unsafe_allow_html=True)
 
-# Hiệu ứng bóng bay
-if 'welcomed' not in st.session_state:
-    st.balloons()
-    st.session_state.welcomed = True
-
-# --- GRID LAYOUT 4 CỘT ---
+# Lưới 4 cột
 col1, col2, col3, col4 = st.columns(4)
 
-# CỘT 1: GIA SƯ TOÁN
 with col1:
-    st.markdown("""
-    <div class="feature-card">
-        <div>
-            <div class="icon-box">🏔️</div>
-            <div class="card-title">Gia Sư Toán AI</div>
-            <div class="card-desc">Học toán song ngữ Việt-Mông. Tích lũy bắp ngô đổi quà.</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    st.write("") 
-    if st.button("Học ngay ➜", key="btn1"):
-        st.success("Đang vào lớp học...")
+    st.markdown('<div class="feature-card"><div class="icon-box">🏔️</div><div class="card-title">Gia Sư Toán AI</div><p>Học toán song ngữ. Tích lũy bắp ngô.</p></div>', unsafe_allow_html=True)
+    st.write(""); st.page_link("pages/1_Gia_Su_Toan.py", label="Học ngay ➜", icon="📝", use_container_width=True)
 
-# CỘT 2: SINH ĐỀ
 with col2:
-    st.markdown("""
-    <div class="feature-card">
-        <div>
-            <div class="icon-box">⚡</div>
-            <div class="card-title">Sinh Đề Tốc Độ</div>
-            <div class="card-desc">Tạo đề trắc nghiệm & tự luận 3 giây. Kho đề chuẩn SGK.</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    st.write("")
-    if st.button("Tạo đề ➜", key="btn2"):
-        st.success("Đang tải dữ liệu...")
+    st.markdown('<div class="feature-card"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tạo đề trắc nghiệm trong 3 giây.</p></div>', unsafe_allow_html=True)
+    st.write(""); st.page_link("pages/2_Sinh_De.py", label="Tạo đề ➜", icon="🚀", use_container_width=True)
 
-# CỘT 3: CHẤM BÀI
 with col3:
-    st.markdown("""
-    <div class="feature-card">
-        <div>
-            <div class="icon-box">🧿</div>
-            <div class="card-title">Chấm Thi AI</div>
-            <div class="card-desc">Nhận diện chữ viết tay. Chụp ảnh bài làm, có điểm ngay.</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    st.write("")
-    if st.button("Chấm bài ➜", key="btn3"):
-        st.success("Đang bật camera...")
+    st.markdown('<div class="feature-card"><div class="icon-box">🧿</div><div class="card-title">Chấm Thi AI</div><p>Chấm điểm bằng Camera cực nhanh.</p></div>', unsafe_allow_html=True)
+    st.write(""); st.page_link("pages/3_Cham_Thi.py", label="Chấm bài ➜", icon="📸", use_container_width=True)
 
-# CỘT 4: HỌC ĐA PHƯƠNG TIỆN
 with col4:
-    st.markdown("""
-    <div class="feature-card">
-        <div>
-            <div class="icon-box">📽️</div>
-            <div class="card-title">Học Đa Phương Tiện</div>
-            <div class="card-desc">Kho video bài giảng, phim tài liệu văn hóa & sách nói.</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    st.write("")
-    if st.button("Khám phá ➜", key="btn4"):
-        st.success("Đang mở thư viện...")
-
-st.markdown("---")
-st.markdown("<div style='text-align: center; color: #888; font-size: 0.8rem;'>© 2025 Trường PTDTBT TH&THCS Na Ư</div>", unsafe_allow_html=True)
+    st.markdown('<div class="feature-card"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Video, Sách nói văn hóa H\'Mông.</p></div>', unsafe_allow_html=True)
+    st.write(""); st.page_link("pages/4_Da_Phuong_Tien.py", label="Khám phá ➜", icon="🎧", use_container_width=True)
