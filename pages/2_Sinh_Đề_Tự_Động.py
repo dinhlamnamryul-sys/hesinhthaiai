@@ -4,22 +4,24 @@ from docx import Document
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 import tempfile
-import os
+
 
 st.set_page_config(page_title="Sinh Đề KNTC Tự Động", page_icon="📝", layout="wide")
-st.title("📝 Sinh Đề Tự Động – Kết nối tri thức với cuộc sống")
+st.title("📝 Sinh Đề Tự Động – Kết nối tri thức với cuộc sống (MathML Version)")
+
 
 # --- LẤY KEY ---
 api_key = st.secrets.get("GOOGLE_API_KEY", "")
 if not api_key:
     api_key = st.text_input("Nhập Google API Key:", type="password")
 
+
 # --- DANH SÁCH LỚP / CHƯƠNG / BÀI ---
 lop_options = [f"Lớp {i}" for i in range(1, 10)]
 chuong_options = {f"Lớp {i}": [f"Chương {j}" for j in range(1, 6)] for i in range(1, 10)}
 bai_options = {f"Chương {i}": [f"Bài {j}" for j in range(1, 6)] for i in range(1, 6)}
 
-# --- GIAO DIỆN ---
+
 with st.sidebar:
     st.header("Thông tin sinh đề")
     lop = st.selectbox("Chọn lớp", lop_options)
@@ -40,6 +42,7 @@ with st.sidebar:
 
     co_dap_an = st.checkbox("Có đáp án", value=True)
 
+
 # --- HÀM GỌI AI ---
 def generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an):
     MODEL = "models/gemini-2.0-flash"
@@ -56,7 +59,7 @@ Bạn là giáo viên Toán. Hãy sinh đề kiểm tra theo sách
 - Loại câu hỏi: {loai_cau}
 - {'Có đáp án' if co_dap_an else 'Không có đáp án'}
 
-🎯 QUY ĐỊNH RÕ RÀNG:
+🎯 QUY ĐỊNH QUAN TRỌNG:
 
 1. Tất cả câu hỏi phải có dấu hỏi "?".
 2. TRẮC NGHIỆM 4 LỰA CHỌN:
@@ -68,8 +71,12 @@ Bạn là giáo viên Toán. Hãy sinh đề kiểm tra theo sách
    A. Đúng
    B. Sai
 4. CÂU TRẢ LỜI NGẮN → đáp án 1 dòng.
-5. TỰ LUẬN → trình bày bằng LaTeX khi có công thức.
-6. GIỮ ĐÚNG MẪU SAU:
+5. TỰ LUẬN → giải thích chi tiết.
+6. Công thức toán HỌC PHẢI dùng **MathML tiêu chuẩn**, KHÔNG dùng LaTeX.
+Ví dụ MathML:
+<math><mrow><msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup></mrow></math>
+
+7. MẪU BẮT BUỘC:
 
 1. Câu hỏi ... ?
 
@@ -80,9 +87,8 @@ D. ...
 
 Đáp án: ...
 
-7. Đặt đáp án sau câu hỏi cách nhau 2 dòng trống.
-8. Không sinh tiếng H'Mông.
-9. Toàn bộ công thức dùng LaTeX.
+8. Đặt đáp án cách câu hỏi 2 dòng trống.
+9. Không sinh tiếng H'Mông.
 """
 
     payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
@@ -97,31 +103,32 @@ D. ...
         return f"❌ Lỗi kết nối: {str(e)}"
 
 
-# --- TẠO FILE DOCX ---
+# --- XUẤT DOCX ---
 def export_docx(text):
     doc = Document()
     for line in text.split("\n"):
         doc.add_paragraph(line)
-    temp = tempfile.NamedTemporaryFile(delete=False, suffix=".docx")
-    doc.save(temp.name)
-    return temp.name
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".docx")
+    doc.save(tmp.name)
+    return tmp.name
 
-# --- TẠO FILE PDF ---
+
+# --- XUẤT PDF ---
 def export_pdf(text):
-    temp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-    c = canvas.Canvas(temp.name, pagesize=letter)
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+    c = canvas.Canvas(tmp.name, pagesize=letter)
     y = 750
     for line in text.split("\n"):
         c.drawString(40, y, line)
-        y -= 18
-        if y < 50:
+        y -= 16
+        if y < 40:
             c.showPage()
             y = 750
     c.save()
-    return temp.name
+    return tmp.name
 
 
-# --- HIỂN THỊ ---
+# --- NÚT SINH ĐỀ ---
 if st.button("🎯 Sinh đề ngay"):
     if not api_key:
         st.error("Thiếu API Key!")
@@ -134,28 +141,25 @@ if st.button("🎯 Sinh đề ngay"):
             else:
                 st.success("🎉 Đã tạo xong đề!")
 
-                # hiển thị lên trang web
+                # Hiển thị đề trên giao diện
                 st.markdown(result.replace("\n", "<br>"), unsafe_allow_html=True)
 
-                # --- TẠO FILE WORD ---
+                # Xuất DOCX
                 docx_file = export_docx(result)
                 with open(docx_file, "rb") as f:
                     st.download_button(
                         label="📥 Tải file DOCX",
                         data=f,
                         file_name=f"De_{lop}_{chuong}_{bai}.docx",
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
 
-                # --- TẠO FILE PDF ---
+                # Xuất PDF
                 pdf_file = export_pdf(result)
                 with open(pdf_file, "rb") as f:
                     st.download_button(
                         label="📥 Tải file PDF",
                         data=f,
                         file_name=f"De_{lop}_{chuong}_{bai}.pdf",
-                        mime="application/pdf",
+                        mime="application/pdf"
                     )
-
-                # clean temp files when session ends
-                # (streamlit tự xoá sau mỗi lần chạy)
