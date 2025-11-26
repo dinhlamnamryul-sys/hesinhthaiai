@@ -6,6 +6,11 @@ Pillow
 requests
 google-generativeai
 openai
+streamlit
+python-pptx
+moviepy
+Pillow
+opencv-python-headless
 
 
 
