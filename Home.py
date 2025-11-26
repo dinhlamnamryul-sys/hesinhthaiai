@@ -28,9 +28,10 @@ if 'visit_count' not in st.session_state:
 # --- CSS TÙY CHỈNH GIAO DIỆN (PHONG CÁCH NA Ư) ---
 st.markdown("""
 <style>
-    /* Ẩn menu mặc định của Streamlit cho gọn */
+    /* Ẩn menu mặc định và thanh header (toolbar) của Streamlit */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
+    header {visibility: hidden;} /* <-- DÒNG NÀY ĐÃ ĐƯỢC THÊM ĐỂ ẨN PHẦN KHOANH TRÒN */
     
     /* Header chính */
     .main-header {
