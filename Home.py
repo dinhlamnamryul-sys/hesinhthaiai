@@ -1,10 +1,22 @@
 import streamlit as st
 import os
+from PIL import Image # Import thêm thư viện xử lý ảnh
+
+# --- CẤU HÌNH ĐƯỜNG DẪN ẢNH LOGO ---
+# Đảm bảo file 'image_2.png' nằm CÙNG THƯ MỤC với file code này
+LOGO_PATH = "image_2.png"
+logo_image = None
+try:
+    logo_image = Image.open(LOGO_PATH)
+except FileNotFoundError:
+    st.error(f"⚠️ Không tìm thấy file ảnh '{LOGO_PATH}'. Hãy đảm bảo bạn đã lưu file ảnh vào cùng thư mục với file code.")
+    # Dùng tạm icon cũ nếu không tìm thấy ảnh
+    logo_image = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
 
 # --- 1. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
     page_title="Cổng Giáo Dục Số - Trường Na Ư",
-    page_icon="🏫",
+    page_icon=logo_image, # Dùng logo làm icon cho tab trình duyệt
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -18,7 +30,7 @@ st.markdown("""
     }
     
     [data-testid="stSidebarNav"] {display: none;}
-    .stApp { background-color: #f8f9fa; margin-bottom: 50px; } /* Thêm margin để không bị footer che */
+    .stApp { background-color: #f8f9fa; margin-bottom: 60px; } /* Tăng margin để footer không che */
     
     .main-header {
         background: linear-gradient(135deg, #b71c1c 0%, #d32f2f 60%, #ff6f00 100%);
@@ -42,6 +54,27 @@ st.markdown("""
         border: none; color: white; font-weight: bold; padding: 10px 0;
     }
     .stButton>button:hover { transform: scale(1.05); }
+
+    /* CSS cho Footer */
+    .footer {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: #fff;
+        color: #555;
+        text-align: center;
+        padding: 10px;
+        font-size: 14px;
+        border-top: 3px solid #b71c1c; /* Viền đỏ đậm hơn chút */
+        z-index: 999; /* Đảm bảo footer luôn nổi lên trên */
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+    .footer p {
+        margin: 0;
+        font-family: sans-serif;
+        line-height: 1.5;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -54,8 +87,14 @@ PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 
 # --- 3. MENU BÊN TRÁI ---
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/2997/2997235.png", width=120)
-    st.markdown("<h3 style='text-align: center; color: #b71c1c;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
+    # --- THAY ĐỔI Ở ĐÂY: Hiển thị logo mới ---
+    # Sử dụng st.image để hiển thị logo. Căn giữa bằng cách dùng các cột.
+    col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
+    with col_logo2:
+        st.image(logo_image, width=150, help="Logo Trường PTDTBT TH&THCS Na Ư")
+    # -----------------------------------------
+
+    st.markdown("<h3 style='text-align: center; color: #b71c1c; margin-top: 10px;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
     st.markdown("---")
 
     st.markdown("### 🚀 Menu Chức Năng")
@@ -114,27 +153,8 @@ with col4:
         st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
 
 # --- 5. CHÂN TRANG (FOOTER) ---
+# (CSS đã được đưa lên phần đầu để quản lý tập trung)
 st.markdown("""
-<style>
-    .footer {
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        background-color: #fff;
-        color: #555;
-        text-align: center;
-        padding: 10px;
-        font-size: 14px;
-        border-top: 2px solid #b71c1c;
-        z-index: 100;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-    }
-    .footer p {
-        margin: 0;
-        font-family: sans-serif;
-    }
-</style>
 <div class="footer">
     <p>👨‍🏫 <b>Nhóm tác giả:</b> Trường PTDTBT TH&THCS Na Ư</p>
     <p style="font-size: 12px; color: #888;">© 2025 Cổng Giáo Dục Số Na Ư</p>
