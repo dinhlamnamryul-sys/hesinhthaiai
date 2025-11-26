@@ -111,7 +111,7 @@ def app():
         with col_audio:
             st.image("https://images.unsplash.com/photo-1596464716127-f2a82984de30?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60", caption="Già làng kể chuyện bên bếp lửa")
             # Placeholder Audio (Bạn thay đường dẫn file mp3 thật vào đây)
-            st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", format='audio/mp3')
+            # st.audio("link_audio_o_day.mp3", format='audio/mp3')
             st.success("💡 Mẹo: Nhấn nút Play để nghe giọng đọc truyền cảm!")
 
     # --- TAB 2: HOA VĂN (THƯ VIỆN ẢNH) ---
@@ -138,7 +138,7 @@ def app():
     # --- TAB 3: GIAI ĐIỆU (VIDEO) ---
     with tab3:
         st.markdown("### 🎵 Âm vang núi rừng")
-        # Video Youtube demo (Bạn thay bằng video quay thực tế tại Na Ư)
+        # Video Youtube demo
         st.video("https://www.youtube.com/watch?v=ysz5S6PUM-U") 
         st.caption("Video: Hướng dẫn múa Khèn cơ bản cho học sinh nam.")
 
@@ -171,17 +171,7 @@ def app():
                 else:
                     st.error("Chưa chính xác lắm, hãy thử lại nhé!")
 
-# --- CHẠY ỨNG DỤNG ---
-if __name__ == "__main__":
-    st.set_page_config(page_title="Bảo tàng Văn hóa Số Na Ư", page_icon="🏛️", layout="wide")
-    # Giả lập Sidebar giống ảnh của bạn
-    with st.sidebar:
-        st.title("Home")
-        st.write("🗻 Gia sư Toán AI")
-        st.write("📝 Sinh đề tự động")
-        st.write("📸 Chấm bài qua ảnh")
-        st.write("---")
-        st.markdown("**🏛️ Bảo tàng văn hóa**") # Trang đang chọn
-    
-    # Gọi hàm chính
-    app()
+# Vì file này là module con trong thư mục pages, ta chỉ cần hàm app()
+# Nếu chạy độc lập để test thì bỏ comment dòng dưới:
+# if __name__ == "__main__":
+#     app()
