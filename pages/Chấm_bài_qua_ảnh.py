@@ -1,7 +1,10 @@
 import streamlit as st
-import random
+import openai
 
-# --- Dữ liệu curriculum thật: lớp 6 → lớp 9 ---
+# --- Cấu hình OpenAI ---
+openai.api_key = st.secrets.get("OPENAI_API_KEY")  # Lấy từ Streamlit Secrets
+
+# --- Curriculum: Lớp 6 → Lớp 9 ---
 curriculum = {
     'Lớp 6': {
         'Chương I. Tập hợp các số tự nhiên': [
@@ -50,7 +53,35 @@ curriculum = {
     }
 }
 
-# --- Giao diện ---
+# --- Hàm gọi OpenAI GPT để tạo câu hỏi ---
+def generate_question(lesson_name):
+    prompt = f"""
+    Bạn là giáo viên Toán dạy theo SGK Kết nối tri thức. 
+    Tạo 1 câu hỏi Toán ngắn, có đáp án, liên quan đến bài học '{lesson_name}'.
+    Trả lời theo định dạng:
+    Câu hỏi: ...
+    Đáp án: ...
+    """
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Bạn là giáo viên toán tạo câu hỏi cho học sinh."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=200
+        )
+        result = response['choices'][0]['message']['content'].strip()
+        # Tách câu hỏi và đáp án nếu có
+        parts = result.split("Đáp án:")
+        question_text = parts[0].replace("Câu hỏi:", "").strip()
+        answer_text = parts[1].strip() if len(parts) > 1 else "Học sinh tự trả lời"
+        return question_text, answer_text
+    except Exception as e:
+        return f"Lỗi khi tạo câu hỏi: {e}", ""
+
+# --- Giao diện Streamlit ---
 st.set_page_config(page_title="Toán KNTT", layout="wide")
 st.title("📘 Toán – Kết nối tri thức với cuộc sống")
 
@@ -69,20 +100,19 @@ with col1:
 with col2:
     if 'question' not in st.session_state:
         st.session_state.question = None
+        st.session_state.answer = None
 
     if load and grade and chapter and lesson:
-        # Sinh câu hỏi dựa trên tên bài
-        st.session_state.question = {
-            "text": f"Trả lời câu hỏi về bài: {lesson}",
-            "answer": "ví dụ: 42",  # placeholder, có thể để học sinh tự trả lời
-            "hintVN": f"Nội dung bài {lesson}",
-            "hintHM": f"Cov lus {lesson}"
-        }
+        st.info("Đang tạo câu hỏi, vui lòng chờ...")
+        question, answer = generate_question(lesson)
+        st.session_state.question = question
+        st.session_state.answer = answer
 
     if st.session_state.question:
-        q = st.session_state.question
-        st.write("### ❓ " + q["text"])
+        st.write("### ❓ " + st.session_state.question)
         ans = st.text_input("Nhập đáp án:", key="ans_question")
         if st.button("Kiểm tra đáp án"):
-            st.info(f"Đáp án minh họa: {q['answer']}")
-            st.info("💡 Gợi ý: " + q["hintVN"])
+            if ans.strip() == st.session_state.answer:
+                st.success("🎉 Đúng rồi!")
+            else:
+                st.info(f"Đáp án tham khảo: {st.session_state.answer}")
