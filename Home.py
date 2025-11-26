@@ -37,7 +37,7 @@ st.markdown("""
     .icon-box { font-size: 3.5rem; margin-bottom: 10px; }
     .card-title { color: #d84315; font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; min-height: 50px; display: flex; align-items: center; justify-content: center;}
     
-    /* Button giả lập */
+    /* Button */
     .stButton>button {
         width: 100%; border-radius: 50px; background: linear-gradient(90deg, #ff6f00, #ffca28);
         border: none; color: white; font-weight: bold; padding: 10px 0;
@@ -47,12 +47,14 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- KHAI BÁO TÊN FILE CHÍNH XÁC (DỰA THEO ẢNH CỦA BẠN) ---
-# Lưu ý: Tên file phải khớp từng ký tự, icon và dấu tiếng Việt
-PAGE_1 = "pages/1_🏔️_Gia_Sư_Toán_AI.py"
-PAGE_2 = "pages/2_📝_Sinh_Đề_Tự_Động.py"
-PAGE_3 = "pages/3_📷_Chấm_Bài_Qua_Ảnh.py"
-PAGE_4 = "pages/4_📘_Học_liệu_đa_phương_tiện.py"
+# --- KHAI BÁO TÊN FILE (Đã khớp chính xác với ảnh của bạn) ---
+# Lưu ý: Python phân biệt chữ Hoa/thường
+PAGE_1 = "pages/1_Gia_Sư_Toán_AI.py"
+PAGE_2 = "pages/2_Sinh_Đề_Tự_Động.py"
+PAGE_3 = "pages/3_Chấm_Bài_Qua_Ảnh.py"
+PAGE_4 = "pages/4_Học_liệu_đa_phương_tiện.py" 
+# (File 5 Văn hóa cội nguồn mình để link ở Sidebar nhé)
+PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 
 # --- 3. SIDEBAR (MENU TRÁI) ---
 with st.sidebar:
@@ -62,15 +64,15 @@ with st.sidebar:
     
     st.markdown("### 🚀 Menu Chức Năng")
     
-    # Dùng try/except để tránh lỗi sập web nếu tên file bị lệch 1 chút
-    try:
-        if st.button("🏠 Trang Chủ"): st.rerun()
-        st.page_link(PAGE_1, label="Gia Sư Toán AI", icon="🏔️")
-        st.page_link(PAGE_2, label="Sinh Đề Tự Động", icon="📝")
-        st.page_link(PAGE_3, label="Chấm Bài Qua Ảnh", icon="📷")
-        st.page_link(PAGE_4, label="Học Đa Phương Tiện", icon="📘")
-    except Exception as e:
-        st.error(f"⚠️ Lỗi tìm file: {e}")
+    # Nút bấm chuyển trang
+    if st.button("🏠 Trang Chủ"): st.rerun()
+    
+    # Kiểm tra file tồn tại rồi mới hiện link (Tránh lỗi đỏ)
+    if os.path.exists(PAGE_1): st.page_link(PAGE_1, label="Gia Sư Toán AI", icon="🏔️")
+    if os.path.exists(PAGE_2): st.page_link(PAGE_2, label="Sinh Đề Tự Động", icon="⚡")
+    if os.path.exists(PAGE_3): st.page_link(PAGE_3, label="Chấm Bài Qua Ảnh", icon="🧿")
+    if os.path.exists(PAGE_4): st.page_link(PAGE_4, label="Học Đa Phương Tiện", icon="📽️")
+    if os.path.exists(PAGE_5): st.page_link(PAGE_5, label="Văn Hóa Cội Nguồn", icon="🌽")
 
     st.markdown("---")
     if 'visit_count' not in st.session_state: st.session_state.visit_count = 5383
@@ -94,7 +96,7 @@ with col1:
     if os.path.exists(PAGE_1):
         st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
     else:
-        st.warning("⚠️ Không tìm thấy file")
+        st.error(f"⚠️ Chưa thấy file: {PAGE_1}")
 
 # CARD 2: SINH ĐỀ
 with col2:
@@ -103,7 +105,7 @@ with col2:
     if os.path.exists(PAGE_2):
         st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
     else:
-        st.warning("⚠️ Không tìm thấy file")
+        st.error(f"⚠️ Chưa thấy file: {PAGE_2}")
 
 # CARD 3: CHẤM BÀI
 with col3:
@@ -112,7 +114,7 @@ with col3:
     if os.path.exists(PAGE_3):
         st.page_link(PAGE_3, label="Chấm bài ➜", icon="📸", use_container_width=True)
     else:
-        st.warning("⚠️ Không tìm thấy file")
+        st.error(f"⚠️ Chưa thấy file: {PAGE_3}")
 
 # CARD 4: ĐA PHƯƠNG TIỆN
 with col4:
@@ -121,4 +123,4 @@ with col4:
     if os.path.exists(PAGE_4):
         st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
     else:
-        st.warning("⚠️ Không tìm thấy file")
+        st.error(f"⚠️ Chưa thấy file: {PAGE_4}")
