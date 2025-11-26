@@ -12,19 +12,14 @@ st.set_page_config(
 # --- 2. CSS GIAO DIỆN ---
 st.markdown("""
 <style>
-    /* --- CODE ẨN THANH CÔNG CỤ (CHỖ KHOANH TRÒN) --- */
+    /* Ẩn thanh công cụ Streamlit (Deploy, Menu,...) */
     [data-testid="stHeader"] {
         visibility: hidden;
     }
     
-    /* Ẩn thêm nút Deploy nếu còn sót */
-    .stDeployButton {
-        display: none;
-    }
-
-    /* --- CÁC PHẦN CŨ CỦA BẠN --- */
     [data-testid="stSidebarNav"] {display: none;}
-    .stApp { background-color: #f8f9fa; }
+    .stApp { background-color: #f8f9fa; margin-bottom: 50px; } /* Thêm margin để không bị footer che */
+    
     .main-header {
         background: linear-gradient(135deg, #b71c1c 0%, #d32f2f 60%, #ff6f00 100%);
         color: white; padding: 30px; border-radius: 20px; text-align: center;
@@ -32,6 +27,7 @@ st.markdown("""
         margin-bottom: 20px;
     }
     .main-header h1 { font-size: 2.5rem; font-weight: 900; margin: 0; }
+    
     .feature-card {
         background: white; padding: 20px; border-radius: 20px; text-align: center;
         border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -97,26 +93,50 @@ st.markdown("""
 
 col1, col2, col3, col4 = st.columns(4)
 
-# CARD 1: TOÁN
 with col1:
     st.markdown('<div class="feature-card"><div class="icon-box">🏔️</div><div class="card-title">Gia Sư Toán AI</div><p>Học toán song ngữ.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_1):
         st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
 
-# CARD 2: SINH ĐỀ
 with col2:
     st.markdown('<div class="feature-card"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tạo đề trắc nghiệm trong vài giây.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_2):
         st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
 
-# CARD 3: GIẢI BÀI TẬP TỪ ẢNH
 with col3:
     st.markdown('<div class="feature-card"><div class="icon-box">🧿</div><div class="card-title">Giải bài tập từ ảnh</div><p>Giải bài mọi môn học bằng AI.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_3):
         st.page_link(PAGE_3, label="Giải ngay ➜", icon="📸", use_container_width=True)
 
-# CARD 4: ĐA PHƯƠNG TIỆN
 with col4:
     st.markdown('<div class="feature-card"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Học liệu văn hóa H\'Mông.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_4):
         st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
+
+# --- 5. CHÂN TRANG (FOOTER) ---
+st.markdown("""
+<style>
+    .footer {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        background-color: #fff;
+        color: #555;
+        text-align: center;
+        padding: 10px;
+        font-size: 14px;
+        border-top: 2px solid #b71c1c;
+        z-index: 100;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+    .footer p {
+        margin: 0;
+        font-family: sans-serif;
+    }
+</style>
+<div class="footer">
+    <p>👨‍🏫 <b>Nhóm tác giả:</b> Trường PTDTBT TH&THCS Na Ư</p>
+    <p style="font-size: 12px; color: #888;">© 2025 Cổng Giáo Dục Số Na Ư</p>
+</div>
+""", unsafe_allow_html=True)
