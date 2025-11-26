@@ -4,4 +4,6 @@ gTTS
 google-generativeai
 python-docx
 reportlab
+matplotlib
+requests
 
