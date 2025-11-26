@@ -1,5 +1,10 @@
 import streamlit as st
 import requests
+from docx import Document
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+import tempfile
+import os
 
 st.set_page_config(page_title="Sinh Đề KNTC Tự Động", page_icon="📝", layout="wide")
 st.title("📝 Sinh Đề Tự Động – Kết nối tri thức với cuộc sống")
@@ -21,7 +26,18 @@ with st.sidebar:
     chuong = st.selectbox("Chọn chương", chuong_options[lop])
     bai = st.selectbox("Chọn bài", bai_options[chuong])
     so_cau = st.number_input("Số câu hỏi", min_value=1, max_value=50, value=10)
-    loai_cau = st.selectbox("Loại câu hỏi", ["Trắc nghiệm", "Tự luận", "Trộn cả hai"])
+
+    loai_cau = st.selectbox(
+        "Loại câu hỏi",
+        [
+            "Trắc nghiệm 4 lựa chọn",
+            "Trắc nghiệm Đúng – Sai",
+            "Câu trả lời ngắn",
+            "Tự luận",
+            "Trộn ngẫu nhiên"
+        ]
+    )
+
     co_dap_an = st.checkbox("Có đáp án", value=True)
 
 # --- HÀM GỌI AI ---
@@ -40,23 +56,21 @@ Bạn là giáo viên Toán. Hãy sinh đề kiểm tra theo sách
 - Loại câu hỏi: {loai_cau}
 - {'Có đáp án' if co_dap_an else 'Không có đáp án'}
 
-🎯 YÊU CẦU RẤT QUAN TRỌNG:
+🎯 QUY ĐỊNH RÕ RÀNG:
 
-1. Câu hỏi phải là câu hỏi HOÀN CHỈNH, có dấu hỏi "?".
-2. Với TRẮC NGHIỆM:
-   - Mỗi lựa chọn bắt buộc nằm trên **một dòng riêng**, theo đúng mẫu:
-     A. ...
-     B. ...
-     C. ...
-     D. ...
-   - Tuyệt đối KHÔNG được viết nhiều đáp án trên cùng 1 dòng.
+1. Tất cả câu hỏi phải có dấu hỏi "?".
+2. TRẮC NGHIỆM 4 LỰA CHỌN:
+   A.
+   B.
+   C.
+   D.
+3. TRẮC NGHIỆM ĐÚNG – SAI:
+   A. Đúng
+   B. Sai
+4. CÂU TRẢ LỜI NGẮN → đáp án 1 dòng.
+5. TỰ LUẬN → trình bày bằng LaTeX khi có công thức.
+6. GIỮ ĐÚNG MẪU SAU:
 
-3. Với TỰ LUẬN:
-   - Trình bày rõ ràng bằng LaTeX nếu có biểu thức.
-
-4. Đáp án phải xuống dòng, đặt dưới câu hỏi **cách nhau đúng 2 dòng trống**.
-
-MẪU CHUẨN (BẮT BUỘC):
 1. Câu hỏi ... ?
 
 A. ...
@@ -66,8 +80,9 @@ D. ...
 
 Đáp án: ...
 
-5. Không sinh tiếng H'Mông, chỉ sinh tiếng Việt.
-6. Toàn bộ công thức phải dùng LaTeX.
+7. Đặt đáp án sau câu hỏi cách nhau 2 dòng trống.
+8. Không sinh tiếng H'Mông.
+9. Toàn bộ công thức dùng LaTeX.
 """
 
     payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
@@ -80,6 +95,31 @@ D. ...
         return data["candidates"][0]["content"]["parts"][0]["text"]
     except Exception as e:
         return f"❌ Lỗi kết nối: {str(e)}"
+
+
+# --- TẠO FILE DOCX ---
+def export_docx(text):
+    doc = Document()
+    for line in text.split("\n"):
+        doc.add_paragraph(line)
+    temp = tempfile.NamedTemporaryFile(delete=False, suffix=".docx")
+    doc.save(temp.name)
+    return temp.name
+
+# --- TẠO FILE PDF ---
+def export_pdf(text):
+    temp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+    c = canvas.Canvas(temp.name, pagesize=letter)
+    y = 750
+    for line in text.split("\n"):
+        c.drawString(40, y, line)
+        y -= 18
+        if y < 50:
+            c.showPage()
+            y = 750
+    c.save()
+    return temp.name
+
 
 # --- HIỂN THỊ ---
 if st.button("🎯 Sinh đề ngay"):
@@ -94,22 +134,28 @@ if st.button("🎯 Sinh đề ngay"):
             else:
                 st.success("🎉 Đã tạo xong đề!")
 
-                # --- XỬ LÝ ĐỊNH DẠNG ---
-                formatted = result
+                # hiển thị lên trang web
+                st.markdown(result.replace("\n", "<br>"), unsafe_allow_html=True)
 
-                formatted = formatted.replace("A.", "<br><br>A.")
-                formatted = formatted.replace("B.", "<br>B.")
-                formatted = formatted.replace("C.", "<br>C.")
-                formatted = formatted.replace("D.", "<br>D.")
+                # --- TẠO FILE WORD ---
+                docx_file = export_docx(result)
+                with open(docx_file, "rb") as f:
+                    st.download_button(
+                        label="📥 Tải file DOCX",
+                        data=f,
+                        file_name=f"De_{lop}_{chuong}_{bai}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    )
 
-                formatted = formatted.replace("\n\n", "\n\n<br>\n\n")
+                # --- TẠO FILE PDF ---
+                pdf_file = export_pdf(result)
+                with open(pdf_file, "rb") as f:
+                    st.download_button(
+                        label="📥 Tải file PDF",
+                        data=f,
+                        file_name=f"De_{lop}_{chuong}_{bai}.pdf",
+                        mime="application/pdf",
+                    )
 
-                st.markdown(formatted, unsafe_allow_html=True)
-
-                # --- TẠO FILE TẢI XUỐNG ---
-                st.download_button(
-                    label="📥 Tải đề xuống máy",
-                    data=result,
-                    file_name=f"De_{lop}_{chuong}_{bai}.txt",
-                    mime="text/plain",
-                )
+                # clean temp files when session ends
+                # (streamlit tự xoá sau mỗi lần chạy)
