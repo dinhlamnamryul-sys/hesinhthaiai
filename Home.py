@@ -1,22 +1,27 @@
 import streamlit as st
 import os
-from PIL import Image # Import thêm thư viện xử lý ảnh
 
-# --- CẤU HÌNH ĐƯỜNG DẪN ẢNH LOGO ---
-# Đảm bảo file 'image_2.png' nằm CÙNG THƯ MỤC với file code này
+# --- CẤU HÌNH KIỂM TRA ẢNH AN TOÀN ---
+# Đường dẫn file ảnh logo (bạn cần upload file này lên cùng thư mục code)
 LOGO_PATH = "image_2.png"
-logo_image = None
-try:
-    logo_image = Image.open(LOGO_PATH)
-except FileNotFoundError:
-    st.error(f"⚠️ Không tìm thấy file ảnh '{LOGO_PATH}'. Hãy đảm bảo bạn đã lưu file ảnh vào cùng thư mục với file code.")
-    # Dùng tạm icon cũ nếu không tìm thấy ảnh
-    logo_image = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
+# Link ảnh dự phòng (nếu không tìm thấy file ảnh thật)
+LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
+
+# Kiểm tra xem file có tồn tại không
+if os.path.exists(LOGO_PATH):
+    app_icon = LOGO_PATH
+    sidebar_logo = LOGO_PATH
+else:
+    # Nếu không thấy ảnh, dùng link online để không bị lỗi
+    app_icon = LOGO_URL_ONLINE
+    sidebar_logo = LOGO_URL_ONLINE
+    # (Tùy chọn) Hiện thông báo nhỏ để bạn biết là đang thiếu ảnh
+    # st.toast("⚠️ Chưa tìm thấy file 'image_2.png', đang dùng logo mặc định.", icon="⚠️")
 
 # --- 1. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
     page_title="Cổng Giáo Dục Số - Trường Na Ư",
-    page_icon=logo_image, # Dùng logo làm icon cho tab trình duyệt
+    page_icon=app_icon, 
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -24,13 +29,9 @@ st.set_page_config(
 # --- 2. CSS GIAO DIỆN ---
 st.markdown("""
 <style>
-    /* Ẩn thanh công cụ Streamlit (Deploy, Menu,...) */
-    [data-testid="stHeader"] {
-        visibility: hidden;
-    }
-    
-    [data-testid="stSidebarNav"] {display: none;}
-    .stApp { background-color: #f8f9fa; margin-bottom: 60px; } /* Tăng margin để footer không che */
+    [data-testid="stHeader"] { visibility: hidden; }
+    [data-testid="stSidebarNav"] { display: none; }
+    .stApp { background-color: #f8f9fa; margin-bottom: 60px; }
     
     .main-header {
         background: linear-gradient(135deg, #b71c1c 0%, #d32f2f 60%, #ff6f00 100%);
@@ -55,26 +56,13 @@ st.markdown("""
     }
     .stButton>button:hover { transform: scale(1.05); }
 
-    /* CSS cho Footer */
     .footer {
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        background-color: #fff;
-        color: #555;
-        text-align: center;
-        padding: 10px;
-        font-size: 14px;
-        border-top: 3px solid #b71c1c; /* Viền đỏ đậm hơn chút */
-        z-index: 999; /* Đảm bảo footer luôn nổi lên trên */
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        position: fixed; left: 0; bottom: 0; width: 100%;
+        background-color: #fff; color: #555; text-align: center;
+        padding: 10px; font-size: 14px; border-top: 3px solid #b71c1c;
+        z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     }
-    .footer p {
-        margin: 0;
-        font-family: sans-serif;
-        line-height: 1.5;
-    }
+    .footer p { margin: 0; font-family: sans-serif; line-height: 1.5; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -87,39 +75,25 @@ PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 
 # --- 3. MENU BÊN TRÁI ---
 with st.sidebar:
-    # --- THAY ĐỔI Ở ĐÂY: Hiển thị logo mới ---
-    # Sử dụng st.image để hiển thị logo. Căn giữa bằng cách dùng các cột.
+    # Cột chứa Logo
     col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
     with col_logo2:
-        st.image(logo_image, width=150, help="Logo Trường PTDTBT TH&THCS Na Ư")
-    # -----------------------------------------
-
+        # Hiển thị logo (Nếu không có file thật thì hiện link online)
+        st.image(sidebar_logo, width=150)
+    
     st.markdown("<h3 style='text-align: center; color: #b71c1c; margin-top: 10px;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
     st.markdown("---")
-
     st.markdown("### 🚀 Menu Chức Năng")
 
-    if st.button("🏠 Trang Chủ"): 
-        st.rerun()
-
-    if os.path.exists(PAGE_1): 
-        st.page_link(PAGE_1, label="Gia Sư Toán AI", icon="🏔️")
-
-    if os.path.exists(PAGE_2): 
-        st.page_link(PAGE_2, label="Sinh Đề Tự Động", icon="⚡")
-
-    if os.path.exists(PAGE_3): 
-        st.page_link(PAGE_3, label="Giải bài tập từ ảnh", icon="🧿")
-
-    if os.path.exists(PAGE_4): 
-        st.page_link(PAGE_4, label="Học liệu đa phương tiện", icon="📽️")
-
-    if os.path.exists(PAGE_5): 
-        st.page_link(PAGE_5, label="Văn hóa cội nguồn", icon="🌽")
+    if st.button("🏠 Trang Chủ"): st.rerun()
+    if os.path.exists(PAGE_1): st.page_link(PAGE_1, label="Gia Sư Toán AI", icon="🏔️")
+    if os.path.exists(PAGE_2): st.page_link(PAGE_2, label="Sinh Đề Tự Động", icon="⚡")
+    if os.path.exists(PAGE_3): st.page_link(PAGE_3, label="Giải bài tập từ ảnh", icon="🧿")
+    if os.path.exists(PAGE_4): st.page_link(PAGE_4, label="Học liệu đa phương tiện", icon="📽️")
+    if os.path.exists(PAGE_5): st.page_link(PAGE_5, label="Văn hóa cội nguồn", icon="🌽")
 
     st.markdown("---")
-    if 'visit_count' not in st.session_state:
-        st.session_state.visit_count = 5383
+    if 'visit_count' not in st.session_state: st.session_state.visit_count = 5383
     st.success(f"👥 Lượt truy cập: **{st.session_state.visit_count}**")
 
 # --- 4. NỘI DUNG TRANG CHÍNH ---
@@ -134,26 +108,21 @@ col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.markdown('<div class="feature-card"><div class="icon-box">🏔️</div><div class="card-title">Gia Sư Toán AI</div><p>Học toán song ngữ.</p></div>', unsafe_allow_html=True)
-    if os.path.exists(PAGE_1):
-        st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
+    if os.path.exists(PAGE_1): st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
 
 with col2:
     st.markdown('<div class="feature-card"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tạo đề trắc nghiệm trong vài giây.</p></div>', unsafe_allow_html=True)
-    if os.path.exists(PAGE_2):
-        st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
+    if os.path.exists(PAGE_2): st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
 
 with col3:
     st.markdown('<div class="feature-card"><div class="icon-box">🧿</div><div class="card-title">Giải bài tập từ ảnh</div><p>Giải bài mọi môn học bằng AI.</p></div>', unsafe_allow_html=True)
-    if os.path.exists(PAGE_3):
-        st.page_link(PAGE_3, label="Giải ngay ➜", icon="📸", use_container_width=True)
+    if os.path.exists(PAGE_3): st.page_link(PAGE_3, label="Giải ngay ➜", icon="📸", use_container_width=True)
 
 with col4:
     st.markdown('<div class="feature-card"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Học liệu văn hóa H\'Mông.</p></div>', unsafe_allow_html=True)
-    if os.path.exists(PAGE_4):
-        st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
+    if os.path.exists(PAGE_4): st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
 
 # --- 5. CHÂN TRANG (FOOTER) ---
-# (CSS đã được đưa lên phần đầu để quản lý tập trung)
 st.markdown("""
 <div class="footer">
     <p>👨‍🏫 <b>Nhóm tác giả:</b> Trường PTDTBT TH&THCS Na Ư</p>
