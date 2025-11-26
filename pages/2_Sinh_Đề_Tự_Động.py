@@ -94,16 +94,22 @@ if st.button("🎯 Sinh đề ngay"):
             else:
                 st.success("🎉 Đã tạo xong đề!")
 
-                # --- XỬ LÝ ĐỂ MỖI ĐÁP ÁN XUỐNG DÒNG ---
+                # --- XỬ LÝ ĐỊNH DẠNG ---
                 formatted = result
 
-                # Tự động thêm <br> trước các lựa chọn nếu AI quên xuống dòng
                 formatted = formatted.replace("A.", "<br><br>A.")
                 formatted = formatted.replace("B.", "<br>B.")
                 formatted = formatted.replace("C.", "<br>C.")
                 formatted = formatted.replace("D.", "<br>D.")
 
-                # Giữ 2 dòng trống giữa câu hỏi và đáp án
                 formatted = formatted.replace("\n\n", "\n\n<br>\n\n")
 
                 st.markdown(formatted, unsafe_allow_html=True)
+
+                # --- TẠO FILE TẢI XUỐNG ---
+                st.download_button(
+                    label="📥 Tải đề xuống máy",
+                    data=result,
+                    file_name=f"De_{lop}_{chuong}_{bai}.txt",
+                    mime="text/plain",
+                )
