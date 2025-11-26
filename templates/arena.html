@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Arena Toán Mini</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<h2>Arena Toán Mini</h2>
+<div>
+    <button onclick="generateQuiz()">Bắt đầu</button>
+</div>
+<div id="quiz-container"></div>
+<div id="result"></div>
+<script>
+let currentQuiz=[];
+function generateQuiz(){
+    fetch("/generate",{method:"POST"}).then(r=>r.json()).then(data=>{
+        currentQuiz=data.quiz; renderQuiz();
+    });
+}
+function renderQuiz(){
+    const c=document.getElementById("quiz-container"); c.innerHTML="";
+    currentQuiz.forEach(q=>{
+        let div=document.createElement("div");
+        div.innerHTML=`<p>${q.question}</p>`+
+            q.options.map(opt=>`<input type="radio" name="q${q.id}" value="${opt[0]}">${opt}<br>`).join("");
+        c.appendChild(div); c.innerHTML+="<hr>";
+    });
+    c.innerHTML+=`<button onclick="submitQuiz()">Nộp bài</button>`;
+    MathJax.typeset();
+}
+function submitQuiz(){
+    let answers={};
+    currentQuiz.forEach(q=>{
+        let sel=document.querySelector(`input[name="q${q.id}"]:checked`);
+        if(sel) answers[q.id]=sel.value;
+    });
+    fetch("/submit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({answers,quiz:currentQuiz})})
+    .then(r=>r.json()).then(d=>{
+        document.getElementById("result").innerHTML=`<h3>Điểm: ${d.score} / ${d.total}</h3>`;
+    });
+}
+</script>
+</body>
+</html>
