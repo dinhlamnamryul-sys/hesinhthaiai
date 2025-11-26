@@ -12,6 +12,17 @@ st.set_page_config(
 # --- 2. CSS GIAO DIỆN ---
 st.markdown("""
 <style>
+    /* --- CODE ẨN THANH CÔNG CỤ (CHỖ KHOANH TRÒN) --- */
+    [data-testid="stHeader"] {
+        visibility: hidden;
+    }
+    
+    /* Ẩn thêm nút Deploy nếu còn sót */
+    .stDeployButton {
+        display: none;
+    }
+
+    /* --- CÁC PHẦN CŨ CỦA BẠN --- */
     [data-testid="stSidebarNav"] {display: none;}
     .stApp { background-color: #f8f9fa; }
     .main-header {
@@ -41,7 +52,7 @@ st.markdown("""
 # --- KHAI BÁO FILE TRANG ---
 PAGE_1 = "pages/1_Gia_Sư_Toán_AI.py"
 PAGE_2 = "pages/2_Sinh_Đề_Tự_Động.py"
-PAGE_3 = "pages/3_Giải_bài_tập_từ_ảnh.py"   # ✔ Đã đổi tên mới
+PAGE_3 = "pages/3_Giải_bài_tập_từ_ảnh.py"
 PAGE_4 = "pages/4_Học_liệu_đa_phương_tiện.py"
 PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 
@@ -63,7 +74,7 @@ with st.sidebar:
         st.page_link(PAGE_2, label="Sinh Đề Tự Động", icon="⚡")
 
     if os.path.exists(PAGE_3): 
-        st.page_link(PAGE_3, label="Giải bài tập từ ảnh", icon="🧿")   # ✔ Đổi tên menu
+        st.page_link(PAGE_3, label="Giải bài tập từ ảnh", icon="🧿")
 
     if os.path.exists(PAGE_4): 
         st.page_link(PAGE_4, label="Học liệu đa phương tiện", icon="📽️")
@@ -98,7 +109,7 @@ with col2:
     if os.path.exists(PAGE_2):
         st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
 
-# CARD 3: GIẢI BÀI TẬP TỪ ẢNH (✔ sửa)
+# CARD 3: GIẢI BÀI TẬP TỪ ẢNH
 with col3:
     st.markdown('<div class="feature-card"><div class="icon-box">🧿</div><div class="card-title">Giải bài tập từ ảnh</div><p>Giải bài mọi môn học bằng AI.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_3):
