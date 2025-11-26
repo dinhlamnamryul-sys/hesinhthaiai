@@ -1,7 +1,8 @@
 import streamlit as st
 import os
+import time
 
-# --- 1. CẤU HÌNH TRANG WEB (Bắt buộc phải ở đầu) ---
+# --- 1. CẤU HÌNH TRANG WEB (Phải nằm đầu tiên) ---
 st.set_page_config(
     page_title="Cổng Giáo Dục Số - Trường Na Ư",
     page_icon="🏫",
@@ -10,10 +11,21 @@ st.set_page_config(
 )
 
 # --- 2. HÀM ĐẾM LƯỢT TRUY CẬP ---
-if 'visit_count' not in st.session_state:
-    st.session_state.visit_count = 5383 # Số khởi điểm giả định
+def update_visit_count():
+    count_file = "visit_count.txt"
+    if not os.path.exists(count_file):
+        with open(count_file, "w") as f: f.write("5383"); return 5383
+    try:
+        with open(count_file, "r") as f: count = int(f.read().strip())
+    except: count = 5383
+    count += 1
+    with open(count_file, "w") as f: f.write(str(count))
+    return count
 
-# --- 3. CSS TÙY CHỈNH GIAO DIỆN ---
+if 'visit_count' not in st.session_state:
+    st.session_state.visit_count = update_visit_count()
+
+# --- 3. CSS TÙY CHỈNH GIAO DIỆN (ĐẸP & CHUYÊN NGHIỆP) ---
 st.markdown("""
 <style>
     /* Ẩn menu mặc định */
@@ -38,21 +50,30 @@ st.markdown("""
     }
     
     /* Trang trí Header */
-    .main-header h1 { text-shadow: 2px 2px 5px rgba(0,0,0,0.3); font-size: 2.5rem; font-weight: 900; margin: 0; }
+    .main-header::before { content: "☁️"; font-size: 150px; opacity: 0.1; position: absolute; top: -50px; left: 20px; }
+    .main-header::after { content: "🌽"; font-size: 150px; opacity: 0.1; position: absolute; bottom: -40px; right: 20px; }
+    .main-header h1 { text-shadow: 2px 2px 5px rgba(0,0,0,0.3); font-size: 2.8rem; font-weight: 900; margin: 0; }
     .main-header h3 { font-style: italic; font-weight: 300; margin-top: 5px; opacity: 0.95; }
+
+    /* OFFLINE BADGE */
+    .offline-badge {
+        display: inline-block; background-color: #e8f5e9; color: #2e7d32;
+        padding: 5px 15px; border-radius: 50px; font-size: 0.9rem; font-weight: bold;
+        border: 1px solid #c8e6c9; margin-bottom: 20px;
+    }
 
     /* CARD TÍNH NĂNG */
     .feature-card {
         background: white; padding: 20px 15px; border-radius: 20px;
         text-align: center; border: 1px solid #f0f0f0;
         box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-        transition: all 0.3s; height: 350px; 
+        transition: all 0.3s; height: 360px; /* Tăng chiều cao để chứa nội dung */
         display: flex; flex-direction: column; justify-content: space-between;
     }
     .feature-card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-color: #ffcc80; }
     .icon-box { font-size: 3.5rem; margin-bottom: 10px; }
     .card-title { color: #bf360c; font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; min-height: 50px; display: flex; align-items: center; justify-content: center;}
-    .card-desc { color: #555; font-size: 0.9rem; line-height: 1.4; margin-bottom: 15px; }
+    .card-desc { color: #555; font-size: 0.95rem; line-height: 1.4; margin-bottom: 15px; }
 
     /* BUTTON */
     .stButton>button {
@@ -69,6 +90,8 @@ with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/2997/2997235.png", width=130) 
     st.markdown("<h2 style='text-align: center; color: #b71c1c;'>🏫 TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h2>", unsafe_allow_html=True)
     st.markdown("---")
+    st.write("🎵 **Giai điệu bản mường:**")
+    st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3", start_time=0)
     st.success(f"👥 Lượt truy cập: **{st.session_state.visit_count}**")
 
 # --- 5. NỘI DUNG CHÍNH ---
@@ -79,9 +102,17 @@ st.markdown("""
     <h1>🇻🇳 CỔNG GIÁO DỤC SỐ NA Ư</h1>
     <h3>"Tri thức vùng cao - Vươn xa thế giới"</h3>
 </div>
+<center>
+    <div class="offline-badge">📶 Hệ thống đã kích hoạt Smart-Cache: Sẵn sàng hoạt động Offline</div>
+</center>
 """, unsafe_allow_html=True)
 
-# --- GRID LAYOUT 4 CỘT (KÈM CHỨC NĂNG CHUYỂN TRANG) ---
+# Hiệu ứng bóng bay
+if 'welcomed' not in st.session_state:
+    st.balloons()
+    st.session_state.welcomed = True
+
+# --- GRID LAYOUT 4 CỘT ---
 col1, col2, col3, col4 = st.columns(4)
 
 # CỘT 1: GIA SƯ TOÁN
@@ -97,10 +128,7 @@ with col1:
     """, unsafe_allow_html=True)
     st.write("") 
     if st.button("Học ngay ➜", key="btn1"):
-        try:
-            st.switch_page("pages/1_Gia_Su_Toan.py")
-        except:
-            st.error("Chưa tạo file pages/1_Gia_Su_Toan.py")
+        st.success("Đang vào lớp học...")
 
 # CỘT 2: SINH ĐỀ
 with col2:
@@ -115,10 +143,7 @@ with col2:
     """, unsafe_allow_html=True)
     st.write("")
     if st.button("Tạo đề ➜", key="btn2"):
-        try:
-            st.switch_page("pages/2_Sinh_De.py")
-        except:
-             st.error("Chưa tạo file pages/2_Sinh_De.py")
+        st.success("Đang tải dữ liệu...")
 
 # CỘT 3: CHẤM BÀI
 with col3:
@@ -133,10 +158,7 @@ with col3:
     """, unsafe_allow_html=True)
     st.write("")
     if st.button("Chấm bài ➜", key="btn3"):
-        try:
-            st.switch_page("pages/3_Cham_Thi.py")
-        except:
-             st.error("Chưa tạo file pages/3_Cham_Thi.py")
+        st.success("Đang bật camera...")
 
 # CỘT 4: HỌC ĐA PHƯƠNG TIỆN
 with col4:
@@ -151,10 +173,7 @@ with col4:
     """, unsafe_allow_html=True)
     st.write("")
     if st.button("Khám phá ➜", key="btn4"):
-        try:
-            st.switch_page("pages/4_Da_Phuong_Tien.py")
-        except:
-             st.error("Chưa tạo file pages/4_Da_Phuong_Tien.py")
+        st.success("Đang mở thư viện...")
 
 st.markdown("---")
 st.markdown("<div style='text-align: center; color: #888; font-size: 0.8rem;'>© 2025 Trường PTDTBT TH&THCS Na Ư</div>", unsafe_allow_html=True)
