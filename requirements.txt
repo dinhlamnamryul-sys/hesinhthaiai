@@ -5,5 +5,7 @@ deep-translator
 Pillow
 requests
 google-generativeai
+openai
+
 
 
