@@ -11,8 +11,6 @@ python-pptx
 moviepy
 Pillow
 opencv-python-headless
-streamlit
-google-generativeai>=0.15.0
-Pillow
+
 
 
