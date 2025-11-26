@@ -12,7 +12,7 @@ st.set_page_config(
 # --- 2. CSS GIAO DIỆN ---
 st.markdown("""
 <style>
-    /* Ẩn menu mặc định của Streamlit (để dùng menu của mình cho đẹp) */
+    /* Ẩn menu mặc định */
     [data-testid="stSidebarNav"] {display: none;}
     
     .stApp { background-color: #f8f9fa; }
@@ -37,7 +37,7 @@ st.markdown("""
     .icon-box { font-size: 3.5rem; margin-bottom: 10px; }
     .card-title { color: #d84315; font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; min-height: 50px; display: flex; align-items: center; justify-content: center;}
     
-    /* Button */
+    /* Button giả lập */
     .stButton>button {
         width: 100%; border-radius: 50px; background: linear-gradient(90deg, #ff6f00, #ffca28);
         border: none; color: white; font-weight: bold; padding: 10px 0;
@@ -47,31 +47,36 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. SIDEBAR (THANH BÊN TRÁI) - ĐÃ KHÔI PHỤC ---
+# --- KHAI BÁO TÊN FILE CHÍNH XÁC (DỰA THEO ẢNH CỦA BẠN) ---
+# Lưu ý: Tên file phải khớp từng ký tự, icon và dấu tiếng Việt
+PAGE_1 = "pages/1_🏔️_Gia_Sư_Toán_AI.py"
+PAGE_2 = "pages/2_📝_Sinh_Đề_Tự_Động.py"
+PAGE_3 = "pages/3_📷_Chấm_Bài_Qua_Ảnh.py"
+PAGE_4 = "pages/4_📘_Học_liệu_đa_phương_tiện.py"
+
+# --- 3. SIDEBAR (MENU TRÁI) ---
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/2997/2997235.png", width=120) 
     st.markdown("<h3 style='text-align: center; color: #b71c1c; margin: 0;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
     st.markdown("---")
     
-    # --- MENU ĐIỀU HƯỚNG (BẤM LÀ CHUYỂN TRANG) ---
     st.markdown("### 🚀 Menu Chức Năng")
     
-    # Lưu ý: Các file này phải tồn tại trong thư mục 'pages' thì mới bấm được
-    st.page_link("Home.py", label="Trang Chủ", icon="🏠")
-    st.page_link("pages/1_Gia_Su_Toan.py", label="Gia Sư Toán AI", icon="🏔️")
-    st.page_link("pages/2_Sinh_De.py", label="Sinh Đề Tự Động", icon="⚡")
-    st.page_link("pages/3_Cham_Thi.py", label="Chấm Bài AI Vision", icon="🧿")
-    st.page_link("pages/4_Da_Phuong_Tien.py", label="Học Đa Phương Tiện", icon="📽️")
+    # Dùng try/except để tránh lỗi sập web nếu tên file bị lệch 1 chút
+    try:
+        if st.button("🏠 Trang Chủ"): st.rerun()
+        st.page_link(PAGE_1, label="Gia Sư Toán AI", icon="🏔️")
+        st.page_link(PAGE_2, label="Sinh Đề Tự Động", icon="📝")
+        st.page_link(PAGE_3, label="Chấm Bài Qua Ảnh", icon="📷")
+        st.page_link(PAGE_4, label="Học Đa Phương Tiện", icon="📘")
+    except Exception as e:
+        st.error(f"⚠️ Lỗi tìm file: {e}")
 
     st.markdown("---")
-    st.write("🎵 **Giai điệu bản mường:**")
-    st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3", start_time=0)
-    
-    # Bộ đếm (Giả lập)
     if 'visit_count' not in st.session_state: st.session_state.visit_count = 5383
     st.success(f"👥 Lượt truy cập: **{st.session_state.visit_count}**")
 
-# --- 4. NỘI DUNG CHÍNH (MAIN PAGE) ---
+# --- 4. NỘI DUNG CHÍNH ---
 
 st.markdown("""
 <div class="main-header">
@@ -80,21 +85,40 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Lưới 4 cột
 col1, col2, col3, col4 = st.columns(4)
 
+# CARD 1: TOÁN
 with col1:
     st.markdown('<div class="feature-card"><div class="icon-box">🏔️</div><div class="card-title">Gia Sư Toán AI</div><p>Học toán song ngữ. Tích lũy bắp ngô.</p></div>', unsafe_allow_html=True)
-    st.write(""); st.page_link("pages/1_Gia_Su_Toan.py", label="Học ngay ➜", icon="📝", use_container_width=True)
+    st.write("")
+    if os.path.exists(PAGE_1):
+        st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
+    else:
+        st.warning("⚠️ Không tìm thấy file")
 
+# CARD 2: SINH ĐỀ
 with col2:
     st.markdown('<div class="feature-card"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tạo đề trắc nghiệm trong 3 giây.</p></div>', unsafe_allow_html=True)
-    st.write(""); st.page_link("pages/2_Sinh_De.py", label="Tạo đề ➜", icon="🚀", use_container_width=True)
+    st.write("")
+    if os.path.exists(PAGE_2):
+        st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
+    else:
+        st.warning("⚠️ Không tìm thấy file")
 
+# CARD 3: CHẤM BÀI
 with col3:
     st.markdown('<div class="feature-card"><div class="icon-box">🧿</div><div class="card-title">Chấm Thi AI</div><p>Chấm điểm bằng Camera cực nhanh.</p></div>', unsafe_allow_html=True)
-    st.write(""); st.page_link("pages/3_Cham_Thi.py", label="Chấm bài ➜", icon="📸", use_container_width=True)
+    st.write("")
+    if os.path.exists(PAGE_3):
+        st.page_link(PAGE_3, label="Chấm bài ➜", icon="📸", use_container_width=True)
+    else:
+        st.warning("⚠️ Không tìm thấy file")
 
+# CARD 4: ĐA PHƯƠNG TIỆN
 with col4:
     st.markdown('<div class="feature-card"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Video, Sách nói văn hóa H\'Mông.</p></div>', unsafe_allow_html=True)
-    st.write(""); st.page_link("pages/4_Da_Phuong_Tien.py", label="Khám phá ➜", icon="🎧", use_container_width=True)
+    st.write("")
+    if os.path.exists(PAGE_4):
+        st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
+    else:
+        st.warning("⚠️ Không tìm thấy file")
