@@ -2,9 +2,8 @@ import streamlit as st
 import os
 
 # --- CẤU HÌNH KIỂM TRA ẢNH AN TOÀN ---
-# Đường dẫn file ảnh logo (bạn cần upload file này lên cùng thư mục code)
-LOGO_PATH = "image_2.png"
-# Link ảnh dự phòng (nếu không tìm thấy file ảnh thật)
+# ⚠️ ĐÃ SỬA: Cập nhật đúng tên file thực tế của bạn trên GitHub
+LOGO_PATH = "image_2.png.jpg" 
 LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
 
 # Kiểm tra xem file có tồn tại không
@@ -15,8 +14,6 @@ else:
     # Nếu không thấy ảnh, dùng link online để không bị lỗi
     app_icon = LOGO_URL_ONLINE
     sidebar_logo = LOGO_URL_ONLINE
-    # (Tùy chọn) Hiện thông báo nhỏ để bạn biết là đang thiếu ảnh
-    # st.toast("⚠️ Chưa tìm thấy file 'image_2.png', đang dùng logo mặc định.", icon="⚠️")
 
 # --- 1. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
@@ -78,7 +75,7 @@ with st.sidebar:
     # Cột chứa Logo
     col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
     with col_logo2:
-        # Hiển thị logo (Nếu không có file thật thì hiện link online)
+        # Hiển thị logo 
         st.image(sidebar_logo, width=150)
     
     st.markdown("<h3 style='text-align: center; color: #b71c1c; margin-top: 10px;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
