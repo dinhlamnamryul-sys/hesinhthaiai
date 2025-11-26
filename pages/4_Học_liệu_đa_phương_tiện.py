@@ -1,108 +1,80 @@
 import streamlit as st
-import base64
-from pptx import Presentation
-from pptx.util import Inches, Pt
-from moviepy.editor import TextClip, ImageClip, CompositeVideoClip
-import os
-from io import BytesIO
+import google.generativeai as genai
 from PIL import Image
+import base64
+import io
 
+# ==========================
+# Google API Setup
+# ==========================
+genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 
-st.set_page_config(page_title="Hỗ trợ giáo viên soạn giảng AI", layout="wide")
-
-st.title("🎓 Hỗ trợ giáo viên soạn giảng bằng AI")
-st.write("Tạo hình ảnh – video – slide bài giảng nhanh chóng và dễ dàng.")
+st.set_page_config(page_title="AI Hỗ trợ giáo viên", layout="wide")
+st.title("🎓 AI hỗ trợ giáo viên tạo hình ảnh và video")
 
 menu = st.sidebar.radio(
     "Chọn chức năng",
-    ["Tạo hình minh hoạ", "Tạo video từ văn bản", "Tạo slide bài giảng"]
+    ["Tạo hình minh hoạ", "Tạo video AI"]
 )
 
-
-# ================================
-# 1. IMAGE GENERATOR (AI Placeholder)
-# ================================
+# ======================================================
+# 1. IMAGE GENERATOR — GOOGLE IMAGEN
+# ======================================================
 if menu == "Tạo hình minh hoạ":
-    st.header("🖼️ Tạo hình minh hoạ cho bài giảng")
-    prompt = st.text_input("Nhập mô tả hình ảnh cần tạo")
+    st.header("🖼️ Tạo hình minh hoạ bằng Google Imagen 2")
 
-    if st.button("Tạo ảnh"):
+    prompt = st.text_input("Nhập mô tả hình ảnh:")
+    if st.button("Tạo hình ảnh"):
         if not prompt.strip():
-            st.warning("Hãy nhập mô tả trước nhé!")
+            st.warning("Bạn phải nhập mô tả!")
         else:
-            # Placeholder: tạo ảnh đơn giản (không dùng AI thật)
-            img = Image.new("RGB", (800, 500), color=(240, 240, 240))
-            st.image(img, caption="Ảnh minh họa (sample)")
-            st.info("Bạn có thể tích hợp API OpenAI hoặc Stable Diffusion để tạo ảnh thật!")
+            st.info("⏳ Đang tạo hình ảnh bằng Google AI…")
 
+            img = genai.GenerativeModel("imagen-2.0").generate_image(
+                prompt=prompt
+            )
 
+            # Chuyển base64 → ảnh
+            image_bytes = base64.b64decode(img.images[0])
+            image = Image.open(io.BytesIO(image_bytes))
 
-# ================================
-# 2. VIDEO GENERATOR FROM TEXT
-# ================================
-elif menu == "Tạo video từ văn bản":
-    st.header("🎬 Tạo video bài giảng từ văn bản")
-
-    text = st.text_area("Nhập nội dung bài giảng (sẽ hiển thị trong video)", height=200)
-
-    if st.button("Tạo video"):
-        if not text.strip():
-            st.warning("Hãy nhập văn bản!")
-        else:
-            st.info("Đang tạo video… vui lòng chờ")
-
-            clip = TextClip(text, fontsize=40, color='white', bg_color='black', size=(1280, 720))
-            clip = clip.set_duration(6)
-
-            video_path = "output_video.mp4"
-            clip.write_videofile(video_path, fps=24)
-
-            with open(video_path, "rb") as f:
-                st.video(f.read())
-                st.download_button("Tải xuống video", data=f, file_name="video_bai_giang.mp4")
-
-            os.remove(video_path)
-
-
-
-# ================================
-# 3. SLIDE GENERATOR
-# ================================
-elif menu == "Tạo slide bài giảng":
-    st.header("📑 Tạo slide bài giảng (.pptx)")
-
-    title = st.text_input("Tiêu đề bài giảng")
-    content = st.text_area("Nội dung chính mỗi slide (mỗi dòng = 1 slide)", height=200)
-
-    if st.button("Tạo slide"):
-        if not title or not content.strip():
-            st.warning("Nhập đủ tiêu đề và nội dung.")
-        else:
-            prs = Presentation()
-
-            # Slide tiêu đề
-            slide_layout = prs.slide_layouts[0]
-            slide = prs.slides.add_slide(slide_layout)
-            slide.shapes.title.text = title
-            slide.placeholders[1].text = "Bài giảng được tạo tự động bằng AI"
-
-            # Slide nội dung
-            for line in content.split("\n"):
-                if line.strip() == "":
-                    continue
-
-                slide_layout = prs.slide_layouts[1]
-                slide = prs.slides.add_slide(slide_layout)
-                slide.shapes.title.text = line[:40]  # Title = first 40 chars
-                body = slide.placeholders[1].text = line
-
-            # Xuất file
-            output = BytesIO()
-            prs.save(output)
-            st.success("Tạo slide thành công!")
+            st.image(image, caption="Kết quả AI tạo", use_column_width=True)
 
             st.download_button(
-                "Tải file PPTX",
-                data=output.getvalue(),
-                file_name="slide_bai_giang.pptx"
+                "Tải ảnh xuống",
+                data=image_bytes,
+                file_name="ai_image.png",
+                mime="image/png"
+            )
+
+# ======================================================
+# 2. VIDEO GENERATOR — GOOGLE VIDEOFX
+# ======================================================
+elif menu == "Tạo video AI":
+    st.header("🎬 Tạo video từ mô tả bằng Google VideoFX")
+
+    prompt = st.text_area("Nhập mô tả video (prompt):", height=150)
+
+    if st.button("Tạo video"):
+        if not prompt.strip():
+            st.warning("Bạn phải nhập mô tả!")
+        else:
+            st.info("⏳ Google đang tạo video (khoảng 5–15 giây)…")
+
+            model = genai.GenerativeModel("veo-2.0")  # Model video mới nhất
+
+            result = model.generate_video(
+                prompt=prompt,
+                duration_seconds=5  # video ngắn, đủ minh họa bài giảng
+            )
+
+            video_bytes = result.video
+
+            st.video(video_bytes)
+
+            st.download_button(
+                "Tải video",
+                data=video_bytes,
+                file_name="ai_video.mp4",
+                mime="video/mp4"
             )
