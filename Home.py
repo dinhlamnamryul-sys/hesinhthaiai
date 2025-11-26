@@ -2,16 +2,13 @@ import streamlit as st
 import os
 
 # --- CẤU HÌNH KIỂM TRA ẢNH AN TOÀN ---
-# ⚠️ ĐÃ SỬA: Cập nhật đúng tên file thực tế của bạn trên GitHub là .png.png
 LOGO_PATH = "image_2.png.png" 
 LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
 
-# Kiểm tra xem file có tồn tại không
 if os.path.exists(LOGO_PATH):
     app_icon = LOGO_PATH
     sidebar_logo = LOGO_PATH
 else:
-    # Nếu không thấy ảnh, dùng link online để không bị lỗi
     app_icon = LOGO_URL_ONLINE
     sidebar_logo = LOGO_URL_ONLINE
 
@@ -20,14 +17,22 @@ st.set_page_config(
     page_title="Cổng Giáo Dục Số - Trường Na Ư",
     page_icon=app_icon, 
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded" # QUAN TRỌNG: Luôn mở rộng menu trái
 )
 
 # --- 2. CSS GIAO DIỆN ---
 st.markdown("""
 <style>
-    [data-testid="stHeader"] { visibility: hidden; }
-    [data-testid="stSidebarNav"] { display: none; }
+    /* --- 1. KHÔI PHỤC MENU TRÁI (XÓA CÁC LỆNH ẨN CŨ) --- */
+    /* Tôi đã xóa các lệnh display: none liên quan đến Sidebar */
+
+    /* --- 2. ẨN THANH CÔNG CỤ TRÊN CÙNG (HEADER) --- */
+    /* Nếu bạn muốn ẩn thanh share/github ở góc phải trên cùng thì giữ dòng dưới, nếu không thì xóa đi */
+    [data-testid="stHeader"] {
+        visibility: hidden;
+    }
+
+    /* --- 3. CÁC CSS TRANG TRÍ --- */
     .stApp { background-color: #f8f9fa; margin-bottom: 60px; }
     
     .main-header {
@@ -70,12 +75,11 @@ PAGE_3 = "pages/3_Giải_bài_tập_từ_ảnh.py"
 PAGE_4 = "pages/4_Học_liệu_đa_phương_tiện.py"
 PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 
-# --- 3. MENU BÊN TRÁI ---
+# --- 3. MENU BÊN TRÁI (HIỂN THỊ LẠI) ---
 with st.sidebar:
     # Cột chứa Logo
     col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
     with col_logo2:
-        # Hiển thị logo 
         st.image(sidebar_logo, width=150)
     
     st.markdown("<h3 style='text-align: center; color: #b71c1c; margin-top: 10px;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
