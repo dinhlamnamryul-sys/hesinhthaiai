@@ -2,8 +2,8 @@ import streamlit as st
 import os
 
 # --- CẤU HÌNH KIỂM TRA ẢNH AN TOÀN ---
-# ⚠️ ĐÃ SỬA: Cập nhật đúng tên file thực tế của bạn trên GitHub
-LOGO_PATH = "image_2.png.jpg" 
+# ⚠️ ĐÃ SỬA: Cập nhật đúng tên file thực tế của bạn trên GitHub là .png.png
+LOGO_PATH = "image_2.png.png" 
 LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
 
 # Kiểm tra xem file có tồn tại không
