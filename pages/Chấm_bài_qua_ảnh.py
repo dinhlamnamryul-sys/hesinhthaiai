@@ -6,12 +6,21 @@ import os
 # --- ĐỌC KHUNG TOÁN ---
 CUR_FILE = "curriculum.json"
 
+# Nếu chưa có file curriculum.json → tạo mặc định từ lớp 1 đến lớp 9
 if not os.path.exists(CUR_FILE):
-    st.error(f"Không tìm thấy {CUR_FILE}. Vui lòng tạo file cấu trúc trước.")
-    st.stop()
-
-with open(CUR_FILE, "r", encoding="utf8") as f:
-    curriculum = json.load(f)
+    curriculum = {}
+    for grade in range(1, 10):  # Lớp 1 → lớp 9
+        curriculum[f"Lớp {grade}"] = {
+            f"Chương {i+1}": [f"Bài {j+1}" for j in range(5)]  # Mỗi chương 5 bài ví dụ
+            for i in range(3)  # Mỗi lớp 3 chương ví dụ
+        }
+    # Lưu vào file JSON
+    with open(CUR_FILE, "w", encoding="utf8") as f:
+        json.dump(curriculum, f, ensure_ascii=False, indent=2)
+    st.info(f"File {CUR_FILE} chưa tồn tại. Đã tạo khung Toán từ lớp 1 đến lớp 9 mặc định.")
+else:
+    with open(CUR_FILE, "r", encoding="utf8") as f:
+        curriculum = json.load(f)
 
 # --- GIAO DIỆN ---
 st.set_page_config(page_title="Toán – Kết nối tri thức", layout="wide")
@@ -39,9 +48,6 @@ with col2:
 
     if load and grade and chapter and lesson:
         # TẠM: tạo 1 câu hỏi ngẫu nhiên đơn giản (ví dụ cộng trừ)
-        # Trong tương lai bạn / nhóm có thể thêm bộ câu hỏi cho mỗi bài
-        # Ví dụ: nếu chủ đề là "Các số 0 đến 10" → sinh đếm, so sánh số, ...
-        # Ở đây: sinh phép cộng 2 số nhỏ để minh hoạ
         a = random.randint(0, 10)
         b = random.randint(0, 10)
         st.session_state.question = {
