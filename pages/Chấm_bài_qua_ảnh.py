@@ -1,106 +1,88 @@
 import streamlit as st
-import json
 import random
-import os
 
-# --- FILE CURRICULUM ---
-CUR_FILE = "curriculum.json"
+# --- Dữ liệu curriculum thật: lớp 6 → lớp 9 ---
+curriculum = {
+    'Lớp 6': {
+        'Chương I. Tập hợp các số tự nhiên': [
+            'Bài 1: Tập hợp', 'Bài 2: Cách ghi số tự nhiên', 'Bài 3: Thứ tự trong tập hợp các số tự nhiên',
+            'Bài 4: Phép cộng và phép trừ số tự nhiên', 'Bài 5: Phép nhân và phép chia số tự nhiên',
+            'Bài 6: Lũy thừa với số mũ tự nhiên', 'Bài 7: Thứ tự thực hiện các phép tính',
+            'Luyện tập chung', 'Bài tập cuối chương I'
+        ],
+        'Chương II. Tính chia hết trong tập hợp các số tự nhiên': [
+            'Bài 8: Quan hệ chia hết và tính chất', 'Bài 9: Dấu hiệu chia hết', 'Bài 10: Số nguyên tố',
+            'Bài 11: ƯCLN', 'Bài 12: BCNN', 'Luyện tập chung', 'Bài tập cuối chương II'
+        ]
+    },
+    'Lớp 7': {
+        'Chương I. Số hữu tỉ': [
+            'Bài 1: Tập hợp các số hữu tỉ', 'Bài 2: Cộng, trừ, nhân, chia số hữu tỉ',
+            'Bài 3: Lũy thừa của số hữu tỉ', 'Bài 4: Thứ tự thực hiện phép tính & quy tắc chuyển vế',
+            'Luyện tập / bài tập cuối chương'
+        ],
+        'Chương II. Số thực': [
+            'Bài 5: Làm quen với số thập phân vô hạn tuần hoàn',
+            'Bài 6: Số vô tỉ và căn bậc hai số học',
+            'Bài 7: Tập hợp các số thực'
+        ]
+    },
+    'Lớp 8': {
+        'Tập 1 – Chương I. Đa thức': [
+            'Bài 1: Đơn thức', 'Bài 2: Đa thức', 'Bài 3: Phép cộng & trừ đa thức',
+            'Bài 4: Phép nhân đa thức', 'Bài 5: Phép chia đa thức cho đơn thức',
+            'Luyện tập chung & bài tập cuối chương'
+        ],
+        'Tập 2 – Chương VI. Phân thức đại số': [
+            'Bài 21: Phân thức đại số', 'Bài 22: Tính chất cơ bản', 'Bài 23: Phép cộng và trừ phân thức',
+            'Bài 24: Phép nhân và chia phân thức', 'Luyện tập chung', 'Bài tập cuối chương VI'
+        ]
+    },
+    'Lớp 9': {
+        'Tập 1': [
+            'Chương I: Phương trình và hệ hai phương trình bậc nhất hai ẩn',
+            'Bài 1: Khái niệm phương trình và hệ hai phương trình bậc nhất hai ẩn',
+            'Bài 2: Giải hệ hai phương trình bậc nhất hai ẩn'
+        ],
+        'Tập 2': [
+            'Chương VI: Hàm số y = ax^2', 'Bài 18: Hàm số y = ax^2', 'Bài 19: Phương trình bậc hai một ẩn'
+        ]
+    }
+}
 
-# Nếu chưa có file → tạo khung mặc định Lớp 1→9
-if not os.path.exists(CUR_FILE):
-    curriculum = {}
-    for grade in range(1, 10):
-        curriculum[f"Lớp {grade}"] = {
-            f"Chương {i+1}": [f"Bài {j+1}" for j in range(5)]
-            for i in range(3)
-        }
-    with open(CUR_FILE, "w", encoding="utf8") as f:
-        json.dump(curriculum, f, ensure_ascii=False, indent=2)
-    st.info(f"File {CUR_FILE} chưa tồn tại. Đã tạo khung Toán từ lớp 1 đến lớp 9 mặc định.")
-else:
-    with open(CUR_FILE, "r", encoding="utf8") as f:
-        curriculum = json.load(f)
+# --- Giao diện ---
+st.set_page_config(page_title="Toán KNTT", layout="wide")
+st.title("📘 Toán – Kết nối tri thức với cuộc sống")
 
-# --- GIAO DIỆN ---
-st.set_page_config(page_title="Toán – Kết nối tri thức", layout="wide")
-st.title("📘 Toán – Bộ SGK \"Kết nối tri thức với cuộc sống\"")
-
-# --- TẠO CỘT ---
 col1, col2 = st.columns([1, 2])
 
-# ------------------ CỘT 1: Chọn lớp/chương/bài ------------------
 with col1:
-    st.subheader("📚 Chọn bài học")
-
     grade = st.selectbox("Lớp:", [""] + list(curriculum.keys()))
-
-    # --- Câu hỏi xác nhận lớp ---
-    if grade and 'grade_question' not in st.session_state:
-        st.session_state.grade_question = {
-            "text": f"Bạn có học {grade} KNTT không?",
-            "answer": "có",
-            "hintVN": f"Hãy xác nhận bạn đang học {grade}.",
-            "hintHM": f"Xav tau koj kawm {grade}."
-        }
-        st.session_state.grade_confirmed = False
-
-    # Hiển thị câu hỏi lớp
-    if grade and st.session_state.grade_question and not st.session_state.get('grade_confirmed', False):
-        qg = st.session_state.grade_question
-        ans_grade = st.text_input("Nhập đáp án:", key="ans_grade")
-        if st.button("Kiểm tra lớp"):
-            if ans_grade.strip().lower() == qg["answer"]:
-                st.success(f"🎉 Đúng rồi! Bạn thuộc {grade}")
-                st.session_state.grade_confirmed = True
-            else:
-                st.error("❌ Sai rồi.")
-                st.info("💡 Gợi ý: " + qg["hintVN"])
-                st.warning("🧠 H'Mông: " + qg["hintHM"])
-
-    # Chỉ cho chọn chương/bài khi đã xác nhận lớp
-    if st.session_state.get('grade_confirmed', False):
+    chapter = None
+    lesson = None
+    if grade:
         chapter = st.selectbox("Chương / Tập:", [""] + list(curriculum[grade].keys()))
-        lesson = None
-        if chapter:
-            lesson = st.selectbox("Bài học:", [""] + curriculum[grade][chapter])
-        load = st.button("Đặt bài")
-    else:
-        chapter = lesson = load = None
+    if chapter:
+        lesson = st.selectbox("Bài học:", [""] + curriculum[grade][chapter])
+    load = st.button("Đặt bài")
 
-# ------------------ CỘT 2: Làm bài ------------------
 with col2:
-    st.subheader("✏️ Làm bài")
-
     if 'question' not in st.session_state:
         st.session_state.question = None
 
-    # Nếu nhấn "Đặt bài" → sinh câu hỏi minh họa
     if load and grade and chapter and lesson:
-        a = random.randint(0, 10)
-        b = random.randint(0, 10)
+        # Sinh câu hỏi dựa trên tên bài
         st.session_state.question = {
-            "text": f"Tính: {a} + {b} = ?",
-            "answer": a + b,
-            "hintVN": "Cộng hai số lại.",
-            "hintHM": "Ntxiv ob tus naj."
+            "text": f"Trả lời câu hỏi về bài: {lesson}",
+            "answer": "ví dụ: 42",  # placeholder, có thể để học sinh tự trả lời
+            "hintVN": f"Nội dung bài {lesson}",
+            "hintHM": f"Cov lus {lesson}"
         }
 
-    if st.session_state.question is None:
-        if st.session_state.get('grade_confirmed', False):
-            st.info("Chọn chương → bài rồi nhấn “Đặt bài” để bắt đầu.")
-        else:
-            st.info("Chọn lớp và xác nhận trước khi làm bài.")
-    else:
+    if st.session_state.question:
         q = st.session_state.question
         st.write("### ❓ " + q["text"])
         ans = st.text_input("Nhập đáp án:", key="ans_question")
         if st.button("Kiểm tra đáp án"):
-            try:
-                if float(ans) == q["answer"]:
-                    st.success("🎉 Đúng rồi!")
-                else:
-                    st.error(f"❌ Sai rồi. Đáp án đúng: {q['answer']}")
-                    st.info("💡 Gợi ý (Tiếng Việt): " + q["hintVN"])
-                    st.warning("🧠 H'Mông: " + q["hintHM"])
-            except:
-                st.error("Nhập số hợp lệ nhé.")
+            st.info(f"Đáp án minh họa: {q['answer']}")
+            st.info("💡 Gợi ý: " + q["hintVN"])
