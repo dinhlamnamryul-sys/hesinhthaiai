@@ -17,34 +17,44 @@ st.set_page_config(
     page_title="Cổng Giáo Dục Số - Trường Na Ư",
     page_icon=app_icon, 
     layout="wide",
-    initial_sidebar_state="expanded" # BẮT BUỘC: Luôn mở rộng menu
+    initial_sidebar_state="expanded" # Luôn mở sẵn menu khi vào
 )
 
-# --- 2. CSS GIAO DIỆN ---
+# --- 2. CSS GIAO DIỆN (ĐẶC TRỊ MẤT NÚT MENU) ---
 st.markdown("""
 <style>
-    /* --- KHẮC PHỤC LỖI MẤT MENU --- */
-    /* 1. Xóa lệnh ẩn stHeader (nguyên nhân gây lỗi) */
-    /* 2. Chỉ ẩn nút 3 chấm và nút Share ở góc phải */
-    [data-testid="stToolbar"] {
-        visibility: hidden;
-        height: 0%;
-        position: absolute;
-    }
-    
-    /* 3. Ẩn đường kẻ màu cầu vồng trên cùng (nếu muốn gọn) */
-    [data-testid="stDecoration"] {
-        visibility: hidden;
+    /* --- BƯỚC 1: LÀM TRONG SUỐT HEADER (KHÔNG ĐƯỢC ẨN HẲN) --- */
+    [data-testid="stHeader"] {
+        background-color: rgba(0,0,0,0); /* Nền trong suốt */
+        color: transparent;
     }
 
-    /* 4. Đảm bảo nút mở menu luôn hiện (đề phòng) */
+    /* --- BƯỚC 2: ẨN CÁC THÀNH PHẦN THỪA (Góc phải) --- */
+    /* Ẩn thanh công cụ (3 chấm, Deploy, GitHub...) */
+    [data-testid="stToolbar"] {
+        visibility: hidden !important;
+        display: none !important;
+    }
+    
+    /* Ẩn đường kẻ trang trí 7 màu của Streamlit */
+    [data-testid="stDecoration"] {
+        visibility: hidden !important;
+        display: none !important;
+    }
+
+    /* --- BƯỚC 3: CỨU HỘ NÚT MỞ MENU (QUAN TRỌNG NHẤT) --- */
+    /* Ép buộc nút mũi tên góc trái phải hiện ra và có màu đỏ */
     [data-testid="stSidebarCollapsedControl"] {
         visibility: visible !important;
         display: block !important;
-        color: #b71c1c;
+        color: #b71c1c !important; /* Màu đỏ nổi bật */
+        background-color: white; /* Nền trắng nhỏ để dễ bấm */
+        border-radius: 50%;
+        padding: 5px;
+        z-index: 999999; /* Luôn nổi lên trên cùng */
     }
 
-    /* --- CÁC CSS TRANG TRÍ --- */
+    /* --- CSS TRANG TRÍ BÌNH THƯỜNG --- */
     .stApp { background-color: #f8f9fa; margin-bottom: 60px; }
     
     .main-header {
@@ -52,7 +62,8 @@ st.markdown("""
         color: white; padding: 30px; border-radius: 20px; text-align: center;
         box-shadow: 0 10px 30px rgba(183, 28, 28, 0.4); border-bottom: 6px solid #fdd835;
         margin-bottom: 20px;
-        margin-top: -30px; /* Đẩy lên cao che bớt khoảng trắng */
+        /* Đẩy header lên cao một chút vì thanh công cụ đã ẩn */
+        margin-top: -20px; 
     }
     .main-header h1 { font-size: 2.5rem; font-weight: 900; margin: 0; }
     
@@ -90,7 +101,6 @@ PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 
 # --- 3. MENU BÊN TRÁI ---
 with st.sidebar:
-    # Cột chứa Logo
     col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
     with col_logo2:
         st.image(sidebar_logo, width=150)
