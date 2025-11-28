@@ -35,10 +35,54 @@ chuong_options = {
         "Chủ đề 3: Hình học",
         "Chủ đề 4: Giải toán có lời văn"
     ],
-    # ... các lớp khác tương tự
+    "Lớp 3": [
+        "Chủ đề 1: Số và phép tính",
+        "Chủ đề 2: Đo lường",
+        "Chủ đề 3: Hình học",
+        "Chủ đề 4: Giải toán"
+    ],
+    "Lớp 4": [
+        "Chủ đề 1: Số tự nhiên – Phép tính",
+        "Chủ đề 2: Phân số",
+        "Chủ đề 3: Đo lường",
+        "Chủ đề 4: Hình học"
+    ],
+    "Lớp 5": [
+        "Chủ đề 1: Số thập phân",
+        "Chủ đề 2: Tỉ số – Phần trăm",
+        "Chủ đề 3: Đo lường",
+        "Chủ đề 4: Hình học"
+    ],
+    "Lớp 6": [
+        "Chương 1: Số tự nhiên",
+        "Chương 2: Số nguyên",
+        "Chương 3: Phân số",
+        "Chương 4: Biểu thức – Đại số",
+        "Chương 5: Hình học trực quan"
+    ],
+    "Lớp 7": [
+        "Chương 1: Số hữu tỉ – Số thực",
+        "Chương 2: Hàm số và đồ thị",
+        "Chương 3: Hình học tam giác",
+        "Chương 4: Thống kê"
+    ],
+    "Lớp 8": [
+        "Chương 1: Đại số – Đa thức",
+        "Chương 2: Phân thức",
+        "Chương 3: Phương trình bậc nhất",
+        "Chương 4: Hình học"
+    ],
+    "Lớp 9": [
+        "Chương 1: Căn bậc hai – Căn thức",
+        "Chương 2: Hàm số bậc nhất",
+        "Chương 3: Hàm số bậc hai",
+        "Chương 4: Phương trình bậc hai",
+        "Chương 5: Hình học không gian – Trụ – Nón – Cầu"
+    ]
 }
 
 bai_options = {
+    # --- Lớp 1 ---
     "Chủ đề 1: Các số đến 10": [
         "Bài 1: Đếm, đọc, viết số đến 10",
         "Bài 2: Cộng trong phạm vi 10",
@@ -52,14 +96,26 @@ bai_options = {
         "Bài 1: Số tròn chục",
         "Bài 2: Phép tính trong phạm vi 100"
     ],
-    # ... các chủ đề khác tương tự
+    "Chủ đề 4: Hình học và đo lường": [
+        "Bài 1: Hình tam giác – tròn – vuông – chữ nhật",
+        "Bài 2: Độ dài – cm",
+        "Bài 3: Thời gian – giờ"
+    ],
+    "Chủ đề 5: Giải toán": [
+        "Bài 1: Giải toán một bước",
+        "Bài 2: Tìm số còn thiếu"
+    ],
+    # --- Các lớp khác tương tự, bạn có thể mở rộng theo danh sách đầy đủ ---
 }
 
+# --- Sidebar ---
 with st.sidebar:
     st.header("Thông tin sinh đề")
     lop = st.selectbox("Chọn lớp", lop_options)
-    chuong = st.selectbox("Chọn chương", chuong_options[lop])
-    bai = st.selectbox("Chọn bài", bai_options[chuong])
+    chuong_list = chuong_options.get(lop, [])
+    chuong = st.selectbox("Chọn chương/chủ đề", chuong_list)
+    bai_list = bai_options.get(chuong, [])
+    bai = st.selectbox("Chọn bài", bai_list)
     so_cau = st.number_input("Số câu hỏi", min_value=1, max_value=50, value=10)
     loai_cau = st.selectbox(
         "Loại câu hỏi",
@@ -73,12 +129,12 @@ with st.sidebar:
     )
     co_dap_an = st.checkbox("Có đáp án", value=True)
 
-# --- BUILD PROMPT ---
+# --- Build Prompt ---
 def build_prompt(lop, chuong, bai, so_cau, loai_cau, co_dap_an):
     return f"""
 Bạn là giáo viên Toán. Hãy sinh đề kiểm tra theo CTGDPT 2018:
 - Lớp: {lop}
-- Chương: {chuong}
+- Chương/Chủ đề: {chuong}
 - Bài: {bai}
 - Số câu hỏi: {so_cau}
 - Loại câu hỏi: {loai_cau}
@@ -86,8 +142,7 @@ Bạn là giáo viên Toán. Hãy sinh đề kiểm tra theo CTGDPT 2018:
 
 YÊU CẦU QUAN TRỌNG:
 1) Toàn bộ công thức toán phải được viết bằng LaTeX và **phải** đặt trong delimiters $$...$$.
-   Ví dụ: $$\\frac{{a}}{{b}}$$
-2) Câu trắc nghiệm phải theo định dạng:
+2) Câu trắc nghiệm theo định dạng:
 A. ...
 B. ...
 C. ...
@@ -97,7 +152,7 @@ D. ...
 5) Chỉ dùng tiếng Việt.
 """
 
-# --- GỌI API ---
+# --- API Call ---
 def generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an):
     MODEL = "models/gemini-2.0-flash"
     url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
@@ -112,7 +167,7 @@ def generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an):
     except Exception as e:
         return f"❌ Lỗi kết nối: {e}"
 
-# --- Các hàm LaTeX, DOCX, PDF giữ nguyên ---
+# --- LaTeX → DOCX/PDF ---
 LATEX_RE = re.compile(r"\$\$(.+?)\$\$", re.DOTALL)
 
 def find_latex_blocks(text):
@@ -197,7 +252,7 @@ def create_pdf_bytes(text):
     buf.seek(0)
     return buf
 
-# --- BUTTON ---
+# --- Button ---
 if st.button("🎯 Sinh đề ngay"):
     if not api_key:
         st.error("Thiếu API Key!")
@@ -220,7 +275,6 @@ if st.button("🎯 Sinh đề ngay"):
                     mime="text/plain"
                 )
             else:
-                # DOCX
                 try:
                     docx_io = create_docx_bytes(result)
                     st.download_button(
@@ -232,7 +286,6 @@ if st.button("🎯 Sinh đề ngay"):
                 except Exception as e:
                     st.error(f"Không tạo DOCX: {e}")
 
-                # PDF
                 try:
                     pdf_io = create_pdf_bytes(result)
                     st.download_button(
