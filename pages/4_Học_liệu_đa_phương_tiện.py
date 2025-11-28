@@ -3,7 +3,11 @@ from gtts import gTTS
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 import textwrap
+import random
 
+# ================================
+# Cấu hình app
+# ================================
 st.set_page_config(page_title="Đa phương tiện AI hỗ trợ học tập", layout="wide")
 st.title("🎨 Đa phương tiện hỗ trợ giáo viên & học sinh (không cần API)")
 
@@ -32,7 +36,6 @@ if menu == "Tạo giọng đọc bài giảng":
             st.audio(mp3, format="audio/mp3")
             st.download_button("Tải MP3", data=mp3, file_name="bai_giang.mp3")
 
-
 # ================================
 # 2. FLASHCARDS
 # ================================
@@ -51,7 +54,6 @@ elif menu == "Tạo Flashcards":
             for i, fc in enumerate(flashcards, 1):
                 st.markdown(f"**Flashcard {i}:**")
                 st.info(fc)
-
 
 # ================================
 # 3. INFOGRAPHIC GENERATOR
@@ -84,7 +86,6 @@ elif menu == "Tạo infographic đơn giản":
             st.image(img, caption="Infographic đã tạo")
             st.download_button("Tải ảnh", data=output, file_name="infographic.png")
 
-
 # ================================
 # 4. WORKSHEET GENERATOR
 # ================================
@@ -93,17 +94,60 @@ elif menu == "Sinh worksheet bài tập":
 
     topic = st.text_input("Chủ đề bài học:")
 
+    # Mẫu câu hỏi cho các chủ đề
+    question_bank = {
+        "toán": [
+            "Tính giá trị của biểu thức: 2 + 3 * 5 = ?",
+            "Giải phương trình: x + 5 = 12",
+            "Tìm x biết 2x - 3 = 7",
+            "Tính diện tích hình chữ nhật dài 5m, rộng 3m",
+            "Sắp xếp các số 3, 1, 4, 2 theo thứ tự tăng dần",
+            "Tính tổng các số chẵn từ 1 đến 10",
+            "Giải phương trình bậc hai: x^2 - 5x + 6 = 0",
+            "Tìm giá trị x thỏa mãn 3x + 2 = 11",
+            "Tính chu vi hình vuông cạnh 4cm",
+            "Một tam giác có các cạnh 3, 4, 5. Tính diện tích"
+        ],
+        "vật lý": [
+            "Nêu định luật I Newton",
+            "Tính lực tác dụng lên vật khối lượng 2kg khi gia tốc 3 m/s²",
+            "Thế nào là quán tính?",
+            "Tính công khi lực 5N dịch chuyển vật 2m",
+            "Hiện tượng nào minh họa định luật II Newton?",
+            "Định nghĩa năng lượng động học",
+            "Công thức tính vận tốc trung bình",
+            "Ví dụ về hiện tượng lực ma sát",
+            "Tính áp suất khi lực 10N tác dụng lên diện tích 2m²",
+            "Nêu định luật III Newton"
+        ],
+        "hóa học": [
+            "Viết công thức hóa học của nước",
+            "Nêu nguyên tử khối của Oxi",
+            "Tính số mol trong 18g H2O",
+            "Phản ứng nào tạo ra CO2",
+            "Viết phương trình hóa học của phản ứng Na + H2O",
+            "Nêu tính chất của axit HCl",
+            "Cho biết các kim loại kiềm là gì",
+            "Tính khối lượng mol của CO2",
+            "Ví dụ về phản ứng oxi hóa khử",
+            "Giải thích hiện tượng sủi bọt khi hòa Na vào nước"
+        ]
+    }
+
     if st.button("Tạo worksheet"):
-        if not topic.strip():
-            st.warning("Nhập chủ đề!")
+        topic_lower = topic.lower()
+        if topic_lower not in question_bank:
+            st.warning("Chưa có câu hỏi cho chủ đề này. Hãy thử: toán, vật lý, hóa học")
         else:
+            questions = question_bank[topic_lower]
+
             st.subheader("✏️ Trắc nghiệm (5 câu)")
-            for i in range(5):
-                st.write(f"{i+1}. {topic}: Câu hỏi trắc nghiệm số {i+1}")
+            for i, q in enumerate(random.sample(questions, 5)):
+                st.write(f"{i+1}. {q}")
 
             st.subheader("✍️ Tự luận (5 câu)")
-            for i in range(5):
-                st.write(f"{i+6}. Viết đoạn giải thích về: {topic} - bài {i+1}")
+            for i, q in enumerate(random.sample(questions, 5)):
+                st.write(f"{i+6}. Hãy giải thích: {q}")
 
             st.subheader("📄 Bảng ôn tập nhanh")
             st.info(f"Từ khóa quan trọng của chủ đề **{topic}**:\n- Khái niệm\n- Ví dụ\n- Ứng dụng\n- Công thức")
