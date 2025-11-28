@@ -84,72 +84,75 @@ chuong_options = {
     ]
 }
 
-# --- Bài theo Chủ đề/Chương ---
 bai_options = {
-    # ----- LỚP 1 -----
-    "Chủ đề 1: Các số đến 10": ["Bài 1: Đếm, đọc, viết số đến 10", "Bài 2: Cộng trong phạm vi 10", "Bài 3: Trừ trong phạm vi 10"],
-    "Chủ đề 2: Các số đến 20": ["Bài 1: Số 11–20", "Bài 2: Cộng – trừ phạm vi 20"],
-    "Chủ đề 3: Các số đến 100": ["Bài 1: Số tròn chục", "Bài 2: Phép tính trong phạm vi 100"],
-    "Chủ đề 4: Hình học và đo lường": ["Bài 1: Hình tam giác – tròn – vuông – chữ nhật", "Bài 2: Độ dài – cm", "Bài 3: Thời gian – giờ"],
-    "Chủ đề 5: Giải toán": ["Bài 1: Giải toán một bước", "Bài 2: Tìm số còn thiếu"],
+    # --- Lớp 1 ---
+    "Chủ đề 1: Các số đến 10": ["Đếm, đọc, viết số đến 10", "Cộng trong phạm vi 10", "Trừ trong phạm vi 10"],
+    "Chủ đề 2: Các số đến 20": ["Số 11–20", "Cộng – trừ phạm vi 20"],
+    "Chủ đề 3: Các số đến 100": ["Số tròn chục", "Phép tính trong phạm vi 100"],
+    "Chủ đề 4: Hình học và đo lường": ["Hình tam giác – tròn – vuông – chữ nhật", "Độ dài – cm", "Thời gian – giờ"],
+    "Chủ đề 5: Giải toán": ["Giải toán một bước", "Tìm số còn thiếu"],
 
-    # ----- LỚP 2 -----
-    "Chủ đề 1: Số và phép tính": ["Bài 1: Số đến 100", "Bài 2: Cộng – trừ có nhớ", "Bài 3: Nhân – chia (làm quen)"],
-    "Chủ đề 2: Đo lường": ["Bài 1: Độ dài (m, cm)", "Bài 2: Khối lượng (kg, g)", "Bài 3: Tiền Việt Nam"],
-    "Chủ đề 3: Hình học": ["Bài 1: Góc vuông – không vuông", "Bài 2: Tứ giác đơn giản"],
-    "Chủ đề 4: Giải toán có lời văn": ["Bài 1: Bài toán 1 bước", "Bài 2: Bài toán 2 bước"],
+    # --- Lớp 2 ---
+    "Chủ đề 1: Số và phép tính": ["Số đến 100", "Cộng – trừ có nhớ", "Nhân – chia (làm quen)"],
+    "Chủ đề 2: Đo lường": ["Độ dài (m, cm)", "Khối lượng (kg, g)", "Tiền Việt Nam"],
+    "Chủ đề 3: Hình học": ["Góc vuông – không vuông", "Tứ giác đơn giản"],
+    "Chủ đề 4: Giải toán có lời văn": ["Bài toán 1 bước", "Bài toán 2 bước"],
 
-    # ----- LỚP 3 -----
-    "Chủ đề 1: Số và phép tính": ["Bài 1: Số đến 1000", "Bài 2: Nhân – chia trong phạm vi 100", "Bài 3: Biểu thức số"],
-    "Chủ đề 2: Đo lường": ["Bài 1: Đơn vị độ dài", "Bài 2: Đơn vị khối lượng", "Bài 3: Diện tích cm²"],
-    "Chủ đề 3: Hình học": ["Bài 1: Góc vuông", "Bài 2: Chu vi"],
-    "Chủ đề 4: Giải toán": ["Bài 1: Toán 2 bước", "Bài 2: Trung bình cộng"],
+    # --- Lớp 3 ---
+    "Chủ đề 1: Số và phép tính": ["Số đến 1000", "Nhân – chia trong phạm vi 100", "Biểu thức số"],
+    "Chủ đề 2: Đo lường": ["Đơn vị độ dài", "Đơn vị khối lượng", "Diện tích cm²"],
+    "Chủ đề 3: Hình học": ["Góc vuông", "Chu vi"],
+    "Chủ đề 4: Giải toán": ["Toán 2 bước", "Trung bình cộng"],
 
-    # ----- LỚP 4 -----
-    "Chủ đề 1: Số tự nhiên – Phép tính": ["Bài 1: Số đến 100 000", "Bài 2: Nhân – chia nhiều chữ số"],
-    "Chủ đề 2: Phân số": ["Bài 1: So sánh phân số", "Bài 2: Phân số bằng nhau"],
-    "Chủ đề 3: Đo lường": ["Bài 1: Đơn vị đo diện tích", "Bài 2: Diện tích hình chữ nhật – vuông"],
-    "Chủ đề 4: Hình học": ["Bài 1: Hình bình hành", "Bài 2: Hình thoi"],
+    # --- Lớp 4 ---
+    "Chủ đề 1: Số tự nhiên – Phép tính": ["Số đến 100 000", "Nhân – chia nhiều chữ số"],
+    "Chủ đề 2: Phân số": ["So sánh phân số", "Phân số bằng nhau"],
+    "Chủ đề 3: Đo lường": ["Đơn vị đo diện tích", "Diện tích hình chữ nhật – vuông"],
+    "Chủ đề 4: Hình học": ["Hình bình hành", "Hình thoi"],
 
-    # ----- LỚP 5 -----
-    "Chủ đề 1: Số thập phân": ["Bài 1: Đọc – viết số thập phân", "Bài 2: Tính với số thập phân"],
-    "Chủ đề 2: Tỉ số – Phần trăm": ["Bài 1: Tỉ số", "Bài 2: Tỉ lệ phần trăm"],
-    "Chủ đề 3: Đo lường": ["Bài 1: Thể tích", "Bài 2: Diện tích hình thang – tam giác"],
-    "Chủ đề 4: Hình học": ["Bài 1: Hình trụ", "Bài 2: Hình cầu"],
+    # --- Lớp 5 ---
+    "Chủ đề 1: Số thập phân": ["Đọc – viết số thập phân", "Tính với số thập phân"],
+    "Chủ đề 2: Tỉ số – Phần trăm": ["Tỉ số", "Tỉ lệ phần trăm"],
+    "Chủ đề 3: Đo lường": ["Thể tích", "Diện tích hình thang – tam giác"],
+    "Chủ đề 4: Hình học": ["Hình trụ", "Hình cầu"],
 
-    # ----- LỚP 6 -----
-    "Chương 1: Số tự nhiên": ["Bài 1: Tập hợp số tự nhiên", "Bài 2: Chia hết – dấu hiệu chia hết"],
-    "Chương 2: Số nguyên": ["Bài 1: Số nguyên âm – dương", "Bài 2: Thứ tự trong Z"],
-    "Chương 3: Phân số": ["Bài 1: So sánh phân số", "Bài 2: Quy đồng"],
-    "Chương 4: Biểu thức – Đại số": ["Bài 1: Biểu thức chứa chữ", "Bài 2: Giá trị biểu thức"],
-    "Chương 5: Hình học trực quan": ["Bài 1: Góc", "Bài 2: Tam giác"],
+    # --- Lớp 6 ---
+    "Chương 1: Số tự nhiên": ["Tập hợp số tự nhiên", "Chia hết – dấu hiệu chia hết"],
+    "Chương 2: Số nguyên": ["Số nguyên âm – dương", "Thứ tự trong Z"],
+    "Chương 3: Phân số": ["So sánh phân số", "Quy đồng phân số"],
+    "Chương 4: Biểu thức – Đại số": ["Biểu thức chứa chữ", "Giá trị biểu thức"],
+    "Chương 5: Hình học trực quan": ["Góc", "Tam giác"],
 
-    # ----- LỚP 7 -----
-    "Chương 1: Số hữu tỉ – Số thực": ["Bài 1: Số hữu tỉ", "Bài 2: Số thực"],
-    "Chương 2: Hàm số và đồ thị": ["Bài 1: Hàm số y=ax", "Bài 2: Đồ thị hàm số"],
-    "Chương 3: Hình học tam giác": ["Bài 1: Quan hệ cạnh – góc", "Bài 2: Bằng nhau"],
-    "Chương 4: Thống kê": ["Bài 1: Bảng tần số", "Bài 2: Biểu đồ"],
+    # --- Lớp 7 ---
+    "Chương 1: Số hữu tỉ – Số thực": ["Số hữu tỉ", "Số thực"],
+    "Chương 2: Hàm số và đồ thị": ["Hàm số y=ax", "Đồ thị hàm số"],
+    "Chương 3: Hình học tam giác": ["Quan hệ cạnh – góc", "Tam giác bằng nhau"],
+    "Chương 4: Thống kê": ["Bảng tần số", "Biểu đồ"],
 
-    # ----- LỚP 8 -----
-    "Chương 1: Đại số – Đa thức": ["Bài 1: Nhân đa thức", "Bài 2: Hằng đẳng thức"],
-    "Chương 2: Phân thức": ["Bài 1: Rút gọn", "Bài 2: Quy đồng"],
-    "Chương 3: Phương trình bậc nhất": ["Bài 1: Giải PT bậc nhất", "Bài 2: Bài toán bằng phương trình"],
-    "Chương 4: Hình học tứ giác – Đa giác": ["Bài 1: Đa giác", "Bài 2: Diện tích đa giác"],
+    # --- Lớp 8 ---
+    "Chương 1: Đại số – Đa thức": ["Nhân đa thức", "Hằng đẳng thức"],
+    "Chương 2: Phân thức": ["Rút gọn", "Quy đồng phân thức"],
+    "Chương 3: Phương trình bậc nhất": ["Giải phương trình bậc nhất", "Bài toán bằng phương trình"],
+    "Chương 4: Hình học tứ giác – Đa giác": ["Đa giác", "Diện tích đa giác"],
 
-    # ----- LỚP 9 -----
-    "Chương 1: Căn bậc hai – Căn thức": ["Bài 1: Định nghĩa căn", "Bài 2: Các phép biến đổi căn"],
-    "Chương 2: Hàm số bậc nhất": ["Bài 1: Đồ thị", "Bài 2: Tính chất"],
-    "Chương 3: Hàm số bậc hai": ["Bài 1: Parabol", "Bài 2: Tọa độ đỉnh"],
-    "Chương 4: Phương trình bậc hai": ["Bài 1: Công thức nghiệm", "Bài 2: Biện luận"],
-    "Chương 5: Hình học không gian – Trụ – Nón – Cầu": ["Bài 1: Hình trụ", "Bài 2: Hình nón", "Bài 3: Hình cầu"]
+    # --- Lớp 9 ---
+    "Chương 1: Căn bậc hai – Căn thức": ["Định nghĩa căn", "Các phép biến đổi căn"],
+    "Chương 2: Hàm số bậc nhất": ["Đồ thị", "Tính chất"],
+    "Chương 3: Hàm số bậc hai": ["Parabol", "Tọa độ đỉnh"],
+    "Chương 4: Phương trình bậc hai": ["Công thức nghiệm", "Biện luận"],
+    "Chương 5: Hình học không gian – Trụ – Nón – Cầu": ["Hình trụ", "Hình nón", "Hình cầu"]
 }
 
-# --- Sidebar ---
 with st.sidebar:
     st.header("Thông tin sinh đề")
     lop = st.selectbox("Chọn lớp", lop_options)
-    chuong = st.selectbox("Chọn Chủ đề/Chương", chuong_options[lop])
-    bai = st.selectbox("Chọn bài", bai_options.get(chuong, []))
+    chuong = st.selectbox("Chọn chủ đề/chương", chuong_options[lop])
+    bai_list = bai_options.get(chuong, [])
+    if bai_list:
+        bai = st.selectbox("Chọn bài", bai_list)
+    else:
+        bai = st.text_input("Chưa có bài cho chủ đề này", "")
+
     so_cau = st.number_input("Số câu hỏi", min_value=1, max_value=50, value=10)
     loai_cau = st.selectbox(
         "Loại câu hỏi",
@@ -297,17 +300,6 @@ if st.button("🎯 Sinh đề ngay"):
 
         if isinstance(result, str) and result.startswith("❌"):
             st.error(result)
-        else
-# --- BUTTON ---
-if st.button("🎯 Sinh đề ngay"):
-    if not api_key:
-        st.error("Thiếu API Key!")
-    else:
-        with st.spinner("⏳ AI đang tạo đề..."):
-            result = generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an)
-
-        if isinstance(result, str) and result.startswith("❌"):
-            st.error(result)
         else:
             st.success("🎉 Đã tạo xong đề (hiển thị nội dung).")
             st.markdown(result.replace("\n", "<br>"), unsafe_allow_html=True)
@@ -316,13 +308,10 @@ if st.button("🎯 Sinh đề ngay"):
             if not latex_blocks:
                 st.warning("Không tìm thấy LaTeX ( $$...$$ ). Xuất raw TXT làm fallback.")
                 st.download_button(
-                    "📥 Tải TXT",
-                    data=result.encode("utf-8"),
-                    file_name=f"De_{lop}_{chuong}_{bai}.txt",
-                    mime="text/plain"
+                    "📥 Tải TXT", data=result.encode("utf-8"),
+                    file_name=f"De_{lop}_{chuong}_{bai}.txt", mime="text/plain"
                 )
             else:
-                # DOCX
                 try:
                     docx_io = create_docx_bytes(result)
                     st.download_button(
@@ -334,7 +323,6 @@ if st.button("🎯 Sinh đề ngay"):
                 except Exception as e:
                     st.error(f"Không tạo DOCX: {e}")
 
-                # PDF
                 try:
                     pdf_io = create_pdf_bytes(result)
                     st.download_button(
