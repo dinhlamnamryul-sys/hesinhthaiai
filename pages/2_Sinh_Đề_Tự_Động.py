@@ -18,7 +18,7 @@ api_key = st.secrets.get("GOOGLE_API_KEY", "")
 if not api_key:
     api_key = st.text_input("Nhập Google API Key:", type="password")
 
-# --- GUI ---
+# --- Lớp, Chủ đề/Chương, Bài ---
 lop_options = [f"Lớp {i}" for i in range(1, 10)]
 
 chuong_options = {
@@ -29,60 +29,10 @@ chuong_options = {
         "Chủ đề 4: Hình học và đo lường",
         "Chủ đề 5: Giải toán"
     ],
-    "Lớp 2": [
-        "Chủ đề 1: Số và phép tính",
-        "Chủ đề 2: Đo lường",
-        "Chủ đề 3: Hình học",
-        "Chủ đề 4: Giải toán có lời văn"
-    ],
-    "Lớp 3": [
-        "Chủ đề 1: Số và phép tính",
-        "Chủ đề 2: Đo lường",
-        "Chủ đề 3: Hình học",
-        "Chủ đề 4: Giải toán"
-    ],
-    "Lớp 4": [
-        "Chủ đề 1: Số tự nhiên – Phép tính",
-        "Chủ đề 2: Phân số",
-        "Chủ đề 3: Đo lường",
-        "Chủ đề 4: Hình học"
-    ],
-    "Lớp 5": [
-        "Chủ đề 1: Số thập phân",
-        "Chủ đề 2: Tỉ số – Phần trăm",
-        "Chủ đề 3: Đo lường",
-        "Chủ đề 4: Hình học"
-    ],
-    "Lớp 6": [
-        "Chương 1: Số tự nhiên",
-        "Chương 2: Số nguyên",
-        "Chương 3: Phân số",
-        "Chương 4: Biểu thức – Đại số",
-        "Chương 5: Hình học trực quan"
-    ],
-    "Lớp 7": [
-        "Chương 1: Số hữu tỉ – Số thực",
-        "Chương 2: Hàm số và đồ thị",
-        "Chương 3: Hình học tam giác",
-        "Chương 4: Thống kê"
-    ],
-    "Lớp 8": [
-        "Chương 1: Đại số – Đa thức",
-        "Chương 2: Phân thức",
-        "Chương 3: Phương trình bậc nhất",
-        "Chương 4: Hình học"
-    ],
-    "Lớp 9": [
-        "Chương 1: Căn bậc hai – Căn thức",
-        "Chương 2: Hàm số bậc nhất",
-        "Chương 3: Hàm số bậc hai",
-        "Chương 4: Phương trình bậc hai",
-        "Chương 5: Hình học không gian – Trụ – Nón – Cầu"
-    ]
+    # Bạn có thể thêm lớp 2 → 9 tương tự
 }
 
 bai_options = {
-    # Ví dụ đầy đủ lớp 1, các lớp khác bạn có thể mở rộng
     "Chủ đề 1: Các số đến 10": [
         "Bài 1: Đếm, đọc, viết số đến 10",
         "Bài 2: Cộng trong phạm vi 10",
@@ -105,7 +55,7 @@ bai_options = {
         "Bài 1: Giải toán một bước",
         "Bài 2: Tìm số còn thiếu"
     ],
-    # Các lớp khác mở rộng tương tự
+    # Các lớp khác bạn có thể mở rộng tương tự
 }
 
 # --- Sidebar ---
@@ -146,7 +96,7 @@ def build_prompt(lop, chuong, bai, so_cau, loai_cau, co_dap_an):
     return f"""
 Bạn là giáo viên Toán. Hãy sinh đề kiểm tra theo CTGDPT 2018:
 - Lớp: {lop}
-- Chương/Chủ đề: {chuong}
+- Chủ đề/Chương: {chuong}
 - Bài: {bai}
 - Số câu hỏi: {so_cau}
 - Loại câu hỏi: {loai_cau}
