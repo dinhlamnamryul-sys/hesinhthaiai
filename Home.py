@@ -17,56 +17,28 @@ st.set_page_config(
     page_title="Cổng Giáo Dục Số - Trường Na Ư",
     page_icon=app_icon, 
     layout="wide",
-    initial_sidebar_state="expanded" # Luôn mở sẵn menu khi vào
+    initial_sidebar_state="expanded"
 )
 
-# --- 2. CSS GIAO DIỆN (ĐẶC TRỊ MẤT NÚT MENU) ---
+# --- 2. CSS GIAO DIỆN ---
 st.markdown("""
 <style>
-    /* --- BƯỚC 1: LÀM TRONG SUỐT HEADER (KHÔNG ĐƯỢC ẨN HẲN) --- */
-    [data-testid="stHeader"] {
-        background-color: rgba(0,0,0,0); /* Nền trong suốt */
-        color: transparent;
-    }
-
-    /* --- BƯỚC 2: ẨN CÁC THÀNH PHẦN THỪA (Góc phải) --- */
-    /* Ẩn thanh công cụ (3 chấm, Deploy, GitHub...) */
-    [data-testid="stToolbar"] {
-        visibility: hidden !important;
-        display: none !important;
-    }
-    
-    /* Ẩn đường kẻ trang trí 7 màu của Streamlit */
-    [data-testid="stDecoration"] {
-        visibility: hidden !important;
-        display: none !important;
-    }
-
-    /* --- BƯỚC 3: CỨU HỘ NÚT MỞ MENU (QUAN TRỌNG NHẤT) --- */
-    /* Ép buộc nút mũi tên góc trái phải hiện ra và có màu đỏ */
+    [data-testid="stHeader"] { background-color: rgba(0,0,0,0); color: transparent; }
+    [data-testid="stToolbar"] { visibility: hidden !important; display: none !important; }
+    [data-testid="stDecoration"] { visibility: hidden !important; display: none !important; }
     [data-testid="stSidebarCollapsedControl"] {
-        visibility: visible !important;
-        display: block !important;
-        color: #b71c1c !important; /* Màu đỏ nổi bật */
-        background-color: white; /* Nền trắng nhỏ để dễ bấm */
-        border-radius: 50%;
-        padding: 5px;
-        z-index: 999999; /* Luôn nổi lên trên cùng */
+        visibility: visible !important; display: block !important;
+        color: #b71c1c !important; background-color: white; border-radius: 50%;
+        padding: 5px; z-index: 999999;
     }
-
-    /* --- CSS TRANG TRÍ BÌNH THƯỜNG --- */
     .stApp { background-color: #f8f9fa; margin-bottom: 60px; }
-    
     .main-header {
         background: linear-gradient(135deg, #b71c1c 0%, #d32f2f 60%, #ff6f00 100%);
         color: white; padding: 30px; border-radius: 20px; text-align: center;
         box-shadow: 0 10px 30px rgba(183, 28, 28, 0.4); border-bottom: 6px solid #fdd835;
-        margin-bottom: 20px;
-        /* Đẩy header lên cao một chút vì thanh công cụ đã ẩn */
-        margin-top: -20px; 
+        margin-bottom: 20px; margin-top: -20px;
     }
     .main-header h1 { font-size: 2.5rem; font-weight: 900; margin: 0; }
-    
     .feature-card {
         background: white; padding: 20px; border-radius: 20px; text-align: center;
         border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -81,7 +53,6 @@ st.markdown("""
         border: none; color: white; font-weight: bold; padding: 10px 0;
     }
     .stButton>button:hover { transform: scale(1.05); }
-
     .footer {
         position: fixed; left: 0; bottom: 0; width: 100%;
         background-color: #fff; color: #555; text-align: center;
@@ -98,6 +69,10 @@ PAGE_2 = "pages/2_Sinh_Đề_Tự_Động.py"
 PAGE_3 = "pages/3_Giải_bài_tập_từ_ảnh.py"
 PAGE_4 = "pages/4_Học_liệu_đa_phương_tiện.py"
 PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
+
+# --- NHẠC H'MÔNG ---
+HMONG_MUSIC_PATH = "hmong_song.mp3"  # File nhạc local
+HMONG_MUSIC_URL = "https://www.example.com/hmong_song.mp3"  # Hoặc link online
 
 # --- 3. MENU BÊN TRÁI ---
 with st.sidebar:
@@ -128,6 +103,13 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# --- PHÁT NHẠC H'MÔNG ---
+if os.path.exists(HMONG_MUSIC_PATH):
+    st.audio(HMONG_MUSIC_PATH, format='audio/mp3', start_time=0)
+else:
+    st.audio(HMONG_MUSIC_URL, format='audio/mp3', start_time=0)
+
+# --- CARD CHỨC NĂNG ---
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
