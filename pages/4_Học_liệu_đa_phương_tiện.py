@@ -1,157 +1,174 @@
-# file: app_full_gemini.py
-import os
+import re
+import io
+import requests
 import streamlit as st
-from gtts import gTTS
-from io import BytesIO
-from PIL import Image, ImageDraw, ImageFont
-import textwrap
-import random
+from docx import Document
+from docx.shared import Inches
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.utils import ImageReader
+from PIL import Image
+import matplotlib.pyplot as plt
 
-# Nếu muốn dùng Gemini, cài:
-# pip install google-genai
+st.set_page_config(page_title="Tổng hợp kiến thức Toán Lớp 1–9", layout="wide")
+st.title("📚 Tổng hợp kiến thức Toán từ lớp 1 đến lớp 9 (Gemini API)")
 
-try:
-    from google import genai
-    GEMINI_AVAILABLE = True
-except ImportError:
-    GEMINI_AVAILABLE = False
+# =============================
+# API Key
+# =============================
+api_key = st.secrets.get("GOOGLE_API_KEY", "")
+if not api_key:
+    api_key = st.text_input("Nhập Google API Key:", type="password")
 
-# ================================
-# Cấu hình app
-# ================================
-st.set_page_config(page_title="Đa phương tiện AI hỗ trợ học tập", layout="wide")
-st.title("🎨 Ứng dụng học tập + Google Gemini")
+# =============================
+# Chọn lớp
+# =============================
+lop_options = [f"Lớp {i}" for i in range(1, 10)] + ["Tất cả lớp"]
+lop = st.selectbox("Chọn lớp để tổng hợp kiến thức", lop_options)
 
-menu = st.sidebar.radio(
-    "Chọn tính năng",
-    ["Tạo giọng đọc bài giảng", "Tạo Flashcards", "Tạo infographic đơn giản", 
-     "Sinh worksheet bài tập", "Tổng hợp kiến thức Toán Lớp 1-9"]
-)
+# =============================
+# Build prompt tổng hợp kiến thức
+# =============================
+def build_prompt_summary(lop):
+    if lop == "Tất cả lớp":
+        lop_text = "từ lớp 1 đến lớp 9"
+    else:
+        lop_text = lop
+    prompt = f"""
+Bạn là giáo viên Toán. Hãy tổng hợp toàn bộ kiến thức môn Toán {lop_text}.
+- Tóm tắt theo dạng từng lớp, từng chủ đề/chương.
+- Nêu rõ công thức, ví dụ, định nghĩa.
+- Công thức toán phải viết bằng LaTeX, đặt trong $$...$$.
+- Chỉ dùng tiếng Việt, trình bày rõ ràng để in ra DOCX/PDF.
+- Có thể chia thành mục: Khái niệm – Công thức – Ví dụ – Ứng dụng.
+"""
+    return prompt
 
-# ================================
-# 1. TEXT → VOICE
-# ================================
-if menu == "Tạo giọng đọc bài giảng":
-    st.header("🔊 Chuyển văn bản → Giọng đọc AI")
-    text = st.text_area("Nhập nội dung bài giảng:", height=200)
+# =============================
+# Gọi Gemini API
+# =============================
+def generate_summary(api_key, lop):
+    MODEL = "models/gemini-2.0-flash"
+    url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
+    prompt = build_prompt_summary(lop)
+    payload = {"contents":[{"role":"user","parts":[{"text":prompt}]}]}
+    try:
+        r = requests.post(url, json=payload, timeout=60)
+        r.raise_for_status()
+        j = r.json()
+        return j["candidates"][0]["content"][0]["text"]
+    except Exception as e:
+        return f"❌ Lỗi kết nối hoặc API: {e}"
 
-    if st.button("Tạo giọng đọc"):
-        if not text.strip():
-            st.warning("Hãy nhập văn bản!")
+# =============================
+# Xử lý LaTeX → ảnh → DOCX/PDF
+# =============================
+LATEX_RE = re.compile(r"\$\$(.+?)\$\$", re.DOTALL)
+def find_latex_blocks(text):
+    return [(m.span(), m.group(0), m.group(1)) for m in LATEX_RE.finditer(text)]
+
+def render_latex_png_bytes(latex_code, fontsize=20, dpi=200):
+    fig = plt.figure()
+    fig.patch.set_alpha(0.0)
+    fig.text(0, 0, f"${latex_code}$", fontsize=fontsize)
+    buf = io.BytesIO()
+    plt.axis('off')
+    plt.savefig(buf, format='png', dpi=dpi, bbox_inches='tight', pad_inches=0.02, transparent=True)
+    plt.close(fig)
+    buf.seek(0)
+    return buf.read()
+
+def create_docx_bytes(text):
+    doc = Document()
+    last = 0
+    for span, full, inner in find_latex_blocks(text):
+        start, end = span
+        before = text[last:start]
+        for line in before.splitlines():
+            doc.add_paragraph(line)
+        try:
+            png_bytes = render_latex_png_bytes(inner)
+            img_stream = io.BytesIO(png_bytes)
+            p = doc.add_paragraph()
+            r = p.add_run()
+            r.add_picture(img_stream, width=Inches(3))
+        except:
+            doc.add_paragraph(full)
+        last = end
+    for line in text[last:].splitlines():
+        doc.add_paragraph(line)
+    out = io.BytesIO()
+    doc.save(out)
+    out.seek(0)
+    return out
+
+def create_pdf_bytes(text):
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=letter)
+    width, height = letter
+    margin = 40
+    y = height - 50
+    last = 0
+    for span, full, inner in find_latex_blocks(text):
+        start, end = span
+        before = text[last:start]
+        for line in before.splitlines():
+            c.drawString(margin, y, line)
+            y -= 14
+            if y < 60:
+                c.showPage()
+                y = height - 50
+        try:
+            png_bytes = render_latex_png_bytes(inner)
+            img_reader = ImageReader(io.BytesIO(png_bytes))
+            img = Image.open(io.BytesIO(png_bytes))
+            draw_w = 300
+            draw_h = img.height / img.width * draw_w
+            if y - draw_h < 60:
+                c.showPage()
+                y = height - 50
+            c.drawImage(img_reader, margin, y - draw_h, width=draw_w, height=draw_h, mask='auto')
+            y -= draw_h + 8
+        except:
+            c.drawString(margin, y, full)
+            y -= 14
+            if y < 60:
+                c.showPage()
+                y = height - 50
+        last = end
+    for line in text[last:].splitlines():
+        c.drawString(margin, y, line)
+        y -= 14
+        if y < 60:
+            c.showPage()
+            y = height - 50
+    c.save()
+    buf.seek(0)
+    return buf
+
+# =============================
+# Nút tổng hợp kiến thức
+# =============================
+if st.button("📄 Tổng hợp kiến thức"):
+    if not api_key:
+        st.error("Thiếu API Key!")
+    else:
+        with st.spinner("⏳ AI đang tổng hợp kiến thức..."):
+            summary = generate_summary(api_key, lop)
+        if isinstance(summary, str) and summary.startswith("❌"):
+            st.error(summary)
         else:
-            tts = gTTS(text, lang="vi")
-            mp3 = BytesIO()
-            tts.write_to_fp(mp3)
-            mp3.seek(0)
-            st.audio(mp3, format="audio/mp3")
-            st.download_button("Tải MP3", data=mp3, file_name="bai_giang.mp3")
+            st.success("🎉 Hoàn tất tổng hợp kiến thức!")
+            st.markdown(summary.replace("\n","<br>"), unsafe_allow_html=True)
 
-# ================================
-# 2. FLASHCARDS
-# ================================
-elif menu == "Tạo Flashcards":
-    st.header("📝 Tạo Flashcards từ bài giảng")
-    text = st.text_area("Nhập văn bản:", height=250)
+            # Xuất DOCX
+            docx_io = create_docx_bytes(summary)
+            st.download_button("📥 Tải DOCX", data=docx_io.getvalue(),
+                               file_name=f"Tong_hop_KT_{lop}.docx",
+                               mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
-    if st.button("Tạo flashcards"):
-        if not text.strip():
-            st.warning("Nhập nội dung trước!")
-        else:
-            lines = text.split(".")
-            flashcards = [ln.strip() for ln in lines if len(ln.strip()) > 10][:10]
-            for i, fc in enumerate(flashcards, 1):
-                st.markdown(f"**Flashcard {i}:**")
-                st.info(fc)
-
-# ================================
-# 3. INFOGRAPHIC GENERATOR
-# ================================
-elif menu == "Tạo infographic đơn giản":
-    st.header("📊 Tạo infographic (poster) đơn giản")
-    title = st.text_input("Tiêu đề infographic:")
-    content = st.text_area("Nội dung:", height=150)
-
-    if st.button("Tạo ảnh infographic"):
-        if not title.strip() or not content.strip():
-            st.warning("Hãy nhập tiêu đề và nội dung!")
-        else:
-            img = Image.new("RGB", (900, 1200), color=(255, 255, 255))
-            draw = ImageDraw.Draw(img)
-            title_font = ImageFont.load_default()
-            text_font = ImageFont.load_default()
-            draw.text((50, 50), title, fill="black", font=title_font)
-            wrapped = textwrap.fill(content, width=40)
-            draw.text((50, 200), wrapped, fill="black", font=text_font)
-            output = BytesIO()
-            img.save(output, format="PNG")
-            output.seek(0)
-            st.image(img, caption="Infographic đã tạo")
-            st.download_button("Tải ảnh", data=output, file_name="infographic.png")
-
-# ================================
-# 4. WORKSHEET GENERATOR
-# ================================
-elif menu == "Sinh worksheet bài tập":
-    st.header("📘 Sinh worksheet bài tập tự động")
-    topic = st.text_input("Chủ đề bài học:")
-
-    question_bank = {
-        "toán": [
-            "Tính giá trị của biểu thức: 2 + 3 * 5 = ?",
-            "Giải phương trình: x + 5 = 12",
-            "Tìm x biết 2x - 3 = 7",
-            "Tính diện tích hình chữ nhật dài 5m, rộng 3m",
-            "Sắp xếp các số 3, 1, 4, 2 theo thứ tự tăng dần",
-            "Tính tổng các số chẵn từ 1 đến 10",
-            "Giải phương trình bậc hai: x^2 - 5x + 6 = 0",
-            "Tìm giá trị x thỏa mãn 3x + 2 = 11",
-            "Tính chu vi hình vuông cạnh 4cm",
-            "Một tam giác có các cạnh 3, 4, 5. Tính diện tích"
-        ]
-    }
-
-    if st.button("Tạo worksheet"):
-        topic_lower = topic.lower()
-        if topic_lower not in question_bank:
-            st.warning("Chưa có câu hỏi cho chủ đề này. Hãy thử: toán")
-        else:
-            questions = question_bank[topic_lower]
-            st.subheader("✏️ Trắc nghiệm (5 câu)")
-            for i, q in enumerate(random.sample(questions, 5)):
-                st.write(f"{i+1}. {q}")
-            st.subheader("✍️ Tự luận (5 câu)")
-            for i, q in enumerate(random.sample(questions, 5)):
-                st.write(f"{i+6}. Hãy giải thích: {q}")
-            st.subheader("📄 Bảng ôn tập nhanh")
-            st.info(f"Từ khóa quan trọng của chủ đề **{topic}**:\n- Khái niệm\n- Ví dụ\n- Ứng dụng\n- Công thức")
-
-# ================================
-# 5. TỔNG HỢP KIẾN THỨC TOÁN BẰNG GEMINI
-# ================================
-elif menu == "Tổng hợp kiến thức Toán Lớp 1-9":
-    st.header("📚 Tổng hợp kiến thức Toán Lớp 1 → 9 bằng Gemini")
-
-    if not GEMINI_AVAILABLE:
-        st.warning("Chưa cài google-genai. Chạy: pip install google-genai")
-        st.stop()
-
-    API_KEY = os.getenv("GEMINI_API_KEY")
-    if not API_KEY:
-        st.warning("Hãy đặt biến môi trường GEMINI_API_KEY chứa API key của bạn.")
-        st.stop()
-    genai.configure(api_key=API_KEY)
-
-    grade = st.selectbox("Chọn lớp (1–9):", [str(i) for i in range(1, 10)])
-    topic = st.text_input("Chủ đề Toán (ví dụ: phân số, phương trình, diện tích…):", value="")
-
-    if st.button("Lấy kiến thức từ Gemini"):
-        if not topic.strip():
-            st.warning("Hãy nhập chủ đề Toán!")
-        else:
-            prompt = f"""Bạn là giáo viên Toán. Viết tóm tắt đầy đủ, rõ ràng cho học sinh lớp {grade} về chủ đề "{topic}". \
-Bao gồm: Lý thuyết, Ví dụ minh họa, Công thức (nếu có), 3–5 bài tập mẫu kèm đáp án."""
-            
-            model = genai.GenerativeModel("gemini-2.5-flash")
-            response = model.generate_content(prompt)
-            st.subheader(f"📄 Kiến thức Toán lớp {grade} — {topic}")
-            st.markdown(response.text)
+            # Xuất PDF
+            pdf_io = create_pdf_bytes(summary)
+            st.download_button("📥 Tải PDF", data=pdf_io.getvalue(),
+                               file_name=f"Tong_hop_KT_{lop}.pdf",
+                               mime="application/pdf")
