@@ -13,7 +13,8 @@ st.title("🎨 Đa phương tiện hỗ trợ giáo viên & học sinh (không c
 
 menu = st.sidebar.radio(
     "Chọn tính năng",
-    ["Tạo giọng đọc bài giảng", "Tạo Flashcards", "Tạo infographic đơn giản", "Sinh worksheet bài tập"]
+    ["Tạo giọng đọc bài giảng", "Tạo Flashcards", "Tạo infographic đơn giản", 
+     "Sinh worksheet bài tập", "Tổng hợp kiến thức Toán Lớp 1-9"]
 )
 
 # ================================
@@ -151,3 +152,71 @@ elif menu == "Sinh worksheet bài tập":
 
             st.subheader("📄 Bảng ôn tập nhanh")
             st.info(f"Từ khóa quan trọng của chủ đề **{topic}**:\n- Khái niệm\n- Ví dụ\n- Ứng dụng\n- Công thức")
+
+# ================================
+# 5. TỔNG HỢP KIẾN THỨC TOÁN LỚP 1-9
+# ================================
+elif menu == "Tổng hợp kiến thức Toán Lớp 1-9":
+    st.header("📚 Tổng hợp kiến thức Toán Lớp 1 → Lớp 9")
+
+    grade = st.selectbox("Chọn lớp:", [str(i) for i in range(1, 10)])
+
+    # Dữ liệu mẫu Toán Lớp 1-3, bạn có thể mở rộng lên Lớp 9
+    knowledge_bank = {
+        "1": {
+            "Số học": {
+                "Lý thuyết": "Số tự nhiên, phép cộng, phép trừ",
+                "Ví dụ": "2 + 3 = 5, 5 - 2 = 3",
+                "Công thức": "-",
+                "Bài tập mẫu": ["Tính 3 + 4 = ?", "Tính 7 - 5 = ?"]
+            },
+            "Hình học": {
+                "Lý thuyết": "Hình vuông, hình chữ nhật",
+                "Ví dụ": "Diện tích hình chữ nhật = dài x rộng",
+                "Công thức": "Diện tích = dài x rộng",
+                "Bài tập mẫu": ["Tính diện tích hình chữ nhật dài 4cm, rộng 3cm"]
+            }
+        },
+        "2": {
+            "Số học": {
+                "Lý thuyết": "Phép cộng, trừ, nhân chia các số nhỏ",
+                "Ví dụ": "5 x 2 = 10, 12 ÷ 3 = 4",
+                "Công thức": "-",
+                "Bài tập mẫu": ["Tính 6 x 3", "Tính 15 ÷ 5"]
+            },
+            "Hình học": {
+                "Lý thuyết": "Hình tam giác, hình tròn",
+                "Ví dụ": "Diện tích tam giác = 1/2 x đáy x cao",
+                "Công thức": "S = 1/2 x đáy x cao",
+                "Bài tập mẫu": ["Tính diện tích tam giác đáy 6cm, cao 4cm"]
+            }
+        },
+        "3": {
+            "Số học": {
+                "Lý thuyết": "Số thập phân, phân số cơ bản",
+                "Ví dụ": "0.5 + 0.3 = 0.8, 1/2 + 1/3 = 5/6",
+                "Công thức": "-",
+                "Bài tập mẫu": ["Tính 0.7 + 0.2", "Tính 1/4 + 1/2"]
+            },
+            "Hình học": {
+                "Lý thuyết": "Chu vi, diện tích, hình học cơ bản",
+                "Ví dụ": "Chu vi hình vuông = 4 x cạnh",
+                "Công thức": "S = cạnh x cạnh",
+                "Bài tập mẫu": ["Tính chu vi hình vuông cạnh 5cm"]
+            }
+        }
+    }
+
+    if st.button("Xem kiến thức"):
+        if grade not in knowledge_bank:
+            st.warning("Chưa có dữ liệu cho lớp này")
+        else:
+            st.subheader(f"✅ Kiến thức Toán lớp {grade}")
+            for topic, info in knowledge_bank[grade].items():
+                st.markdown(f"### {topic}")
+                st.write(f"**Lý thuyết:** {info['Lý thuyết']}")
+                st.write(f"**Ví dụ:** {info['Ví dụ']}")
+                st.write(f"**Công thức:** {info['Công thức']}")
+                st.write("**Bài tập mẫu:**")
+                for bt in info['Bài tập mẫu']:
+                    st.write(f"- {bt}")
