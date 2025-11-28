@@ -19,15 +19,77 @@ if not api_key:
     api_key = st.text_input("Nhập Google API Key:", type="password")
 
 # --- GUI ---
-lop_options = [f"Lớp {i}" for i in range(1, 10)]
-chuong_options = {f"Lớp {i}": [f"Chương {j}" for j in range(1, 6)] for i in range(1, 10)}
-bai_options = {f"Chương {i}": [f"Bài {j}" for j in range(1, 6)] for i in range(1, 6)}
+lop_options = [
+    "Lớp 1", "Lớp 2", "Lớp 3", "Lớp 4", "Lớp 5",
+    "Lớp 6", "Lớp 7", "Lớp 8", "Lớp 9"
+]
 
+chuong_options = {
+    "Lớp 1": [
+        "Chủ đề 1: Các số đến 10",
+        "Chủ đề 2: Các số đến 20",
+        "Chủ đề 3: Các số đến 100",
+        "Chủ đề 4: Hình học và đo lường",
+        "Chủ đề 5: Giải toán"
+    ],
+    "Lớp 2": [
+        "Chủ đề 1: Số và phép tính",
+        "Chủ đề 2: Đo lường",
+        "Chủ đề 3: Hình học",
+        "Chủ đề 4: Giải toán có lời văn"
+    ],
+    "Lớp 3": [
+        "Chủ đề 1: Số và phép tính",
+        "Chủ đề 2: Đo lường",
+        "Chủ đề 3: Hình học",
+        "Chủ đề 4: Giải toán"
+    ],
+    "Lớp 4": [
+        "Chủ đề 1: Số tự nhiên – Phép tính",
+        "Chủ đề 2: Phân số",
+        "Chủ đề 3: Đo lường",
+        "Chủ đề 4: Hình học"
+    ],
+    "Lớp 5": [
+        "Chủ đề 1: Số thập phân",
+        "Chủ đề 2: Tỉ số – Phần trăm",
+        "Chủ đề 3: Đo lường",
+        "Chủ đề 4: Hình học"
+    ],
+    "Lớp 6": [
+        "Chương 1: Số tự nhiên",
+        "Chương 2: Số nguyên",
+        "Chương 3: Phân số",
+        "Chương 4: Biểu thức – Đại số",
+        "Chương 5: Hình học trực quan"
+    ],
+    "Lớp 7": [
+        "Chương 1: Số hữu tỉ – Số thực",
+        "Chương 2: Hàm số và đồ thị",
+        "Chương 3: Hình học tam giác",
+        "Chương 4: Thống kê"
+    ],
+    "Lớp 8": [
+        "Chương 1: Đại số – Đa thức",
+        "Chương 2: Phân thức đại số",
+        "Chương 3: Phương trình bậc nhất",
+        "Chương 4: Hình học tứ giác – Đa giác"
+    ],
+    "Lớp 9": [
+        "Chương 1: Căn bậc hai – Căn thức",
+        "Chương 2: Hàm số bậc nhất",
+        "Chương 3: Hàm số bậc hai",
+        "Chương 4: Phương trình bậc hai",
+        "Chương 5: Hình học không gian – Trụ – Nón – Cầu"
+    ]
+}
+
+# --- Sidebar ---
 with st.sidebar:
     st.header("Thông tin sinh đề")
     lop = st.selectbox("Chọn lớp", lop_options)
     chuong = st.selectbox("Chọn chương", chuong_options[lop])
-    bai = st.selectbox("Chọn bài", bai_options[chuong])
+    chu_de = st.text_input("Chọn chủ đề", value=chuong)  # Chủ đề tự động điền theo chương
     so_cau = st.number_input("Số câu hỏi", min_value=1, max_value=50, value=10)
     loai_cau = st.selectbox(
         "Loại câu hỏi",
@@ -42,15 +104,15 @@ with st.sidebar:
     co_dap_an = st.checkbox("Có đáp án", value=True)
 
 # --- BUILD PROMPT ---
-def build_prompt(lop, chuong, bai, so_cau, loai_cau, co_dap_an):
-    prompt = """
-Bạn là giáo viên Toán. Hãy sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống":
+def build_prompt(lop, chuong, chu_de, so_cau, loai_cau, co_dap_an):
+    prompt = f"""
+Bạn là giáo viên Toán. Hãy sinh đề kiểm tra theo CTGDPT 2018:
 - Lớp: {lop}
 - Chương: {chuong}
-- Bài: {bai}
+- Chủ đề: {chu_de}
 - Số câu hỏi: {so_cau}
 - Loại câu hỏi: {loai_cau}
-- {dap_an}
+- {"Có đáp án" if co_dap_an else "Không có đáp án"}
 
 YÊU CẦU QUAN TRỌNG:
 1) Toàn bộ công thức toán phải được viết bằng LaTeX và **phải** đặt trong delimiters $$...$$.
@@ -64,20 +126,13 @@ D. ...
 4) Đáp án đặt dưới câu hỏi, cách 2 dòng trống.
 5) Chỉ dùng tiếng Việt.
 """
-    return prompt.format(
-        lop=lop,
-        chuong=chuong,
-        bai=bai,
-        so_cau=so_cau,
-        loai_cau=loai_cau,
-        dap_an="Có đáp án" if co_dap_an else "Không có đáp án"
-    )
+    return prompt
 
 # --- GỌI API ---
-def generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an):
+def generate_questions(api_key, lop, chuong, chu_de, so_cau, loai_cau, co_dap_an):
     MODEL = "models/gemini-2.0-flash"
     url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
-    prompt = build_prompt(lop, chuong, bai, so_cau, loai_cau, co_dap_an)
+    prompt = build_prompt(lop, chuong, chu_de, so_cau, loai_cau, co_dap_an)
     payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
     try:
         r = requests.post(url, json=payload, timeout=30)
@@ -184,7 +239,7 @@ if st.button("🎯 Sinh đề ngay"):
         st.error("Thiếu API Key!")
     else:
         with st.spinner("⏳ AI đang tạo đề..."):
-            result = generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an)
+            result = generate_questions(api_key, lop, chuong, chu_de, so_cau, loai_cau, co_dap_an)
 
         if isinstance(result, str) and result.startswith("❌"):
             st.error(result)
@@ -195,7 +250,11 @@ if st.button("🎯 Sinh đề ngay"):
             latex_blocks = find_latex_blocks(result)
             if not latex_blocks:
                 st.warning("Không tìm thấy LaTeX ( $$...$$ ). Xuất raw TXT làm fallback.")
-                st.download_button("📥 Tải TXT", data=result.encode("utf-8"), file_name=f"De_{lop}_{chuong}_{bai}.txt", mime="text/plain")
+                st.download_button(
+                    "📥 Tải TXT", data=result.encode("utf-8"),
+                    file_name=f"De_{lop}_{chuong}_{chu_de}.txt",
+                    mime="text/plain"
+                )
             else:
                 # DOCX
                 try:
@@ -203,7 +262,7 @@ if st.button("🎯 Sinh đề ngay"):
                     st.download_button(
                         "📥 Tải DOCX (công thức là ảnh)",
                         data=docx_io.getvalue(),
-                        file_name=f"De_{lop}_{chuong}_{bai}.docx",
+                        file_name=f"De_{lop}_{chuong}_{chu_de}.docx",
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
                 except Exception as e:
@@ -215,7 +274,7 @@ if st.button("🎯 Sinh đề ngay"):
                     st.download_button(
                         "📥 Tải PDF (công thức là ảnh)",
                         data=pdf_io.getvalue(),
-                        file_name=f"De_{lop}_{chuong}_{bai}.pdf",
+                        file_name=f"De_{lop}_{chuong}_{chu_de}.pdf",
                         mime="application/pdf"
                     )
                 except Exception as e:
