@@ -71,8 +71,9 @@ PAGE_4 = "pages/4_Học_liệu_đa_phương_tiện.py"
 PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 
 # --- NHẠC H'MÔNG ---
-HMONG_MUSIC_PATH = "hmong_song.mp3"  # File nhạc local
+HMONG_MUSIC_PATH = "hmong_song.mp3"  # File local
 HMONG_MUSIC_URL = "https://www.example.com/hmong_song.mp3"  # Hoặc link online
+music_src = HMONG_MUSIC_PATH if os.path.exists(HMONG_MUSIC_PATH) else HMONG_MUSIC_URL
 
 # --- 3. MENU BÊN TRÁI ---
 with st.sidebar:
@@ -103,17 +104,15 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- PHÁT NHẠC H'MÔNG AUTOPLAY + LOOP ---
-if os.path.exists(HMONG_MUSIC_PATH):
-    music_src = HMONG_MUSIC_PATH
-else:
-    music_src = HMONG_MUSIC_URL
-
+# --- THANH NHẠC H'MÔNG HIỂN THỊ RÕ RÀNG ---
 st.markdown(f"""
-<audio autoplay loop>
+<div style="text-align:center; margin-bottom:20px;">
+<h4>🎵 Nhạc H'Mông</h4>
+<audio controls>
   <source src="{music_src}" type="audio/mp3">
-  Your browser does not support the audio element.
+  Trình duyệt của bạn không hỗ trợ audio.
 </audio>
+</div>
 """, unsafe_allow_html=True)
 
 # --- CARD CHỨC NĂNG ---
