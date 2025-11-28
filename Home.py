@@ -1,8 +1,8 @@
 import streamlit as st
 import os
 
-# --- CẤU HÌNH KIỂM TRA ẢNH AN TOÀN ---
-LOGO_PATH = "image_2.png.png" 
+# --- CẤU HÌNH LOGO ---
+LOGO_PATH = "image_2.png.png"
 LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
 
 if os.path.exists(LOGO_PATH):
@@ -15,7 +15,7 @@ else:
 # --- 1. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
     page_title="Cổng Giáo Dục Số - Trường Na Ư",
-    page_icon=app_icon, 
+    page_icon=app_icon,
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -70,10 +70,8 @@ PAGE_3 = "pages/3_Giải_bài_tập_từ_ảnh.py"
 PAGE_4 = "pages/4_Học_liệu_đa_phương_tiện.py"
 PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 
-# --- NHẠC H'MÔNG ---
-HMONG_MUSIC_PATH = "hmong_song.mp3"  # File local
-HMONG_MUSIC_URL = "https://www.example.com/hmong_song.mp3"  # Hoặc link online
-music_src = HMONG_MUSIC_PATH if os.path.exists(HMONG_MUSIC_PATH) else HMONG_MUSIC_URL
+# --- LINK NHẠC H'MÔNG ONLINE ---
+HMONG_MUSIC_URL = "https://example.com/your_hmong_song.mp3"  # <-- Thay bằng link mp3 thật
 
 # --- 3. MENU BÊN TRÁI ---
 with st.sidebar:
@@ -85,15 +83,22 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 🚀 Menu Chức Năng")
 
-    if st.button("🏠 Trang Chủ"): st.rerun()
-    if os.path.exists(PAGE_1): st.page_link(PAGE_1, label="Gia Sư Toán AI", icon="🏔️")
-    if os.path.exists(PAGE_2): st.page_link(PAGE_2, label="Sinh Đề Tự Động", icon="⚡")
-    if os.path.exists(PAGE_3): st.page_link(PAGE_3, label="Giải bài tập từ ảnh", icon="🧿")
-    if os.path.exists(PAGE_4): st.page_link(PAGE_4, label="Học liệu đa phương tiện", icon="📽️")
-    if os.path.exists(PAGE_5): st.page_link(PAGE_5, label="Văn hóa cội nguồn", icon="🌽")
+    if st.button("🏠 Trang Chủ"):
+        st.rerun()
+    if os.path.exists(PAGE_1):
+        st.page_link(PAGE_1, label="Gia Sư Toán AI", icon="🏔️")
+    if os.path.exists(PAGE_2):
+        st.page_link(PAGE_2, label="Sinh Đề Tự Động", icon="⚡")
+    if os.path.exists(PAGE_3):
+        st.page_link(PAGE_3, label="Giải bài tập từ ảnh", icon="🧿")
+    if os.path.exists(PAGE_4):
+        st.page_link(PAGE_4, label="Học liệu đa phương tiện", icon="📽️")
+    if os.path.exists(PAGE_5):
+        st.page_link(PAGE_5, label="Văn hóa cội nguồn", icon="🌽")
 
     st.markdown("---")
-    if 'visit_count' not in st.session_state: st.session_state.visit_count = 5383
+    if 'visit_count' not in st.session_state:
+        st.session_state.visit_count = 0
     st.success(f"👥 Lượt truy cập: **{st.session_state.visit_count}**")
 
 # --- 4. NỘI DUNG TRANG CHÍNH ---
@@ -104,12 +109,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- THANH NHẠC H'MÔNG HIỂN THỊ RÕ RÀNG ---
+# --- THANH NHẠC H'MÔNG ONLINE ---  
 st.markdown(f"""
 <div style="text-align:center; margin-bottom:20px;">
 <h4>🎵 Nhạc H'Mông</h4>
 <audio controls>
-  <source src="{music_src}" type="audio/mp3">
+  <source src="{HMONG_MUSIC_URL}" type="audio/mp3">
   Trình duyệt của bạn không hỗ trợ audio.
 </audio>
 </div>
@@ -120,19 +125,23 @@ col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.markdown('<div class="feature-card"><div class="icon-box">🏔️</div><div class="card-title">Gia Sư Toán AI</div><p>Học toán song ngữ.</p></div>', unsafe_allow_html=True)
-    if os.path.exists(PAGE_1): st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
+    if os.path.exists(PAGE_1):
+        st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
 
 with col2:
     st.markdown('<div class="feature-card"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tạo đề trắc nghiệm trong vài giây.</p></div>', unsafe_allow_html=True)
-    if os.path.exists(PAGE_2): st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
+    if os.path.exists(PAGE_2):
+        st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
 
 with col3:
     st.markdown('<div class="feature-card"><div class="icon-box">🧿</div><div class="card-title">Giải bài tập từ ảnh</div><p>Giải bài mọi môn học bằng AI.</p></div>', unsafe_allow_html=True)
-    if os.path.exists(PAGE_3): st.page_link(PAGE_3, label="Giải ngay ➜", icon="📸", use_container_width=True)
+    if os.path.exists(PAGE_3):
+        st.page_link(PAGE_3, label="Giải ngay ➜", icon="📸", use_container_width=True)
 
 with col4:
     st.markdown('<div class="feature-card"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Học liệu văn hóa H\'Mông.</p></div>', unsafe_allow_html=True)
-    if os.path.exists(PAGE_4): st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
+    if os.path.exists(PAGE_4):
+        st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
 
 # --- 5. CHÂN TRANG (FOOTER) ---
 st.markdown("""
