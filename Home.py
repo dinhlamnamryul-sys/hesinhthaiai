@@ -103,11 +103,18 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- PHÁT NHẠC H'MÔNG ---
+# --- PHÁT NHẠC H'MÔNG AUTOPLAY + LOOP ---
 if os.path.exists(HMONG_MUSIC_PATH):
-    st.audio(HMONG_MUSIC_PATH, format='audio/mp3', start_time=0)
+    music_src = HMONG_MUSIC_PATH
 else:
-    st.audio(HMONG_MUSIC_URL, format='audio/mp3', start_time=0)
+    music_src = HMONG_MUSIC_URL
+
+st.markdown(f"""
+<audio autoplay loop>
+  <source src="{music_src}" type="audio/mp3">
+  Your browser does not support the audio element.
+</audio>
+""", unsafe_allow_html=True)
 
 # --- CARD CHỨC NĂNG ---
 col1, col2, col3, col4 = st.columns(4)
