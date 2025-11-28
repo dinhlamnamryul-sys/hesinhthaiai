@@ -10,96 +10,59 @@ from reportlab.lib.utils import ImageReader
 from PIL import Image
 import matplotlib.pyplot as plt
 
-# ==============================
-# Streamlit config
-# ==============================
-st.set_page_config(page_title="Sinh Đề KNTC + Gemini", page_icon="📝", layout="wide")
-st.title("📝 Sinh Đề Tự Động – LaTeX → ảnh → DOCX/PDF")
+st.set_page_config(page_title="Tổng hợp kiến thức Toán Lớp 1–9", layout="wide")
+st.title("📚 Tổng hợp kiến thức Toán từ lớp 1 đến lớp 9 (Gemini API)")
 
-# ==============================
+# =============================
 # API Key
-# ==============================
+# =============================
 api_key = st.secrets.get("GOOGLE_API_KEY", "")
 if not api_key:
     api_key = st.text_input("Nhập Google API Key:", type="password")
 
-# ==============================
-# Lớp, Chủ đề, Bài
-# ==============================
-lop_options = [f"Lớp {i}" for i in range(1,10)]
-chuong_options = {
-    "Lớp 1": ["Chủ đề 1: Các số đến 10","Chủ đề 2: Các số đến 20","Chủ đề 3: Các số đến 100","Chủ đề 4: Hình học và đo lường","Chủ đề 5: Giải toán"],
-    "Lớp 2": ["Chủ đề 1: Số và phép tính","Chủ đề 2: Đo lường","Chủ đề 3: Hình học","Chủ đề 4: Giải toán có lời văn"],
-    "Lớp 3": ["Chủ đề 1: Số và phép tính","Chủ đề 2: Đo lường","Chủ đề 3: Hình học","Chủ đề 4: Giải toán"],
-    "Lớp 4": ["Chủ đề 1: Số tự nhiên – Phép tính","Chủ đề 2: Phân số","Chủ đề 3: Đo lường","Chủ đề 4: Hình học"],
-    "Lớp 5": ["Chủ đề 1: Số thập phân","Chủ đề 2: Tỉ số – Phần trăm","Chủ đề 3: Đo lường","Chủ đề 4: Hình học"],
-    "Lớp 6": ["Chương 1: Số tự nhiên","Chương 2: Số nguyên","Chương 3: Phân số","Chương 4: Biểu thức – Đại số","Chương 5: Hình học trực quan"],
-    "Lớp 7": ["Chương 1: Số hữu tỉ – Số thực","Chương 2: Hàm số và đồ thị","Chương 3: Hình học tam giác","Chương 4: Thống kê"],
-    "Lớp 8": ["Chương 1: Đại số – Đa thức","Chương 2: Phân thức","Chương 3: Phương trình bậc nhất","Chương 4: Hình học tứ giác – Đa giác"],
-    "Lớp 9": ["Chương 1: Căn bậc hai – Căn thức","Chương 2: Hàm số bậc nhất","Chương 3: Hàm số bậc hai","Chương 4: Phương trình bậc hai","Chương 5: Hình học không gian – Trụ – Nón – Cầu"]
-}
+# =============================
+# Chọn lớp
+# =============================
+lop_options = [f"Lớp {i}" for i in range(1, 10)] + ["Tất cả lớp"]
+lop = st.selectbox("Chọn lớp để tổng hợp kiến thức", lop_options)
 
-bai_options = {
-    # Chỉ ví dụ cho Lớp 1–3, các lớp khác bạn có thể thêm tương tự
-    "Chủ đề 1: Các số đến 10": ["Đếm, đọc, viết số đến 10", "Cộng trong phạm vi 10", "Trừ trong phạm vi 10"],
-    "Chủ đề 2: Các số đến 20": ["Số 11–20", "Cộng – trừ phạm vi 20"],
-    "Chủ đề 3: Các số đến 100": ["Số tròn chục", "Phép tính trong phạm vi 100"],
-}
-
-# ==============================
-# Sidebar input
-# ==============================
-with st.sidebar:
-    st.header("Thông tin sinh đề")
-    lop = st.selectbox("Chọn lớp", lop_options)
-    chuong = st.selectbox("Chọn chủ đề/chương", chuong_options[lop])
-    bai_list = bai_options.get(chuong, [])
-    if bai_list:
-        bai = st.selectbox("Chọn bài", bai_list)
+# =============================
+# Build prompt tổng hợp kiến thức
+# =============================
+def build_prompt_summary(lop):
+    if lop == "Tất cả lớp":
+        lop_text = "từ lớp 1 đến lớp 9"
     else:
-        bai = st.text_input("Chưa có bài cho chủ đề này", "")
-    so_cau = st.number_input("Số câu hỏi", min_value=1, max_value=50, value=10)
-    loai_cau = st.selectbox("Loại câu hỏi", ["Trắc nghiệm 4 lựa chọn","Trắc nghiệm Đúng – Sai","Câu trả lời ngắn","Tự luận","Trộn ngẫu nhiên"])
-    co_dap_an = st.checkbox("Có đáp án", value=True)
-
-# ==============================
-# Build prompt
-# ==============================
-def build_prompt(lop, chuong, bai, so_cau, loai_cau, co_dap_an):
-    return f"""
-Bạn là giáo viên Toán. Hãy sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống":
-- Lớp: {lop}
-- Chủ đề/Chương: {chuong}
-- Bài: {bai}
-- Số câu hỏi: {so_cau}
-- Loại câu hỏi: {loai_cau}
-- {"Có đáp án" if co_dap_an else "Không có đáp án"}
-
-YÊU CẦU:
-1) Toàn bộ công thức toán viết LaTeX, đặt trong $$...$$
-2) Trắc nghiệm: A. ... B. ... C. ... D. ...
-3) Câu trả lời ngắn 1 dòng
-4) Đáp án đặt dưới câu hỏi, cách 2 dòng
-5) Chỉ dùng tiếng Việt
+        lop_text = lop
+    prompt = f"""
+Bạn là giáo viên Toán. Hãy tổng hợp toàn bộ kiến thức môn Toán {lop_text}.
+- Tóm tắt theo dạng từng lớp, từng chủ đề/chương.
+- Nêu rõ công thức, ví dụ, định nghĩa.
+- Công thức toán phải viết bằng LaTeX, đặt trong $$...$$.
+- Chỉ dùng tiếng Việt, trình bày rõ ràng để in ra DOCX/PDF.
+- Có thể chia thành mục: Khái niệm – Công thức – Ví dụ – Ứng dụng.
 """
+    return prompt
 
-# ==============================
+# =============================
 # Gọi Gemini API
-# ==============================
-def generate_questions_gemini(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an):
+# =============================
+def generate_summary(api_key, lop):
     MODEL = "models/gemini-2.0-flash"
     url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
-    prompt = build_prompt(lop, chuong, bai, so_cau, loai_cau, co_dap_an)
+    prompt = build_prompt_summary(lop)
     payload = {"contents":[{"role":"user","parts":[{"text":prompt}]}]}
-    r = requests.post(url, json=payload, timeout=30)
-    if r.status_code != 200:
-        return f"❌ Lỗi API {r.status_code}: {r.text}"
-    j = r.json()
-    return j["candidates"][0]["content"]["parts"][0]["text"]
+    try:
+        r = requests.post(url, json=payload, timeout=60)
+        r.raise_for_status()
+        j = r.json()
+        return j["candidates"][0]["content"][0]["text"]
+    except Exception as e:
+        return f"❌ Lỗi kết nối hoặc API: {e}"
 
-# ==============================
-# LaTeX → ảnh → DOCX/PDF
-# ==============================
+# =============================
+# Xử lý LaTeX → ảnh → DOCX/PDF
+# =============================
 LATEX_RE = re.compile(r"\$\$(.+?)\$\$", re.DOTALL)
 def find_latex_blocks(text):
     return [(m.span(), m.group(0), m.group(1)) for m in LATEX_RE.finditer(text)]
@@ -183,23 +146,29 @@ def create_pdf_bytes(text):
     buf.seek(0)
     return buf
 
-# ==============================
-# Nút sinh đề
-# ==============================
-if st.button("🎯 Sinh đề ngay"):
+# =============================
+# Nút tổng hợp kiến thức
+# =============================
+if st.button("📄 Tổng hợp kiến thức"):
     if not api_key:
         st.error("Thiếu API Key!")
     else:
-        with st.spinner("⏳ AI đang tạo đề..."):
-            result = generate_questions_gemini(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an)
-        if isinstance(result, str) and result.startswith("❌"):
-            st.error(result)
+        with st.spinner("⏳ AI đang tổng hợp kiến thức..."):
+            summary = generate_summary(api_key, lop)
+        if isinstance(summary, str) and summary.startswith("❌"):
+            st.error(summary)
         else:
-            st.success("🎉 Đã tạo xong đề (hiển thị nội dung).")
-            st.markdown(result.replace("\n","<br>"), unsafe_allow_html=True)
+            st.success("🎉 Hoàn tất tổng hợp kiến thức!")
+            st.markdown(summary.replace("\n","<br>"), unsafe_allow_html=True)
 
-            docx_io = create_docx_bytes(result)
-            st.download_button("📥 Tải DOCX", data=docx_io.getvalue(), file_name=f"De_{lop}_{chuong}_{bai}.docx", mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+            # Xuất DOCX
+            docx_io = create_docx_bytes(summary)
+            st.download_button("📥 Tải DOCX", data=docx_io.getvalue(),
+                               file_name=f"Tong_hop_KT_{lop}.docx",
+                               mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
-            pdf_io = create_pdf_bytes(result)
-            st.download_button("📥 Tải PDF", data=pdf_io.getvalue(), file_name=f"De_{lop}_{chuong}_{bai}.pdf", mime="application/pdf")
+            # Xuất PDF
+            pdf_io = create_pdf_bytes(summary)
+            st.download_button("📥 Tải PDF", data=pdf_io.getvalue(),
+                               file_name=f"Tong_hop_KT_{lop}.pdf",
+                               mime="application/pdf")
