@@ -10,59 +10,122 @@ from reportlab.lib.utils import ImageReader
 from PIL import Image
 import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="Tổng hợp kiến thức Toán Lớp 1–9", layout="wide")
-st.title("📚 Tổng hợp kiến thức Toán từ lớp 1 đến lớp 9 (Gemini API)")
+# --- Cấu hình trang ---
+st.set_page_config(page_title="Sinh Đề GDCD Tự Động", page_icon="📚", layout="wide")
 
-# =============================
-# API Key
-# =============================
+# --- Tiêu đề chính + tên trường ---
+st.markdown(
+    """
+    <div style="text-align:center; padding:10px; background-color:#f0f2f6; border-radius:10px;">
+        <h1 style="color:#1f77b4;">📚 Sinh Đề GDCD Tự Động</h1>
+        <h3 style="color:#ff7f0e;">Ly A Chua – Trường PTDTBT TH&THCS Na Ư</h3>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# --- API KEY ---
 api_key = st.secrets.get("GOOGLE_API_KEY", "")
 if not api_key:
     api_key = st.text_input("Nhập Google API Key:", type="password")
 
-# =============================
-# Chọn lớp
-# =============================
-lop_options = [f"Lớp {i}" for i in range(1, 10)] + ["Tất cả lớp"]
-lop = st.selectbox("Chọn lớp để tổng hợp kiến thức", lop_options)
+# --- Lớp & Chủ đề ---
+lop_options = ["Lớp 6", "Lớp 7", "Lớp 8", "Lớp 9"]
+chuong_options = {
+    "Lớp 6": [
+        "Chủ đề 1: Quyền và nghĩa vụ cơ bản của công dân",
+        "Chủ đề 2: Kỷ luật, pháp luật và trách nhiệm",
+        "Chủ đề 3: Đạo đức trong học tập và đời sống"
+    ],
+    "Lớp 7": [
+        "Chủ đề 1: Quyền và nghĩa vụ trong trường học",
+        "Chủ đề 2: Kỹ năng sống cơ bản",
+        "Chủ đề 3: Xây dựng môi trường văn hóa"
+    ],
+    "Lớp 8": [
+        "Chủ đề 1: Công dân và pháp luật",
+        "Chủ đề 2: Đạo đức nghề nghiệp và trách nhiệm xã hội",
+        "Chủ đề 3: An toàn và bảo vệ môi trường"
+    ],
+    "Lớp 9": [
+        "Chủ đề 1: Quyền và nghĩa vụ công dân trong xã hội",
+        "Chủ đề 2: Pháp luật và hình thức xử lý vi phạm",
+        "Chủ đề 3: Xây dựng nếp sống văn minh"
+    ]
+}
 
-# =============================
-# Build prompt tổng hợp kiến thức
-# =============================
-def build_prompt_summary(lop):
-    if lop == "Tất cả lớp":
-        lop_text = "từ lớp 1 đến lớp 9"
+bai_options = {
+    # --- Lớp 6 ---
+    "Chủ đề 1: Quyền và nghĩa vụ cơ bản của công dân": ["Bài 1: Quyền cơ bản", "Bài 2: Nghĩa vụ cơ bản"],
+    "Chủ đề 2: Kỷ luật, pháp luật và trách nhiệm": ["Bài 1: Kỷ luật ở trường học", "Bài 2: Pháp luật cơ bản"],
+    "Chủ đề 3: Đạo đức trong học tập và đời sống": ["Bài 1: Trung thực và tôn trọng", "Bài 2: Giúp đỡ bạn bè"],
+    # --- Lớp 7 ---
+    "Chủ đề 1: Quyền và nghĩa vụ trong trường học": ["Bài 1: Quyền học tập", "Bài 2: Nghĩa vụ học tập"],
+    "Chủ đề 2: Kỹ năng sống cơ bản": ["Bài 1: Giao tiếp", "Bài 2: Giải quyết mâu thuẫn"],
+    "Chủ đề 3: Xây dựng môi trường văn hóa": ["Bài 1: Văn hóa học đường", "Bài 2: Hoạt động tập thể"],
+    # --- Lớp 8 ---
+    "Chủ đề 1: Công dân và pháp luật": ["Bài 1: Luật pháp cơ bản", "Bài 2: Trách nhiệm tuân thủ pháp luật"],
+    "Chủ đề 2: Đạo đức nghề nghiệp và trách nhiệm xã hội": ["Bài 1: Đạo đức nghề nghiệp", "Bài 2: Trách nhiệm xã hội"],
+    "Chủ đề 3: An toàn và bảo vệ môi trường": ["Bài 1: An toàn cá nhân", "Bài 2: Bảo vệ môi trường"],
+    # --- Lớp 9 ---
+    "Chủ đề 1: Quyền và nghĩa vụ công dân trong xã hội": ["Bài 1: Quyền công dân", "Bài 2: Nghĩa vụ công dân"],
+    "Chủ đề 2: Pháp luật và hình thức xử lý vi phạm": ["Bài 1: Hình thức xử lý", "Bài 2: Trách nhiệm pháp lý"],
+    "Chủ đề 3: Xây dựng nếp sống văn minh": ["Bài 1: Văn minh nơi công cộng", "Bài 2: Nếp sống văn hóa"]
+}
+
+# --- Sidebar ---
+with st.sidebar:
+    st.header("Thông tin sinh đề")
+    lop = st.selectbox("Chọn lớp", lop_options)
+    chuong = st.selectbox("Chọn chủ đề/chương", chuong_options[lop])
+    bai_list = bai_options.get(chuong, [])
+    if bai_list:
+        bai = st.selectbox("Chọn bài", bai_list)
     else:
-        lop_text = lop
-    prompt = f"""
-Bạn là giáo viên Toán. Hãy tổng hợp toàn bộ kiến thức môn Toán {lop_text}.
-- Tóm tắt theo dạng từng lớp, từng chủ đề/chương.
-- Nêu rõ công thức, ví dụ, định nghĩa.
-- Công thức toán phải viết bằng LaTeX, đặt trong $$...$$.
-- Chỉ dùng tiếng Việt, trình bày rõ ràng để in ra DOCX/PDF.
-- Có thể chia thành mục: Khái niệm – Công thức – Ví dụ – Ứng dụng.
-"""
-    return prompt
+        bai = st.text_input("Chưa có bài cho chủ đề này", "")
 
-# =============================
-# Gọi Gemini API
-# =============================
-def generate_summary(api_key, lop):
+    so_cau = st.number_input("Số câu hỏi", min_value=1, max_value=50, value=10)
+    loai_cau = st.selectbox(
+        "Loại câu hỏi",
+        ["Trắc nghiệm 4 lựa chọn", "Trắc nghiệm Đúng – Sai", "Câu trả lời ngắn", "Tự luận", "Trộn ngẫu nhiên"]
+    )
+    co_dap_an = st.checkbox("Có đáp án", value=True)
+
+# --- Hàm sinh prompt ---
+def build_prompt(lop, chuong, bai, so_cau, loai_cau, co_dap_an):
+    return f"""
+Bạn là giáo viên GDCD. Hãy sinh đề kiểm tra:
+- Lớp: {lop}
+- Chủ đề/Chương: {chuong}
+- Bài: {bai}
+- Số câu hỏi: {so_cau}
+- Loại câu hỏi: {loai_cau}
+- {"Có đáp án" if co_dap_an else "Không có đáp án"}
+
+YÊU CẦU QUAN TRỌNG:
+1) Toàn bộ công thức (nếu có) phải viết bằng LaTeX $$...$$.
+2) Câu trắc nghiệm: A. ... B. ... C. ... D. ...
+3) Câu trả lời ngắn: 1 dòng.
+4) Đáp án dưới câu hỏi, cách 2 dòng trống.
+5) Chỉ dùng tiếng Việt.
+"""
+
+# --- Gọi API Google Generative ---
+def generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an):
     MODEL = "models/gemini-2.0-flash"
     url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
-    prompt = build_prompt_summary(lop)
+    prompt = build_prompt(lop, chuong, bai, so_cau, loai_cau, co_dap_an)
     payload = {"contents":[{"role":"user","parts":[{"text":prompt}]}]}
     try:
-        r = requests.post(url, json=payload, timeout=60)
-        r.raise_for_status()
+        r = requests.post(url, json=payload, timeout=30)
+        if r.status_code != 200:
+            return f"❌ Lỗi API {r.status_code}: {r.text}"
         j = r.json()
-        return j["candidates"][0]["content"][0]["text"]
+        return j["candidates"][0]["content"]["parts"][0]["text"]
     except Exception as e:
-        return f"❌ Lỗi kết nối hoặc API: {e}"
+        return f"❌ Lỗi kết nối: {e}"
 
-# =============================
-# Xử lý LaTeX → ảnh → DOCX/PDF
-# =============================
+# --- Xử lý LaTeX ---
 LATEX_RE = re.compile(r"\$\$(.+?)\$\$", re.DOTALL)
 def find_latex_blocks(text):
     return [(m.span(), m.group(0), m.group(1)) for m in LATEX_RE.finditer(text)]
@@ -78,6 +141,7 @@ def render_latex_png_bytes(latex_code, fontsize=20, dpi=200):
     buf.seek(0)
     return buf.read()
 
+# --- Tạo DOCX/PDF ---
 def create_docx_bytes(text):
     doc = Document()
     last = 0
@@ -146,29 +210,46 @@ def create_pdf_bytes(text):
     buf.seek(0)
     return buf
 
-# =============================
-# Nút tổng hợp kiến thức
-# =============================
-if st.button("📄 Tổng hợp kiến thức"):
+# --- Button sinh đề ---
+if st.button("🎯 Sinh đề ngay"):
     if not api_key:
         st.error("Thiếu API Key!")
     else:
-        with st.spinner("⏳ AI đang tổng hợp kiến thức..."):
-            summary = generate_summary(api_key, lop)
-        if isinstance(summary, str) and summary.startswith("❌"):
-            st.error(summary)
+        with st.spinner("⏳ AI đang tạo đề..."):
+            result = generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an)
+
+        if isinstance(result, str) and result.startswith("❌"):
+            st.error(result)
         else:
-            st.success("🎉 Hoàn tất tổng hợp kiến thức!")
-            st.markdown(summary.replace("\n","<br>"), unsafe_allow_html=True)
+            st.success("🎉 Đã tạo xong đề.")
+            st.markdown(result.replace("\n", "<br>"), unsafe_allow_html=True)
 
-            # Xuất DOCX
-            docx_io = create_docx_bytes(summary)
-            st.download_button("📥 Tải DOCX", data=docx_io.getvalue(),
-                               file_name=f"Tong_hop_KT_{lop}.docx",
-                               mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+            latex_blocks = find_latex_blocks(result)
+            if not latex_blocks:
+                st.warning("Không tìm thấy LaTeX. Xuất TXT.")
+                st.download_button(
+                    "📥 Tải TXT", data=result.encode("utf-8"),
+                    file_name=f"De_{lop}_{chuong}_{bai}.txt", mime="text/plain"
+                )
+            else:
+                try:
+                    docx_io = create_docx_bytes(result)
+                    st.download_button(
+                        "📥 Tải DOCX",
+                        data=docx_io.getvalue(),
+                        file_name=f"De_{lop}_{chuong}_{bai}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
+                except Exception as e:
+                    st.error(f"Không tạo DOCX: {e}")
 
-            # Xuất PDF
-            pdf_io = create_pdf_bytes(summary)
-            st.download_button("📥 Tải PDF", data=pdf_io.getvalue(),
-                               file_name=f"Tong_hop_KT_{lop}.pdf",
-                               mime="application/pdf")
+                try:
+                    pdf_io = create_pdf_bytes(result)
+                    st.download_button(
+                        "📥 Tải PDF",
+                        data=pdf_io.getvalue(),
+                        file_name=f"De_{lop}_{chuong}_{bai}.pdf",
+                        mime="application/pdf"
+                    )
+                except Exception as e:
+                    st.error(f"Không tạo PDF: {e}")
