@@ -10,8 +10,8 @@ from reportlab.lib.utils import ImageReader
 from PIL import Image
 import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="Tổng hợp kiến thức Toán Lớp 1–9", layout="wide")
-st.title("📚 Tổng hợp kiến thức Toán từ lớp 1 đến lớp 9 (Gemini API)")
+st.set_page_config(page_title="Tổng hợp kiến thức Toán theo chủ đề", layout="wide")
+st.title("📚 Tổng hợp kiến thức Toán từ lớp 1 đến lớp 9 theo chủ đề (Gemini API)")
 
 # =============================
 # API Key
@@ -27,30 +27,30 @@ lop_options = [f"Lớp {i}" for i in range(1, 10)] + ["Tất cả lớp"]
 lop = st.selectbox("Chọn lớp để tổng hợp kiến thức", lop_options)
 
 # =============================
-# Build prompt tổng hợp kiến thức
+# Build prompt tổng hợp theo chủ đề
 # =============================
-def build_prompt_summary(lop):
+def build_prompt_summary_theo_chu_de(lop):
     if lop == "Tất cả lớp":
         lop_text = "từ lớp 1 đến lớp 9"
     else:
         lop_text = lop
     prompt = f"""
-Bạn là giáo viên Toán. Hãy tổng hợp toàn bộ kiến thức môn Toán {lop_text}.
-- Tóm tắt theo dạng từng lớp, từng chủ đề/chương.
-- Nêu rõ công thức, ví dụ, định nghĩa.
-- Công thức toán phải viết bằng LaTeX, đặt trong $$...$$.
+Bạn là giáo viên Toán. Hãy tổng hợp toàn bộ kiến thức môn Toán {lop_text} theo CHỦ ĐỀ CHÍNH.
+- Phân nhóm theo các chủ đề: Số học, Đại số, Hình học, Thống kê & Xác suất (nếu có).
+- Mỗi chủ đề chia thành: Khái niệm – Công thức – Ví dụ – Ứng dụng.
+- Viết công thức toán bằng LaTeX trong $$...$$.
 - Chỉ dùng tiếng Việt, trình bày rõ ràng để in ra DOCX/PDF.
-- Có thể chia thành mục: Khái niệm – Công thức – Ví dụ – Ứng dụng.
+- Nếu có ví dụ minh họa, liệt kê dạng bullet hoặc số thứ tự.
 """
     return prompt
 
 # =============================
 # Gọi Gemini API
 # =============================
-def generate_summary(api_key, lop):
+def generate_summary(api_key, lop, prompt_builder=build_prompt_summary_theo_chu_de):
     MODEL = "models/gemini-2.0-flash"
     url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
-    prompt = build_prompt_summary(lop)
+    prompt = prompt_builder(lop)
     payload = {"contents":[{"role":"user","parts":[{"text":prompt}]}]}
     try:
         r = requests.post(url, json=payload, timeout=60)
@@ -149,7 +149,7 @@ def create_pdf_bytes(text):
 # =============================
 # Nút tổng hợp kiến thức
 # =============================
-if st.button("📄 Tổng hợp kiến thức"):
+if st.button("📄 Tổng hợp kiến thức theo chủ đề"):
     if not api_key:
         st.error("Thiếu API Key!")
     else:
