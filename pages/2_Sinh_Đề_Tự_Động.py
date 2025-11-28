@@ -298,3 +298,50 @@ if st.button("🎯 Sinh đề ngay"):
         if isinstance(result, str) and result.startswith("❌"):
             st.error(result)
         else
+# --- BUTTON ---
+if st.button("🎯 Sinh đề ngay"):
+    if not api_key:
+        st.error("Thiếu API Key!")
+    else:
+        with st.spinner("⏳ AI đang tạo đề..."):
+            result = generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an)
+
+        if isinstance(result, str) and result.startswith("❌"):
+            st.error(result)
+        else:
+            st.success("🎉 Đã tạo xong đề (hiển thị nội dung).")
+            st.markdown(result.replace("\n", "<br>"), unsafe_allow_html=True)
+
+            latex_blocks = find_latex_blocks(result)
+            if not latex_blocks:
+                st.warning("Không tìm thấy LaTeX ( $$...$$ ). Xuất raw TXT làm fallback.")
+                st.download_button(
+                    "📥 Tải TXT",
+                    data=result.encode("utf-8"),
+                    file_name=f"De_{lop}_{chuong}_{bai}.txt",
+                    mime="text/plain"
+                )
+            else:
+                # DOCX
+                try:
+                    docx_io = create_docx_bytes(result)
+                    st.download_button(
+                        "📥 Tải DOCX (công thức là ảnh)",
+                        data=docx_io.getvalue(),
+                        file_name=f"De_{lop}_{chuong}_{bai}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
+                except Exception as e:
+                    st.error(f"Không tạo DOCX: {e}")
+
+                # PDF
+                try:
+                    pdf_io = create_pdf_bytes(result)
+                    st.download_button(
+                        "📥 Tải PDF (công thức là ảnh)",
+                        data=pdf_io.getvalue(),
+                        file_name=f"De_{lop}_{chuong}_{bai}.pdf",
+                        mime="application/pdf"
+                    )
+                except Exception as e:
+                    st.error(f"Không tạo PDF: {e}")
