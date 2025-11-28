@@ -82,7 +82,7 @@ chuong_options = {
 }
 
 bai_options = {
-    # --- Lớp 1 ---
+    # Ví dụ đầy đủ lớp 1, các lớp khác bạn có thể mở rộng
     "Chủ đề 1: Các số đến 10": [
         "Bài 1: Đếm, đọc, viết số đến 10",
         "Bài 2: Cộng trong phạm vi 10",
@@ -105,17 +105,29 @@ bai_options = {
         "Bài 1: Giải toán một bước",
         "Bài 2: Tìm số còn thiếu"
     ],
-    # --- Các lớp khác tương tự, bạn có thể mở rộng theo danh sách đầy đủ ---
+    # Các lớp khác mở rộng tương tự
 }
 
 # --- Sidebar ---
 with st.sidebar:
     st.header("Thông tin sinh đề")
+    
+    # Chọn lớp
     lop = st.selectbox("Chọn lớp", lop_options)
+    
+    # Chọn chủ đề/chương
     chuong_list = chuong_options.get(lop, [])
+    if not chuong_list:
+        chuong_list = ["Chưa có chủ đề"]
     chuong = st.selectbox("Chọn chương/chủ đề", chuong_list)
+    
+    # Chọn bài
     bai_list = bai_options.get(chuong, [])
+    if not bai_list:
+        bai_list = ["Chưa có bài"]
     bai = st.selectbox("Chọn bài", bai_list)
+    
+    # Số câu, loại câu, có đáp án
     so_cau = st.number_input("Số câu hỏi", min_value=1, max_value=50, value=10)
     loai_cau = st.selectbox(
         "Loại câu hỏi",
@@ -169,7 +181,6 @@ def generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an):
 
 # --- LaTeX → DOCX/PDF ---
 LATEX_RE = re.compile(r"\$\$(.+?)\$\$", re.DOTALL)
-
 def find_latex_blocks(text):
     return [(m.span(), m.group(0), m.group(1)) for m in LATEX_RE.finditer(text)]
 
