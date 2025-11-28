@@ -1,9 +1,8 @@
 import streamlit as st
 import os
-import base64
 
 # --- CẤU HÌNH LOGO ---
-LOGO_PATH = "image_2.png.png" # Lưu ý: Kiểm tra lại tên file logo của bạn
+LOGO_PATH = "image_2.png.png"
 LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
 
 if os.path.exists(LOGO_PATH):
@@ -61,13 +60,6 @@ st.markdown("""
         z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     }
     .footer p { margin: 0; font-family: sans-serif; line-height: 1.5; }
-    
-    /* CSS cho trình phát nhạc */
-    audio {
-        width: 60%; 
-        border-radius: 30px; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -78,23 +70,8 @@ PAGE_3 = "pages/3_Giải_bài_tập_từ_ảnh.py"
 PAGE_4 = "pages/4_Học_liệu_đa_phương_tiện.py"
 PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 
-# --- XỬ LÝ NHẠC H'MÔNG (LOCAL & ONLINE) ---
-MUSIC_FILE = "nhac_nen.mp3"  # Tên file nhạc bạn cần chép vào cùng thư mục code
-
-def get_audio_html(file_path):
-    """Hàm đọc file nhạc local và chuyển sang mã HTML để phát"""
-    if os.path.exists(file_path):
-        with open(file_path, "rb") as f:
-            data = f.read()
-        b64 = base64.b64encode(data).decode()
-        return f'<source src="data:audio/mp3;base64,{b64}" type="audio/mp3">'
-    else:
-        # Link dự phòng nếu chưa có file nhạc (Tiếng sáo trúc demo)
-        fallback_url = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" 
-        return f'<source src="{fallback_url}" type="audio/mp3">'
-
-# Gọi hàm lấy source nhạc
-audio_source_html = get_audio_html(MUSIC_FILE)
+# --- LINK NHẠC H'MÔNG ONLINE ---
+HMONG_MUSIC_URL = "https://example.com/your_hmong_song.mp3"  # <-- Thay bằng link mp3 thật
 
 # --- 3. MENU BÊN TRÁI ---
 with st.sidebar:
@@ -132,12 +109,12 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- THANH NHẠC H'MÔNG (ĐÃ NÂNG CẤP) ---  
+# --- THANH NHẠC H'MÔNG ONLINE ---  
 st.markdown(f"""
-<div style="text-align:center; margin-bottom:30px;">
-<h4 style="color: #555;">🎵 Giai điệu bản Mông</h4>
-<audio controls autoplay>
-  {audio_source_html}
+<div style="text-align:center; margin-bottom:20px;">
+<h4>🎵 Nhạc H'Mông</h4>
+<audio controls>
+  <source src="{HMONG_MUSIC_URL}" type="audio/mp3">
   Trình duyệt của bạn không hỗ trợ audio.
 </audio>
 </div>
