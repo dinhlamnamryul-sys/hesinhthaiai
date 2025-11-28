@@ -21,6 +21,7 @@ if not api_key:
 # --- Lớp, Chủ đề/Chương, Bài ---
 lop_options = [f"Lớp {i}" for i in range(1, 10)]
 
+# --- Chủ đề / Chương ---
 chuong_options = {
     "Lớp 1": [
         "Chủ đề 1: Các số đến 10",
@@ -29,10 +30,61 @@ chuong_options = {
         "Chủ đề 4: Hình học và đo lường",
         "Chủ đề 5: Giải toán"
     ],
-    # Bạn có thể thêm lớp 2 → 9 tương tự
+    "Lớp 2": [
+        "Chủ đề 1: Số và phép tính",
+        "Chủ đề 2: Đo lường",
+        "Chủ đề 3: Hình học",
+        "Chủ đề 4: Giải toán có lời văn"
+    ],
+    "Lớp 3": [
+        "Chủ đề 1: Số và phép tính",
+        "Chủ đề 2: Đo lường",
+        "Chủ đề 3: Hình học",
+        "Chủ đề 4: Giải toán"
+    ],
+    "Lớp 4": [
+        "Chủ đề 1: Số tự nhiên – Phép tính",
+        "Chủ đề 2: Phân số",
+        "Chủ đề 3: Đo lường",
+        "Chủ đề 4: Hình học"
+    ],
+    "Lớp 5": [
+        "Chủ đề 1: Số thập phân",
+        "Chủ đề 2: Tỉ số – Phần trăm",
+        "Chủ đề 3: Đo lường",
+        "Chủ đề 4: Hình học"
+    ],
+    "Lớp 6": [
+        "Chương 1: Số tự nhiên",
+        "Chương 2: Số nguyên",
+        "Chương 3: Phân số",
+        "Chương 4: Biểu thức – Đại số",
+        "Chương 5: Hình học trực quan"
+    ],
+    "Lớp 7": [
+        "Chương 1: Số hữu tỉ – Số thực",
+        "Chương 2: Hàm số và đồ thị",
+        "Chương 3: Hình học tam giác",
+        "Chương 4: Thống kê"
+    ],
+    "Lớp 8": [
+        "Chương 1: Đại số – Đa thức",
+        "Chương 2: Phân thức",
+        "Chương 3: Phương trình bậc nhất",
+        "Chương 4: Hình học tứ giác – Đa giác"
+    ],
+    "Lớp 9": [
+        "Chương 1: Căn bậc hai – Căn thức",
+        "Chương 2: Hàm số bậc nhất",
+        "Chương 3: Hàm số bậc hai",
+        "Chương 4: Phương trình bậc hai",
+        "Chương 5: Hình học không gian – Trụ – Nón – Cầu"
+    ]
 }
 
+# --- Bài ---
 bai_options = {
+    # Lớp 1
     "Chủ đề 1: Các số đến 10": [
         "Bài 1: Đếm, đọc, viết số đến 10",
         "Bài 2: Cộng trong phạm vi 10",
@@ -55,7 +107,7 @@ bai_options = {
         "Bài 1: Giải toán một bước",
         "Bài 2: Tìm số còn thiếu"
     ],
-    # Các lớp khác bạn có thể mở rộng tương tự
+    # Lớp 2 → Lớp 9 có thể thêm đầy đủ tương tự
 }
 
 # --- Sidebar ---
@@ -67,9 +119,7 @@ with st.sidebar:
     
     # Chọn chủ đề/chương
     chuong_list = chuong_options.get(lop, [])
-    if not chuong_list:
-        chuong_list = ["Chưa có chủ đề"]
-    chuong = st.selectbox("Chọn chương/chủ đề", chuong_list)
+    chuong = st.selectbox("Chọn chủ đề/chương", chuong_list)
     
     # Chọn bài
     bai_list = bai_options.get(chuong, [])
