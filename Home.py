@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import base64
+import random # Thêm thư viện random để tạo hiệu ứng rơi ngẫu nhiên
 
 # --- 0. CÁC HÀM TIỆN ÍCH (Khởi tạo trước khi Cấu hình Trang) ---
 def get_base64_image(image_path):
@@ -83,7 +84,7 @@ else:
     """
 
 # --- 2.1. CHÈN CSS GIAO DIỆN CHUNG ---
-# Khối CSS không chứa marquee (sử dụng f-string vì có header_css)
+# Khối CSS không chứa marquee và hoa ban (sử dụng f-string vì có header_css)
 st.markdown(f"""
 <style>
     {header_css}
@@ -128,16 +129,16 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# Khối CSS chạy chữ TÁCH BIỆT (KHÔNG dùng f-string)
+# Khối CSS chạy chữ và HOA BAN RƠI TÁCH BIỆT (KHÔNG dùng f-string)
 st.markdown("""
 <style>
-    /* CSS MỚI: Chữ chạy ngang (Marquee effect) */
+    /* CSS cho chữ chạy ngang */
     .running-text-container {
         overflow: hidden; 
         background-color: #ffffff; 
         color: #b71c1c; 
         font-weight: bold;
-        padding: 8px 0; /* ĐÃ TĂNG: Tăng padding để chứa chữ lớn */
+        padding: 8px 0; 
         margin-bottom: 10px; 
         border-bottom: 2px solid #ff9800;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -145,14 +146,97 @@ st.markdown("""
     .running-text {
         display: inline-block;
         white-space: nowrap;
-        font-size: 1.2rem; /* ĐÃ TĂNG: Chữ to hơn */
-        animation: marquee 30s linear infinite; /* ĐÃ TĂNG: Chạy chậm hơn */
+        font-size: 1.2rem; 
+        animation: marquee 30s linear infinite; 
     }
     @keyframes marquee {
         0%   { transform: translate(100%, 0); }
         100% { transform: translate(-100%, 0); }
     }
+
+    /* CSS CHO HIỆU ỨNG HOA BAN RƠI */
+    .petal {
+        position: fixed;
+        background-color: white; /* Màu trắng của cánh hoa */
+        border-radius: 50%; /* Hình tròn hoặc ellipse nhẹ */
+        opacity: 0.8; /* Hơi trong suốt */
+        pointer-events: none; /* Không chặn click chuột */
+        z-index: 9999; /* Luôn ở trên cùng */
+        animation: fall linear infinite;
+    }
+
+    /* Kích thước ngẫu nhiên cho cánh hoa */
+    .petal.size-small { width: 8px; height: 8px; }
+    .petal.size-medium { width: 12px; height: 12px; }
+    .petal.size-large { width: 16px; height: 16px; }
+
+    /* Hiệu ứng xoay và bay lượn ngẫu nhiên */
+    .petal.wind-1 { animation-duration: 15s; animation-delay: 0s; }
+    .petal.wind-2 { animation-duration: 20s; animation-delay: 5s; }
+    .petal.wind-3 { animation-duration: 25s; animation-delay: 10s; }
+    .petal.wind-4 { animation-duration: 18s; animation-delay: 2s; }
+    .petal.wind-5 { animation-duration: 22s; animation-delay: 7s; }
+
+
+    @keyframes fall {
+        0% {
+            transform: translate3d(0, 0, 0) rotate(0deg);
+            opacity: 0.8;
+        }
+        50% {
+            transform: translate3d(random(-20px, 20px), 50vh, 0) rotate(180deg); /* Thêm dịch chuyển ngang để bay lượn */
+            opacity: 0.6;
+        }
+        100% {
+            transform: translate3d(0, 100vh, 0) rotate(360deg);
+            opacity: 0.3;
+        }
+    }
+
+    /* Nếu muốn hiệu ứng phức tạp hơn với các hình dạng cánh hoa */
+    .petal-shape {
+        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23FFFFFF" d="M50 0 C75 0 100 25 100 50 C100 75 75 100 50 100 C25 100 0 75 0 50 C0 25 25 0 50 0 Z"/></svg>') no-repeat center center;
+        background-size: contain;
+        width: 15px; /* Kích thước icon hoa ban */
+        height: 15px;
+        opacity: 0.7;
+    }
 </style>
+
+<script>
+    // JavaScript để tạo hiệu ứng hoa ban rơi
+    document.addEventListener('DOMContentLoaded', () => {
+        const numPetals = 30; // Số lượng cánh hoa
+        const body = document.body;
+
+        for (let i = 0; i < numPetals; i++) {
+            const petal = document.createElement('div');
+            petal.classList.add('petal');
+            
+            // Kích thước ngẫu nhiên
+            const sizes = ['size-small', 'size-medium', 'size-large'];
+            petal.classList.add(sizes[Math.floor(Math.random() * sizes.length)]);
+
+            // Hướng gió/tốc độ ngẫu nhiên
+            const winds = ['wind-1', 'wind-2', 'wind-3', 'wind-4', 'wind-5'];
+            petal.classList.add(winds[Math.floor(Math.random() * winds.length)]);
+
+            petal.style.left = Math.random() * window.innerWidth + 'px';
+            petal.style.top = - (Math.random() * 100) + 'px'; // Bắt đầu từ trên màn hình
+
+            // Animation delay ngẫu nhiên để các cánh hoa rơi không đồng thời
+            petal.style.animationDelay = `${Math.random() * 20}s`; 
+
+            // Duration ngẫu nhiên cho mỗi cánh hoa
+            petal.style.animationDuration = `${10 + Math.random() * 15}s`; 
+
+            // Rotation ngẫu nhiên ban đầu
+            petal.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+            body.appendChild(petal);
+        }
+    });
+</script>
 """, unsafe_allow_html=True)
 
 # --- KHAI BÁO FILE TRANG ---
@@ -193,7 +277,7 @@ with st.sidebar:
 
 # --- 4. NỘI DUNG TRANG CHÍNH ---
 
-# CHÈN DÒNG CHỮ CHẠY (Vị trí bôi đỏ trên cùng)
+# CHÈN DÒNG CHỮ CHẠY
 st.markdown("""
 <div class="running-text-container">
     <div class="running-text">
