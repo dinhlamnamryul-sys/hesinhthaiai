@@ -40,7 +40,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CSS GIAO DIỆN (ĐÃ ĐIỀU CHỈNH TRANG TRÍ VÀ DÙNG F-STRING) ---
+# --- 2. CSS GIAO DIỆN (ĐÃ CẬP NHẬT TRANG TRÍ VÀ DÙNG F-STRING) ---
 st.markdown(f"""
 <style>
     /* BẮT ĐẦU PHẦN ĐẶT ẢNH NỀN VÀ NỀN CHUNG */
@@ -60,7 +60,7 @@ st.markdown(f"""
         box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     }}
     
-    /* Các thành phần cố định (Header, Toolbar, Decoration) */
+    /* Các thành phần cố định */
     [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"] {{ 
         background-color: rgba(0,0,0,0); color: transparent; 
         visibility: hidden !important; display: none !important;
@@ -74,12 +74,12 @@ st.markdown(f"""
 
     /* 2. HEADER CHÍNH - LÀM DỊU, TRONG SUỐT VÀ BO GÓC SẮC NÉT HƠN */
     .main-header {{
-        background: rgba(183, 28, 28, 0.75); /* Màu đỏ đậm bán trong suốt */
+        background: rgba(183, 28, 28, 0.8); /* Màu đỏ đậm bán trong suốt */
         color: white; 
         padding: 25px; 
-        border-radius: 15px; /* Giảm độ bo góc */
+        border-radius: 15px; 
         text-align: center;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.3); /* Đổ bóng mạnh hơn */
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3); 
         border-bottom: 4px solid #fdd835;
         margin-bottom: 30px; 
         margin-top: -10px;
@@ -87,27 +87,36 @@ st.markdown(f"""
     .main-header h1 {{ font-size: 2.8rem; font-weight: 900; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.4); }}
     .main-header h3 {{ font-weight: 500; margin-top: 5px; }}
 
-    /* 3. FEATURE CARDS - NỔI BẬT VÀ SẮC NÉT */
+    /* 3. FEATURE CARDS MỚI: NỔI BẬT VÀ PHÙ HỢP NỀN */
     .feature-card {{
-        background: rgba(255, 255, 255, 0.95); /* Gần như trong suốt hoàn toàn */
-        padding: 25px; /* Tăng padding */
-        border-radius: 15px; 
+        background: rgba(255, 255, 255, 0.9); /* Gần như trong suốt, dễ đọc */
+        padding: 25px; 
+        border-radius: 20px; /* Bo góc mềm mại hơn */
         text-align: center;
-        border: none; /* Bỏ viền */
-        box-shadow: 0 6px 15px rgba(0,0,0,0.15); /* Đổ bóng sắc nét hơn */
-        height: 380px; /* Tăng chiều cao để có thêm không gian */
+        border: 2px solid #ddd; /* Viền xám nhẹ */
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* Đổ bóng nổi bật */
+        height: 380px; 
         display: flex; flex-direction: column; justify-content: space-between;
         transition: all 0.3s ease-in-out;
     }}
     .feature-card:hover {{ 
-        transform: translateY(-8px); /* Nhấc lên cao hơn khi di chuột */
-        box-shadow: 0 12px 25px rgba(0,0,0,0.25); /* Đổ bóng mạnh hơn khi di chuột */
-        border: 2px solid #ff6f00; 
+        transform: translateY(-10px); /* Nhấc lên mạnh mẽ hơn */
+        box-shadow: 0 15px 30px rgba(255, 111, 0, 0.3); /* Đổ bóng màu cam khi hover */
+        border: 2px solid #ff6f00; /* Viền màu cam khi hover */
     }}
-    .icon-box {{ font-size: 4.5rem; margin-bottom: 15px; color: #ff6f00; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }}
-    .card-title {{ color: #d84315; font-weight: 900; font-size: 1.4rem; margin-bottom: 10px; }}
+    .icon-box {{ 
+        font-size: 4.8rem; /* Icon lớn hơn */
+        margin-bottom: 15px; 
+    }}
+    .card-title {{ 
+        color: #d84315; /* Màu chữ tiêu đề */
+        font-weight: 900; 
+        font-size: 1.5rem; /* Tiêu đề lớn hơn */
+        margin-bottom: 10px; 
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+    }}
     
-    /* Nút bấm */
+    /* Nút bấm (Link Page) */
     .stButton>button {{
         width: 100%; border-radius: 50px; 
         background: linear-gradient(90deg, #ff6f00 0%, #ffca28 100%);
@@ -145,7 +154,6 @@ PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 # --- XỬ LÝ NHẠC H'MÔNG (LOCAL & ONLINE) ---
 MUSIC_FILE = "nhac_nen.mp3"  # Tên file nhạc bạn cần chép vào cùng thư mục code
 
-# Hàm này giữ nguyên như code cũ của bạn
 def get_audio_html(file_path):
     """Hàm đọc file nhạc local và chuyển sang mã HTML để phát"""
     if os.path.exists(file_path):
