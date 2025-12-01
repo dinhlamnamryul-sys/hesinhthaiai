@@ -6,21 +6,25 @@ import base64
 LOGO_PATH = "image_2.png.png" # Lưu ý: Kiểm tra lại tên file logo của bạn
 LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
 
-# --- KHAI BÁO THÊM CHO ẢNH NỀN ---
+# --- KHAI BÁO VÀ HÀM XỬ LÝ ẢNH NỀN (PHẦN NÀY ĐÃ ĐƯA LÊN ĐẦU) ---
 BACKGROUND_IMAGE_PATH = "bantrang.jpg" # Tên file ảnh nền của bạn
 
-# Hàm chuyển ảnh thành Base64
 def get_base64_image(image_path):
     """Hàm chuyển ảnh local thành Base64 để nhúng vào CSS"""
     if os.path.exists(image_path):
-        with open(image_path, "rb") as img_file:
-            return base64.b64encode(img_file.read()).decode()
+        try:
+            with open(image_path, "rb") as img_file:
+                return base64.b64encode(img_file.read()).decode()
+        except Exception as e:
+            st.error(f"Lỗi đọc file ảnh nền: {e}")
+            return ""
     return ""
 
-# Gọi hàm để tạo biến chứa chuỗi Base64 của ảnh nền
+# --- GỌI HÀM ĐỂ TẠO BIẾN TRƯỚC KHI DÙNG ---
 base64_image = get_base64_image(BACKGROUND_IMAGE_PATH)
 
 
+# --- KHỞI TẠO CẤU HÌNH CHUNG ---
 if os.path.exists(LOGO_PATH):
     app_icon = LOGO_PATH
     sidebar_logo = LOGO_PATH
@@ -36,8 +40,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CSS GIAO DIỆN (ĐÃ CẬP NHẬT) ---
-# Sử dụng biến base64_image ở đây
+# --- 2. CSS GIAO DIỆN (SỬ DỤNG F-STRING VÀ BIẾN BASE64_IMAGE) ---
 st.markdown(f"""
 <style>
     /* BẮT ĐẦU PHẦN ĐẶT ẢNH NỀN */
@@ -47,7 +50,7 @@ st.markdown(f"""
         {"background-image: url(data:image/jpg;base64," + base64_image + ");" if base64_image else "background-color: #f8f9fa;"}
         background-size: cover; 
         background-position: center; 
-        background-attachment: fixed; /* Giúp ảnh nền không cuộn */
+        background-attachment: fixed; 
     }}
     /* ĐIỀU CHỈNH ĐỘ TRONG SUỐT ĐỂ DỄ ĐỌC */
     .main-header {{
@@ -75,34 +78,34 @@ st.markdown(f"""
     }}
     /* KẾT THÚC PHẦN ĐẶT ẢNH NỀN */
 
-    [data-testid="stHeader"] { background-color: rgba(0,0,0,0); color: transparent; }
-    [data-testid="stToolbar"] { visibility: hidden !important; display: none !important; }
-    [data-testid="stDecoration"] { visibility: hidden !important; display: none !important; }
-    [data-testid="stSidebarCollapsedControl"] {
+    [data-testid="stHeader"] {{ background-color: rgba(0,0,0,0); color: transparent; }}
+    [data-testid="stToolbar"] {{ visibility: hidden !important; display: none !important; }}
+    [data-testid="stDecoration"] {{ visibility: hidden !important; display: none !important; }}
+    [data-testid="stSidebarCollapsedControl"] {{
         visibility: visible !important; display: block !important;
         color: #b71c1c !important; background-color: white; border-radius: 50%;
         padding: 5px; z-index: 999999;
-    }
+    }}
     
-    .main-header h1 { font-size: 2.5rem; font-weight: 900; margin: 0; }
+    .main-header h1 {{ font-size: 2.5rem; font-weight: 900; margin: 0; }}
     
-    .feature-card:hover { transform: translateY(-5px); border-color: #ff9800; }
-    .icon-box { font-size: 3.5rem; margin-bottom: 10px; }
-    .card-title { color: #d84315; font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; }
-    .stButton>button {
+    .feature-card:hover {{ transform: translateY(-5px); border-color: #ff9800; }}
+    .icon-box {{ font-size: 3.5rem; margin-bottom: 10px; }}
+    .card-title {{ color: #d84315; font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; }}
+    .stButton>button {{
         width: 100%; border-radius: 50px; background: linear-gradient(90deg, #ff6f00, #ffca28);
         border: none; color: white; font-weight: bold; padding: 10px 0;
-    }
-    .stButton>button:hover { transform: scale(1.05); }
+    }}
+    .stButton>button:hover {{ transform: scale(1.05); }}
     
-    .footer p { margin: 0; font-family: sans-serif; line-height: 1.5; }
+    .footer p {{ margin: 0; font-family: sans-serif; line-height: 1.5; }}
     
     /* CSS cho trình phát nhạc */
-    audio {
+    audio {{
         width: 60%; 
         border-radius: 30px; 
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
+    }}
 </style>
 """, unsafe_allow_html=True)
 
