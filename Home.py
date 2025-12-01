@@ -1,13 +1,13 @@
-# Home.py (phiên bản sửa lỗi NameError & sắp xếp đúng thứ tự)
+# Home.py (phiên bản cập nhật: box-container, audio toggle, visit_count)
 import streamlit as st
 import os
 import base64
 
 # --- CẤU HÌNH LOGO VÀ ẢNH NỀN ---
-LOGO_PATH = "image_2.png.png"  # kiểm tra tên file logo
+LOGO_PATH = "image_2.png.png"  # kiểm tra tên file logo (local)
 LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
 BACKGROUND_IMAGE_PATH = "bantrang.jpg"  # file ảnh nền (nếu có)
-MUSIC_FILE = "nhac_nen.mp3"  # file nhạc local (nếu có)
+MUSIC_FILE = "nhac_nen.mp3"  # file nhạc local (nếu có) — điều chỉnh tên ở đây
 
 # --- HÀM TIỆN ÍCH ---
 def get_base64_image(image_path):
@@ -54,11 +54,15 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS (an toàn vì base64_image đã có giá trị rồi) ---
+# --- TĂNG visit_count mỗi lần load trang ---
+if 'visit_count' not in st.session_state:
+    st.session_state.visit_count = 0
+st.session_state.visit_count += 1
+
+# --- CSS GIAO DIỆN (BASE64 safe) ---
 st.markdown(f"""
 <style>
-
-    /* ===== NỀN ỨNG DỤNG ===== */
+    /* ỨNG DỤNG NỀN */
     .stApp {{
         {"background-image: url(data:image/jpg;base64," + base64_image + ");" if base64_image else "background-color: #f0f2f6;"}
         background-size: cover;
@@ -66,99 +70,93 @@ st.markdown(f"""
         background-attachment: fixed;
     }}
 
-    /* ===== ẨN HEADER STREAMLIT ===== */
+    /* ẨN HEADER STREAMLIT */
     [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"] {{
         display: none !important;
     }}
 
-    /* ===== SIDEBAR ===== */
+    /* SIDEBAR */
     [data-testid="stSidebar"] {{
-        background: rgba(255,255,255,0.75);
+        background: rgba(255,255,255,0.82);
         backdrop-filter: blur(4px);
         border-right: 4px solid #b71c1c;
+        padding-top: 18px;
     }}
 
-    /* ===== HEADER CHÍNH ===== */
-    .main-header {{
-        background: rgba(183, 28, 28, 0.85);
-        margin: 10px auto 20px auto;
-        width: 70%;
-        padding: 18px 10px;
-        text-align: center;
-        border-radius: 18px;
-        box-shadow: 0px 8px 25px rgba(0,0,0,0.25);
-        border-bottom: 3px solid #ffd54f;
-    }}
-    .main-header h1 {{
-        font-size: 2.4rem;
-        color: white;
-        margin: 0;
-        font-weight: 900;
-    }}
-    .main-header h3 {{
-        margin-top: 6px;
-        color: #ffe082;
+    /* KHUNG CHỨA CARD (ô vuông lớn) */
+    .box-container {{
+        background: rgba(255,255,255,0.86);
+        padding: 28px;
+        border-radius: 20px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.14);
+        margin: 20px auto 24px auto;
+        width: 95%;
     }}
 
-    /* ===== CARD CHỨC NĂNG ===== */
+    /* FEATURE CARD */
     .feature-card {{
-        background: rgba(255,255,255,0.92);
+        background: rgba(255,255,255,0.94);
         padding: 20px;
-        border-radius: 22px;
-        border: 2px solid #e0e0e0;
-        height: 340px;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-        transition: 0.25s;
-        backdrop-filter: blur(3px);
+        border-radius: 18px;
+        border: 1px solid #e6e6e6;
+        height: 300px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: flex-start;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }}
     .feature-card:hover {{
-        transform: translateY(-8px);
-        box-shadow: 0 14px 28px rgba(183,28,28,0.35);
-        border-color: #e65100;
+        transform: translateY(-6px);
+        box-shadow: 0 12px 26px rgba(183,28,28,0.18);
+        border-color: #ff6f00;
     }}
-
     .icon-box {{
-        font-size: 4.2rem;
+        font-size: 3.8rem;
         margin-bottom: 8px;
+        text-align: left;
     }}
     .card-title {{
-        font-size: 1.45rem;
-        font-weight: 800;
         color: #d84315;
-        margin-bottom: 8px;
+        font-weight: 800;
+        font-size: 1.4rem;
+        margin-bottom: 6px;
     }}
+    .card-desc {{ color: #555; }}
 
-    /* ===== NÚT ===== */
-    .stButton>button {{
+    /* NÚT LINK (dùng st.page_link hiển thị) */
+    .link-btn {{
         width: 100%;
-        border-radius: 35px;
-        padding: 10px 0;
+        border-radius: 28px;
+        padding: 8px 12px;
+        text-align: center;
         font-weight: 700;
-        background: linear-gradient(90deg, #ff6f00, #ffca28);
-        border: none;
-        box-shadow: 0 4px 12px rgba(255,167,38,0.45);
-        transition: 0.25s;
-    }}
-    .stButton>button:hover {{
-        transform: scale(1.05);
     }}
 
-    /* ===== AUDIO ===== */
+    /* AUDIO */
     audio {{
-        width: 45%;
-        border-radius: 20px;
-        box-shadow: 0 5px 18px rgba(0,0,0,0.25);
+        width: 60%;
+        border-radius: 16px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
     }}
 
-    /* ===== FOOTER ===== */
+    /* FOOTER */
     .footer {{
         width: 100%;
-        padding: 8px;
+        padding: 12px;
         background: rgba(255,255,255,0.9);
         border-top: 3px solid #b71c1c;
         text-align: center;
         font-size: 13px;
-        margin-top: 30px;
+        margin-top: 10px;
+    }}
+
+    /* Responsive nhỏ */
+    @media (max-width: 900px) {{
+        .box-container {{ width: 98%; padding: 16px; }}
+        .feature-card {{ height: auto; padding: 16px; }}
+        audio {{ width: 100%; }}
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -174,12 +172,10 @@ PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 with st.sidebar:
     col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
     with col_logo2:
-        st.image(sidebar_logo, width=150)
-
-    st.markdown("<h3 style='text-align: center; color: #b71c1c; margin-top: 10px;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
+        st.image(sidebar_logo, width=140)
+    st.markdown("<h3 style='text-align: center; color: #b71c1c; margin-top: 6px;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
     st.markdown("---")
     st.markdown("### 🚀 Menu Chức Năng")
-
     if st.button("🏠 Trang Chủ"):
         st.rerun()
     if os.path.exists(PAGE_1):
@@ -192,58 +188,87 @@ with st.sidebar:
         st.page_link(PAGE_4, label="Học liệu đa phương tiện", icon="📽️")
     if os.path.exists(PAGE_5):
         st.page_link(PAGE_5, label="Văn hóa cội nguồn", icon="🌽")
-
     st.markdown("---")
-    if 'visit_count' not in st.session_state:
-        st.session_state.visit_count = 0
     st.success(f"👥 Lượt truy cập: **{st.session_state.visit_count}**")
 
 # --- NỘI DUNG TRANG CHÍNH ---
 st.markdown("""
-<div class="main-header">
-    <h1>🇻🇳 CỔNG GIÁO DỤC SỐ NA Ư</h1>
-    <h3>"Tri thức vùng cao - Vươn xa thế giới"</h3>
+<div class="main-header" style="text-align:center; margin-top: 6px;">
+    <h1 style="color: #fff; text-shadow: 1px 1px 6px rgba(0,0,0,0.6);">🇻🇳 CỔNG GIÁO DỤC SỐ NA Ư</h1>
+    <h4 style="color: #ffe082; margin-top: 4px;">"Tri thức vùng cao - Vươn xa thế giới"</h4>
 </div>
 """, unsafe_allow_html=True)
 
-# --- THANH NHẠC ---
-st.markdown(f"""
-<div style="text-align:center; margin-top: -5px; margin-bottom:20px;">
-<h4 style="color:#333;">🎵 Giai điệu bản Mông</h4>
-<audio controls autoplay>
-    {audio_source_html}
-    Trình duyệt của bạn không hỗ trợ audio.
-</audio>
-</div>
-""", unsafe_allow_html=True)
+# --- AUDIO: cho phép bật/tắt bởi user ---
+st.markdown('<div style="text-align:center; margin-top: 8px;">', unsafe_allow_html=True)
+col_a1, col_a2, col_a3 = st.columns([1, 2, 1])
+with col_a2:
+    play_music = st.checkbox("🔊 Bật nhạc nền", value=False)
+    if play_music:
+        st.markdown(f"""
+        <div style="text-align:center; margin-bottom:18px;">
+            <audio controls autoplay>
+                {audio_source_html}
+                Trình duyệt không hỗ trợ audio.
+            </audio>
+        </div>
+        """, unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
-# --- CARDS CHỨC NĂNG ---
-col1, col2, col3, col4 = st.columns([1,1,1,1])
+# --- BOX CONTAINER chứa 4 CARD (ô vuông) ---
+st.markdown('<div class="box-container">', unsafe_allow_html=True)
 
-with col1:
-    st.markdown('<div class="feature-card"><div class="icon-box">🏔️</div><div class="card-title">Gia Sư Toán AI</div><p>Học toán song ngữ thông minh.</p></div>', unsafe_allow_html=True)
+cols = st.columns(4)
+# Card 1
+with cols[0]:
+    st.markdown('<div class="feature-card">', unsafe_allow_html=True)
+    st.markdown('<div class="icon-box">🏔️</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-title">Gia Sư Toán AI</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-desc">Học toán song ngữ thông minh.</div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_1):
+        st.markdown("<br>", unsafe_allow_html=True)
         st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-with col2:
-    st.markdown('<div class="feature-card"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tự Động</div><p>Tạo đề kiểm tra cực nhanh.</p></div>', unsafe_allow_html=True)
+# Card 2
+with cols[1]:
+    st.markdown('<div class="feature-card">', unsafe_allow_html=True)
+    st.markdown('<div class="icon-box">⚡</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-title">Sinh Đề Tự Động</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-desc">Tạo đề kiểm tra cực nhanh.</div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_2):
+        st.markdown("<br>", unsafe_allow_html=True)
         st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-with col3:
-    st.markdown('<div class="feature-card"><div class="icon-box">🧿</div><div class="card-title">Giải Bài Tập Từ Ảnh</div><p>AI phân tích & giải tức thì.</p></div>', unsafe_allow_html=True)
+# Card 3
+with cols[2]:
+    st.markdown('<div class="feature-card">', unsafe_allow_html=True)
+    st.markdown('<div class="icon-box">🧿</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-title">Giải Bài Tập Từ Ảnh</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-desc">AI phân tích & giải tức thì.</div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_3):
+        st.markdown("<br>", unsafe_allow_html=True)
         st.page_link(PAGE_3, label="Giải ngay ➜", icon="📸", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-with col4:
-    st.markdown('<div class="feature-card"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Học liệu văn hoá H\'Mông.</p></div>', unsafe_allow_html=True)
+# Card 4
+with cols[3]:
+    st.markdown('<div class="feature-card">', unsafe_allow_html=True)
+    st.markdown('<div class="icon-box">📽️</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-title">Đa Phương Tiện</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-desc">Học liệu văn hoá H\'Mông.</div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_4):
+        st.markdown("<br>", unsafe_allow_html=True)
         st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)
 
 # --- FOOTER ---
 st.markdown("""
 <div class="footer">
     <p>👨‍🏫 <b>Nhóm tác giả:</b> Trường PTDTBT TH&THCS Na Ư</p>
-    <p style="font-size: 12px; color: #888;">© 2025 Cổng Giáo Dục Số Na Ư</p>
+    <p style="font-size: 12px; color: #fff; opacity: 0.9;">© 2025 Cổng Giáo Dục Số Na Ư</p>
 </div>
 """, unsafe_allow_html=True)
