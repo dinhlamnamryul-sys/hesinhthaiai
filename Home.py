@@ -6,8 +6,8 @@ import base64
 LOGO_PATH = "image_2.png.png" # Lưu ý: Kiểm tra lại tên file logo của bạn
 LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
 
-# --- KHAI BÁO VÀ HÀM XỬ LÝ ẢNH NỀN (PHẦN NÀY ĐÃ ĐƯA LÊN ĐẦU) ---
-BACKGROUND_IMAGE_PATH = "bantrang.jpg" # Tên file ảnh nền của bạn
+# --- KHAI BÁO VÀ HÀM XỬ LÝ ẢNH NỀN (ĐÃ ĐƯA LÊN ĐẦU ĐỂ KHÔNG BỊ LỖI NAMERROR) ---
+BACKGROUND_IMAGE_PATH = "bantrang.jpg" # Tên file ảnh nền của bạn (Phải nằm cùng thư mục)
 
 def get_base64_image(image_path):
     """Hàm chuyển ảnh local thành Base64 để nhúng vào CSS"""
@@ -15,8 +15,8 @@ def get_base64_image(image_path):
         try:
             with open(image_path, "rb") as img_file:
                 return base64.b64encode(img_file.read()).decode()
-        except Exception as e:
-            st.error(f"Lỗi đọc file ảnh nền: {e}")
+        except Exception:
+            # Bỏ qua lỗi nếu không đọc được file ảnh nền
             return ""
     return ""
 
@@ -40,71 +40,97 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CSS GIAO DIỆN (SỬ DỤNG F-STRING VÀ BIẾN BASE64_IMAGE) ---
+# --- 2. CSS GIAO DIỆN (ĐÃ ĐIỀU CHỈNH TRANG TRÍ VÀ DÙNG F-STRING) ---
 st.markdown(f"""
 <style>
-    /* BẮT ĐẦU PHẦN ĐẶT ẢNH NỀN */
+    /* BẮT ĐẦU PHẦN ĐẶT ẢNH NỀN VÀ NỀN CHUNG */
     .stApp {{ 
         margin-bottom: 60px;
         /* Thêm ảnh nền nếu chuỗi Base64 tồn tại */
         {"background-image: url(data:image/jpg;base64," + base64_image + ");" if base64_image else "background-color: #f8f9fa;"}
         background-size: cover; 
         background-position: center; 
-        background-attachment: fixed; 
+        background-attachment: fixed;
     }}
-    /* ĐIỀU CHỈNH ĐỘ TRONG SUỐT ĐỂ DỄ ĐỌC */
-    .main-header {{
-        background: linear-gradient(135deg, rgba(183, 28, 28, 0.9) 0%, rgba(211, 47, 47, 0.9) 60%, rgba(255, 111, 0, 0.9) 100%);
-        color: white; padding: 30px; border-radius: 20px; text-align: center;
-        box-shadow: 0 10px 30px rgba(183, 28, 28, 0.4); border-bottom: 6px solid #fdd835;
-        margin-bottom: 20px; margin-top: -20px;
-    }}
-    .feature-card {{
-        background: rgba(255, 255, 255, 0.9); /* Làm mờ Card để nội dung nổi bật */
-        padding: 20px; border-radius: 20px; text-align: center;
-        border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        height: 350px; display: flex; flex-direction: column; justify-content: space-between;
-        transition: transform 0.3s;
-    }}
+    
+    /* 1. THANH BÊN (SIDEBAR) - LÀM MỜ, NỔI BẬT HƠN */
     [data-testid="stSidebar"] {{
-        background-color: rgba(255, 255, 255, 0.85); /* Làm mờ Sidebar */
+        background-color: rgba(255, 255, 255, 0.7); /* Rất mờ */
+        border-right: 5px solid #d32f2f; /* Thêm đường viền đỏ */
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
     }}
+    
+    /* Các thành phần cố định (Header, Toolbar, Decoration) */
+    [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"] {{ 
+        background-color: rgba(0,0,0,0); color: transparent; 
+        visibility: hidden !important; display: none !important;
+    }}
+    [data-testid="stSidebarCollapsedControl"] {{
+        visibility: visible !important; display: block !important;
+        color: white !important; background-color: #d32f2f; border-radius: 50%;
+        padding: 5px; z-index: 999999;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }}
+
+    /* 2. HEADER CHÍNH - LÀM DỊU, TRONG SUỐT VÀ BO GÓC SẮC NÉT HƠN */
+    .main-header {{
+        background: rgba(183, 28, 28, 0.75); /* Màu đỏ đậm bán trong suốt */
+        color: white; 
+        padding: 25px; 
+        border-radius: 15px; /* Giảm độ bo góc */
+        text-align: center;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3); /* Đổ bóng mạnh hơn */
+        border-bottom: 4px solid #fdd835;
+        margin-bottom: 30px; 
+        margin-top: -10px;
+    }}
+    .main-header h1 {{ font-size: 2.8rem; font-weight: 900; margin: 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.4); }}
+    .main-header h3 {{ font-weight: 500; margin-top: 5px; }}
+
+    /* 3. FEATURE CARDS - NỔI BẬT VÀ SẮC NÉT */
+    .feature-card {{
+        background: rgba(255, 255, 255, 0.95); /* Gần như trong suốt hoàn toàn */
+        padding: 25px; /* Tăng padding */
+        border-radius: 15px; 
+        text-align: center;
+        border: none; /* Bỏ viền */
+        box-shadow: 0 6px 15px rgba(0,0,0,0.15); /* Đổ bóng sắc nét hơn */
+        height: 380px; /* Tăng chiều cao để có thêm không gian */
+        display: flex; flex-direction: column; justify-content: space-between;
+        transition: all 0.3s ease-in-out;
+    }}
+    .feature-card:hover {{ 
+        transform: translateY(-8px); /* Nhấc lên cao hơn khi di chuột */
+        box-shadow: 0 12px 25px rgba(0,0,0,0.25); /* Đổ bóng mạnh hơn khi di chuột */
+        border: 2px solid #ff6f00; 
+    }}
+    .icon-box {{ font-size: 4.5rem; margin-bottom: 15px; color: #ff6f00; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }}
+    .card-title {{ color: #d84315; font-weight: 900; font-size: 1.4rem; margin-bottom: 10px; }}
+    
+    /* Nút bấm */
+    .stButton>button {{
+        width: 100%; border-radius: 50px; 
+        background: linear-gradient(90deg, #ff6f00 0%, #ffca28 100%);
+        border: none; color: white; font-weight: bold; padding: 12px 0;
+        box-shadow: 0 4px 10px rgba(255, 111, 0, 0.4);
+    }}
+    .stButton>button:hover {{ transform: scale(1.03); background: linear-gradient(90deg, #ff9800 0%, #ffca28 100%); }}
+
+    /* 4. FOOTER - LÀM TRONG SUỐT NHẸ */
     .footer {{
         position: fixed; left: 0; bottom: 0; width: 100%;
-        background-color: rgba(255, 255, 255, 0.95); /* Làm mờ Footer */
+        background-color: rgba(255, 255, 255, 0.9); 
         color: #555; text-align: center;
         padding: 10px; font-size: 14px; border-top: 3px solid #b71c1c;
         z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
     }}
-    /* KẾT THÚC PHẦN ĐẶT ẢNH NỀN */
-
-    [data-testid="stHeader"] {{ background-color: rgba(0,0,0,0); color: transparent; }}
-    [data-testid="stToolbar"] {{ visibility: hidden !important; display: none !important; }}
-    [data-testid="stDecoration"] {{ visibility: hidden !important; display: none !important; }}
-    [data-testid="stSidebarCollapsedControl"] {{
-        visibility: visible !important; display: block !important;
-        color: #b71c1c !important; background-color: white; border-radius: 50%;
-        padding: 5px; z-index: 999999;
-    }}
-    
-    .main-header h1 {{ font-size: 2.5rem; font-weight: 900; margin: 0; }}
-    
-    .feature-card:hover {{ transform: translateY(-5px); border-color: #ff9800; }}
-    .icon-box {{ font-size: 3.5rem; margin-bottom: 10px; }}
-    .card-title {{ color: #d84315; font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; }}
-    .stButton>button {{
-        width: 100%; border-radius: 50px; background: linear-gradient(90deg, #ff6f00, #ffca28);
-        border: none; color: white; font-weight: bold; padding: 10px 0;
-    }}
-    .stButton>button:hover {{ transform: scale(1.05); }}
-    
     .footer p {{ margin: 0; font-family: sans-serif; line-height: 1.5; }}
     
     /* CSS cho trình phát nhạc */
     audio {{
         width: 60%; 
         border-radius: 30px; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }}
 </style>
 """, unsafe_allow_html=True)
