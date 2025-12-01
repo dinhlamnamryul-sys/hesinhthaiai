@@ -2,9 +2,35 @@ import streamlit as st
 import os
 import base64
 
-# --- CẤU HÌNH LOGO ---
-LOGO_PATH = "image_2.png.png" # Lưu ý: Kiểm tra lại tên file logo của bạn
+# --- 0. CÁC HÀM TIỆN ÍCH (Khởi tạo trước khi Cấu hình Trang) ---
+def get_base64_image(image_path):
+    """Đọc file ảnh local và mã hóa thành chuỗi Base64"""
+    try:
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode()
+    except FileNotFoundError:
+        return None
+
+def get_audio_html(file_path):
+    """Hàm đọc file nhạc local và chuyển sang mã HTML để phát"""
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as f:
+            data = f.read()
+        b64 = base64.b64encode(data).decode()
+        return f'<source src="data:audio/mp3;base64,{b64}" type="audio/mp3">'
+    else:
+        # Link dự phòng nếu chưa có file nhạc
+        fallback_url = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+        return f'<source src="{fallback_url}" type="audio/mp3">'
+
+# --- 0.1. XỬ LÝ FILE (Thực hiện nhanh chóng) ---
+LOGO_PATH = "image_2.png.png"
 LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
+HEADER_IMAGE_PATH = "bantrang.jpg" 
+MUSIC_FILE = "nhac_nen.mp3"
+
+base64_image = get_base64_image(HEADER_IMAGE_PATH)
+audio_source_html = get_audio_html(MUSIC_FILE)
 
 if os.path.exists(LOGO_PATH):
     app_icon = LOGO_PATH
@@ -21,26 +47,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- KHAI BÁO VÀ XỬ LÝ ẢNH NỀN (BANT_TRANG.JPG) ---
-HEADER_IMAGE_PATH = "bantrang.jpg" # Tên file ảnh đã tải lên
-
-def get_base64_image(image_path):
-    """Đọc file ảnh local và mã hóa thành chuỗi Base64"""
-    try:
-        with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode()
-    except FileNotFoundError:
-        return None
-
-# Gọi hàm để lấy Base64 của ảnh bantrang.jpg
-base64_image = get_base64_image(HEADER_IMAGE_PATH)
-
-# --- TẠO CSS CHO HEADER DỰA TRÊN VIỆC CÓ ẢNH NỀN HAY KHÔNG ---
+# --- 2. TẠO CSS CHO HEADER DỰA TRÊN VIỆC CÓ ẢNH NỀN HAY KHÔNG ---
 if base64_image:
-    # Nếu có ảnh, sử dụng ảnh nền với lớp phủ tối (linear-gradient)
     header_css = f"""
     .main-header {{
-        /* Lớp phủ tối (rgba(0,0,0,0.5)) giúp chữ nổi bật hơn trên ảnh */
         background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("data:image/jpg;base64,{base64_image}");
         background-size: cover;
         background-position: center;
@@ -59,11 +69,10 @@ if base64_image:
     .main-header h1, .main-header h3 {{
         z-index: 10; 
         position: relative;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.7); /* Thêm đổ bóng cho chữ để nổi bật */
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.7); 
     }}
     """
 else:
-    # CSS mặc định (nếu không tìm thấy ảnh)
     header_css = """
     .main-header {
         background: linear-gradient(135deg, #b71c1c 0%, #d32f2f 60%, #ff6f00 100%);
@@ -73,7 +82,7 @@ else:
     }
     """
 
-# --- 2. CSS GIAO DIỆN CHUNG ---
+# --- 2.1. CHÈN CSS GIAO DIỆN CHUNG ---
 st.markdown(f"""
 <style>
     {header_css} /* CHÈN CSS HEADER ĐÃ XỬ LÝ Ở TRÊN */
@@ -125,23 +134,6 @@ PAGE_3 = "pages/3_Giải_bài_tập_từ_ảnh.py"
 PAGE_4 = "pages/4_Học_liệu_đa_phương_tiện.py"
 PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 
-# --- XỬ LÝ NHẠC H'MÔNG (LOCAL & ONLINE) ---
-MUSIC_FILE = "nhac_nen.mp3" # Tên file nhạc bạn cần chép vào cùng thư mục code
-
-def get_audio_html(file_path):
-    """Hàm đọc file nhạc local và chuyển sang mã HTML để phát"""
-    if os.path.exists(file_path):
-        with open(file_path, "rb") as f:
-            data = f.read()
-        b64 = base64.b64encode(data).decode()
-        return f'<source src="data:audio/mp3;base64,{b64}" type="audio/mp3">'
-    else:
-        # Link dự phòng nếu chưa có file nhạc (Tiếng sáo trúc demo)
-        fallback_url = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-        return f'<source src="{fallback_url}" type="audio/mp3">'
-
-# Gọi hàm lấy source nhạc
-audio_source_html = get_audio_html(MUSIC_FILE)
 
 # --- 3. MENU BÊN TRÁI ---
 with st.sidebar:
@@ -190,7 +182,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- CARD CHỨC NĂNG ---
+# --- CARD CHỨC NĂNG (Đây là phần bạn muốn tải nhanh) ---
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
