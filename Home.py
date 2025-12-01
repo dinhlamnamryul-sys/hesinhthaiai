@@ -124,6 +124,27 @@ st.markdown(f"""
         border-radius: 30px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }}
+    
+    /* CSS MỚI: Chữ chạy ngang (Marquee effect) */
+    .running-text-container {
+        overflow: hidden; /* Che đi phần chữ bị tràn */
+        background-color: #ffffff; /* Nền trắng */
+        color: #b71c1c; /* Chữ màu đỏ */
+        font-weight: bold;
+        padding: 5px 0;
+        margin-bottom: 10px; /* Tạo khoảng cách với banner dưới */
+        border-bottom: 2px solid #ff9800;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .running-text {
+        display: inline-block;
+        white-space: nowrap;
+        animation: marquee 20s linear infinite; /* Điều chỉnh 20s để thay đổi tốc độ */
+    }
+    @keyframes marquee {
+        0%   { transform: translate(100%, 0); } /* Bắt đầu từ ngoài bên phải */
+        100% { transform: translate(-100%, 0); } /* Kết thúc ở ngoài bên trái */
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -164,6 +185,17 @@ with st.sidebar:
     st.success(f"👥 Lượt truy cập: **{st.session_state.visit_count}**")
 
 # --- 4. NỘI DUNG TRANG CHÍNH ---
+
+# CHÈN DÒNG CHỮ CHẠY (Vị trí bôi đỏ trên cùng)
+st.markdown("""
+<div class="running-text-container">
+    <div class="running-text">
+        📢 Xin chào quý thầy cô và các em học sinh, chào mừng đến với Cổng Giáo Dục Số Na Ư! Chúc mọi người một ngày học tập và làm việc hiệu quả! 
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# HEADER CHÍNH
 st.markdown("""
 <div class="main-header">
     <h1>🇻🇳 CỔNG GIÁO DỤC SỐ NA Ư</h1>
@@ -171,7 +203,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- THANH NHẠC H'MÔNG (ĐÃ NÂNG CẤP) ---
+# --- THANH NHẠC H'MÔNG ---
 st.markdown(f"""
 <div style="text-align:center; margin-bottom:30px;">
 <h4 style="color: #555;">🎵 Giai điệu bản Mông</h4>
@@ -182,7 +214,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- CARD CHỨC NĂNG (Đây là phần bạn muốn tải nhanh) ---
+# --- CARD CHỨC NĂNG ---
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
