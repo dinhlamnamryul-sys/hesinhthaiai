@@ -126,7 +126,7 @@ PAGE_4 = "pages/4_Học_liệu_đa_phương_tiện.py"
 PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 
 # --- XỬ LÝ NHẠC H'MÔNG (LOCAL & ONLINE) ---
-MUSIC_FILE = "nhac_nen.mp3"  # Tên file nhạc bạn cần chép vào cùng thư mục code
+MUSIC_FILE = "nhac_nen.mp3" # Tên file nhạc bạn cần chép vào cùng thư mục code
 
 def get_audio_html(file_path):
     """Hàm đọc file nhạc local và chuyển sang mã HTML để phát"""
