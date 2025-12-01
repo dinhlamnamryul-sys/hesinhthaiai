@@ -82,7 +82,7 @@ else:
     }
     """
 
-# --- 2.1. CHÈN CSS GIAO DIỆN CHUNG ---
+# --- 2.1. CHÈN CSS GIAO DIỆN CHUNG (SỬA LỖI F-STRING BẰNG CÁCH DÙNG {{ }}) ---
 st.markdown(f"""
 <style>
     {header_css} /* CHÈN CSS HEADER ĐÃ XỬ LÝ Ở TRÊN */
@@ -126,7 +126,7 @@ st.markdown(f"""
     }}
     
     /* CSS MỚI: Chữ chạy ngang (Marquee effect) */
-    .running-text-container {
+    .running-text-container {{
         overflow: hidden; /* Che đi phần chữ bị tràn */
         background-color: #ffffff; /* Nền trắng */
         color: #b71c1c; /* Chữ màu đỏ */
@@ -135,16 +135,16 @@ st.markdown(f"""
         margin-bottom: 10px; /* Tạo khoảng cách với banner dưới */
         border-bottom: 2px solid #ff9800;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    .running-text {
+    }}
+    .running-text {{
         display: inline-block;
         white-space: nowrap;
         animation: marquee 20s linear infinite; /* Điều chỉnh 20s để thay đổi tốc độ */
-    }
-    @keyframes marquee {
-        0%   { transform: translate(100%, 0); } /* Bắt đầu từ ngoài bên phải */
-        100% { transform: translate(-100%, 0); } /* Kết thúc ở ngoài bên trái */
-    }
+    }}
+    @keyframes marquee {{
+        0%   {{ transform: translate(100%, 0); }} /* SỬA LỖI: Dùng {{ }} thay cho { } */
+        100% {{ transform: translate(-100%, 0); }} /* SỬA LỖI: Dùng {{ }} thay cho { } */
+    }}
 </style>
 """, unsafe_allow_html=True)
 
