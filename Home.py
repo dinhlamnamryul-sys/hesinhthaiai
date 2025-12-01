@@ -1,17 +1,16 @@
 import streamlit as st
 import os
 import base64
+# import random # KHÔNG CẦN DÙNG THƯ VIỆN RANDOM NỮA
 
 # --- 0. CÁC HÀM TIỆN ÍCH (Khởi tạo trước khi Cấu hình Trang) ---
 def get_base64_image(image_path):
     """Đọc file ảnh local và mã hóa thành chuỗi Base64"""
     try:
-        # Giả sử file ảnh có tồn tại
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode()
     except FileNotFoundError:
-        # Dùng ảnh dự phòng (nếu không tìm thấy file bantrang.jpg)
-        return None 
+        return None
 
 def get_audio_html(file_path):
     """Hàm đọc file nhạc local và chuyển sang mã HTML để phát"""
@@ -31,7 +30,7 @@ LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
 HEADER_IMAGE_PATH = "bantrang.jpg" 
 MUSIC_FILE = "nhac_nen.mp3"
 
-# Link Icon mới, đồng bộ và trực quan hơn (Sử dụng icon SVG/PNG online)
+# Link Icon mới, đồng bộ và trực quan hơn
 ICON_AI = "https://cdn-icons-png.flaticon.com/512/3238/3238059.png"        # Icon Brain/AI
 ICON_GENERATE = "https://cdn-icons-png.flaticon.com/512/2995/2995393.png"  # Icon Test/Quizz
 ICON_PHOTO = "https://cdn-icons-png.flaticon.com/512/3426/3426297.png"    # Icon Camera/Vision
@@ -59,8 +58,8 @@ st.set_page_config(
 if base64_image:
     header_css = f"""
     .main-header {{
-        /* TĂNG LỚP PHỦ TỐI (TỪ 0.5 LÊN 0.6 HOẶC 0.7) */
-        background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("data:image/jpg;base64,{base64_image}"); 
+        /* ĐÃ SỬA: Tăng lớp phủ tối từ 0.5 lên 0.7 để chữ nổi bật hơn */
+        background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("data:image/jpg;base64,{base64_image}");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -82,12 +81,11 @@ if base64_image:
     }}
     """
 else:
-    # Nếu không có ảnh nền, dùng gradient màu đỏ cam đậm hơn
     header_css = """
     .main-header {
-        background: linear-gradient(135deg, #a01010 0%, #d32f2f 60%, #FFC107 100%); 
+        background: linear-gradient(135deg, #b71c1c 0%, #d32f2f 60%, #ff6f00 100%);
         color: white; padding: 30px; border-radius: 20px; text-align: center;
-        box-shadow: 0 10px 30px rgba(183, 28, 28, 0.4); border-bottom: 6px solid #FFC107;
+        box-shadow: 0 10px 30px rgba(183, 28, 28, 0.4); border-bottom: 6px solid #FFC107; /* ĐÃ SỬA: Màu vàng đồng dịu hơn */
         margin-bottom: 20px; margin-top: -20px;
     }
     """
@@ -99,15 +97,22 @@ st.markdown(f"""
     [data-testid="stHeader"] {{ background-color: rgba(0,0,0,0); color: transparent; }}
     [data-testid="stToolbar"] {{ visibility: hidden !important; display: none !important; }}
     [data-testid="stDecoration"] {{ visibility: hidden !important; display: none !important; }}
+    [data-testid="stSidebarCollapsedControl"] {{
+        visibility: visible !important; display: block !important;
+        color: #b71c1c !important; background-color: white; border-radius: 50%;
+        padding: 5px; z-index: 999999;
+    }}
     .stApp {{ background-color: #f8f9fa; margin-bottom: 60px; }}
     .main-header h1 {{ font-size: 2.5rem; font-weight: 900; margin: 0; }}
     .feature-card {{
         background: white; padding: 20px; border-radius: 20px; text-align: center;
-        border: 1px solid #eee; box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Tăng shadow nhẹ */
+        border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         height: 350px; display: flex; flex-direction: column; justify-content: space-between;
-        transition: transform 0.3s, box-shadow 0.3s;
+        transition: transform 0.3s;
     }}
-    .feature-card:hover {{ transform: translateY(-5px); border-color: #ff9800; box-shadow: 0 8px 15px rgba(0,0,0,0.15); }}
+    .feature-card:hover {{ transform: translateY(-5px); border-color: #ff9800; }}
+    
+    /* ĐÃ SỬA: CSS cho Icon Image */
     .icon-box img {{ 
         width: 80px; 
         height: 80px; 
@@ -115,12 +120,14 @@ st.markdown(f"""
         transition: transform 0.3s;
     }}
     .feature-card:hover .icon-box img {{ transform: scale(1.1); }}
+    /* Hết CSS cho Icon Image */
+
     .card-title {{ color: #d84315; font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; }}
     .stButton>button {{
         width: 100%; border-radius: 50px; background: linear-gradient(90deg, #ff6f00, #ffca28);
         border: none; color: white; font-weight: bold; padding: 10px 0;
     }}
-    .stButton>button:hover {{ transform: scale(1.03); }}
+    .stButton>button:hover {{ transform: scale(1.05); }}
     .footer {{
         position: fixed; left: 0; bottom: 0; width: 100%;
         background-color: #f0f0f0; /* Màu nền footer dịu hơn */
@@ -133,16 +140,16 @@ st.markdown(f"""
     /* CSS cho trình phát nhạc */
     audio {{
         width: 60%;
-        border-radius: 10px; /* Bo góc nhẹ */
+        border-radius: 30px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        border: 1px solid #ddd; /* Thêm viền nhẹ */
     }}
 </style>
 """, unsafe_allow_html=True)
 
-# Khối CSS chạy chữ 
+# Khối CSS chạy chữ TÁCH BIỆT 
 st.markdown("""
 <style>
+    /* CSS MỚI: Chữ chạy ngang (Marquee effect) */
     .running-text-container {
         overflow: hidden; 
         background-color: #fff3e0; /* Nền vàng nhạt nhẹ nhàng */
@@ -184,15 +191,14 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 🚀 Menu Chức Năng")
 
-    # Đã chuyển nút Trang Chủ thành page_link để đồng bộ với menu
-    st.page_link("main.py", label="🏠 Trang Chủ", icon="🏠") 
-
+    if st.button("🏠 Trang Chủ"):
+        st.rerun()
     if os.path.exists(PAGE_1):
-        st.page_link(PAGE_1, label="Gia Sư Toán AI", icon="📝") # Đổi icon
+        st.page_link(PAGE_1, label="Gia Sư Toán AI", icon="📝") # Đã đổi icon
     if os.path.exists(PAGE_2):
         st.page_link(PAGE_2, label="Sinh Đề Tự Động", icon="⚡")
     if os.path.exists(PAGE_3):
-        st.page_link(PAGE_3, label="Giải bài tập từ ảnh", icon="📷") # Đổi icon
+        st.page_link(PAGE_3, label="Giải bài tập từ ảnh", icon="📷") # Đã đổi icon
     if os.path.exists(PAGE_4):
         st.page_link(PAGE_4, label="Học liệu đa phương tiện", icon="📽️")
     if os.path.exists(PAGE_5):
@@ -208,7 +214,6 @@ with st.sidebar:
     st.session_state.visit_count += 1 
 
     st.success(f"👥 Lượt truy cập: **{st.session_state.visit_count}**")
-
 
 # --- 4. NỘI DUNG TRANG CHÍNH ---
 
@@ -240,26 +245,30 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- CARD CHỨC NĂNG (Đã cập nhật icon) ---
+# --- CARD CHỨC NĂNG (Đã cập nhật ICON bằng Image URL) ---
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
+    # ĐÃ SỬA: Thay emoji/font icon bằng Image URL
     st.markdown(f'<div class="feature-card"><div class="icon-box"><img src="{ICON_AI}" alt="Icon Gia Su AI"></div><div class="card-title">Gia Sư Toán AI</div><p>Học toán song ngữ, giải đáp mọi vấn đề.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_1):
         st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
 
 with col2:
+    # ĐÃ SỬA: Thay emoji/font icon bằng Image URL
     st.markdown(f'<div class="feature-card"><div class="icon-box"><img src="{ICON_GENERATE}" alt="Icon Sinh Đề"></div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tạo đề trắc nghiệm và câu hỏi trong vài giây.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_2):
         st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
 
 with col3:
+    # ĐÃ SỬA: Thay emoji/font icon bằng Image URL
     st.markdown(f'<div class="feature-card"><div class="icon-box"><img src="{ICON_PHOTO}" alt="Icon Giải Ảnh"></div><div class="card-title">Giải bài tập từ ảnh</div><p>Giải bài mọi môn học, từ ảnh chụp bằng AI.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_3):
         st.page_link(PAGE_3, label="Giải ngay ➜", icon="📸", use_container_width=True)
 
 with col4:
-    st.markdown(f'<div class="feature-card"><div class="icon-box"><img src="{ICON_CULTURE}" alt="Icon Học Liệu"></div><div class="card-title">Học liệu đa phương tiện</div><p>Tài nguyên về văn hóa, lịch sử và truyền thống.</p></div>', unsafe_allow_html=True)
+    # ĐÃ SỬA: Thay emoji/font icon bằng Image URL
+    st.markdown(f'<div class="feature-card"><div class="icon-box"><img src="{ICON_CULTURE}" alt="Icon Học Liệu"></div><div class="card-title">Đa Phương Tiện</div><p>Học liệu văn hóa H\'Mông.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_4):
         st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
 
