@@ -82,7 +82,7 @@ else:
     }
     """
 
-# --- 2.1. CHÈN CSS GIAO DIỆN CHUNG (TÁCH KHỎI F-STRING CHÍNH) ---
+# --- 2.1. CHÈN CSS GIAO DIỆN CHUNG ---
 # Khối CSS không chứa marquee (sử dụng f-string vì có header_css)
 st.markdown(f"""
 <style>
@@ -137,7 +137,7 @@ st.markdown("""
         background-color: #ffffff; 
         color: #b71c1c; 
         font-weight: bold;
-        padding: 5px 0;
+        padding: 8px 0; /* ĐÃ TĂNG: Tăng padding để chứa chữ lớn */
         margin-bottom: 10px; 
         border-bottom: 2px solid #ff9800;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -145,7 +145,8 @@ st.markdown("""
     .running-text {
         display: inline-block;
         white-space: nowrap;
-        animation: marquee 20s linear infinite;
+        font-size: 1.2rem; /* ĐÃ TĂNG: Chữ to hơn */
+        animation: marquee 30s linear infinite; /* ĐÃ TĂNG: Chạy chậm hơn */
     }
     @keyframes marquee {
         0%   { transform: translate(100%, 0); }
