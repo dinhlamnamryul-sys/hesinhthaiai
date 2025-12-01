@@ -1,235 +1,175 @@
-# Home.py – Phiên bản card chuẩn + nhạc giữ nguyên + không lỗi NameError
 import streamlit as st
 import os
 import base64
 
-# --- CẤU HÌNH FILE ---
-LOGO = "image_2.png.png"
-BACKGROUND = "bantrang.jpg"
-MUSIC = "nhac_nen.mp3"
+# --- CẤU HÌNH LOGO ---
+LOGO_PATH = "image_2.png.png" # Lưu ý: Kiểm tra lại tên file logo của bạn
+LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
 
-# -----------------------------------------
-# HÀM TIỆN ÍCH
-# -----------------------------------------
-def load_base64(path):
-    if os.path.exists(path):
-        try:
-            return base64.b64encode(open(path, "rb").read()).decode()
-        except:
-            return ""
-    return ""
+if os.path.exists(LOGO_PATH):
+    app_icon = LOGO_PATH
+    sidebar_logo = LOGO_PATH
+else:
+    app_icon = LOGO_URL_ONLINE
+    sidebar_logo = LOGO_URL_ONLINE
 
-def load_audio(path):
-    """Nhạc local → base64, fallback khi thiếu"""
-    if os.path.exists(path):
-        try:
-            raw = open(path, "rb").read()
-            b64 = base64.b64encode(raw).decode()
-            return f'<source src="data:audio/mp3;base64,{b64}" type="audio/mp3">'
-        except:
-            pass
-    return '<source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3">'
-
-
-# -----------------------------------------
-# TẠO BIẾN TRƯỚC F-STRING
-# -----------------------------------------
-bg64 = load_base64(BACKGROUND)
-audio_html = load_audio(MUSIC)
-
-app_icon = LOGO if os.path.exists(LOGO) else "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
-
-
-# -----------------------------------------
-# PAGE CONFIG
-# -----------------------------------------
+# --- 1. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
-    page_title="Cổng Giáo Dục Số Na Ư",
+    page_title="Cổng Giáo Dục Số - Trường Na Ư",
     page_icon=app_icon,
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# -----------------------------------------
-# CSS (Đã thêm CSS cho liên kết)
-# -----------------------------------------
-st.markdown(f"""
+# --- 2. CSS GIAO DIỆN ---
+st.markdown("""
 <style>
-.stApp {{
-    {"background-image: url(data:image/jpg;base64," + bg64 + ");" if bg64 else ""}
-    background-size: cover;
-    background-attachment: fixed;
-}}
-
-/* GIẤU HEADER */
-[data-testid="stHeader"], [data-testid="stToolbar"] {{
-    display: none;
-}}
-
-.main-header {{
-    width: 80%;
-    margin: 20px auto;
-    background: rgba(183,28,28,0.85);
-    padding: 18px;
-    border-radius: 18px;
-    text-align: center;
-    color: white;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-}}
-
-.box-row {{
-    display: flex;
-    gap: 25px;
-    justify-content: center;
-    margin-top: 40px;
-}}
-
-.feature {{
-    width: 270px;
-    height: 330px;
-    background: rgba(255,255,255,0.93);
-    border-radius: 20px;
-    padding: 15px;
-    text-align: center;
-    border: 2px solid #ffccbc;
-    transition: 0.25s;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}}
-.feature:hover {{
-    transform: translateY(-8px);
-    border-color: #e65100;
-    box-shadow: 0 8px 22px rgba(0,0,0,0.2);
-    cursor: pointer; /* Thêm con trỏ để chỉ ra có thể nhấp chuột */
-}}
-
-/* CSS MỚI: Đảm bảo liên kết không bị gạch chân và thừa hưởng màu */
-.box-row a {{
-    text-decoration: none !important;
-    color: inherit;
-}}
-
-.icon {{
-    font-size: 55px;
-    margin-bottom: 5px;
-}}
-.title {{
-    font-size: 22px;
-    font-weight: 800;
-    color: #d84315;
-    margin-bottom: 6px;
-}}
-
-.desc {{
-    font-size: 15px;
-    color: #444;
-    margin-bottom: 15px;
-}}
-
-.footer {{
-    margin-top: 45px;
-    width: 100%;
-    text-align: center;
-    background: rgba(255,255,255,0.92);
-    padding: 12px;
-    border-top: 3px solid #b71c1c;
-    color: #444;
-}}
+    [data-testid="stHeader"] { background-color: rgba(0,0,0,0); color: transparent; }
+    [data-testid="stToolbar"] { visibility: hidden !important; display: none !important; }
+    [data-testid="stDecoration"] { visibility: hidden !important; display: none !important; }
+    [data-testid="stSidebarCollapsedControl"] {
+        visibility: visible !important; display: block !important;
+        color: #b71c1c !important; background-color: white; border-radius: 50%;
+        padding: 5px; z-index: 999999;
+    }
+    .stApp { background-color: #f8f9fa; margin-bottom: 60px; }
+    .main-header {
+        background: linear-gradient(135deg, #b71c1c 0%, #d32f2f 60%, #ff6f00 100%);
+        color: white; padding: 30px; border-radius: 20px; text-align: center;
+        box-shadow: 0 10px 30px rgba(183, 28, 28, 0.4); border-bottom: 6px solid #fdd835;
+        margin-bottom: 20px; margin-top: -20px;
+    }
+    .main-header h1 { font-size: 2.5rem; font-weight: 900; margin: 0; }
+    .feature-card {
+        background: white; padding: 20px; border-radius: 20px; text-align: center;
+        border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        height: 350px; display: flex; flex-direction: column; justify-content: space-between;
+        transition: transform 0.3s;
+    }
+    .feature-card:hover { transform: translateY(-5px); border-color: #ff9800; }
+    .icon-box { font-size: 3.5rem; margin-bottom: 10px; }
+    .card-title { color: #d84315; font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; }
+    .stButton>button {
+        width: 100%; border-radius: 50px; background: linear-gradient(90deg, #ff6f00, #ffca28);
+        border: none; color: white; font-weight: bold; padding: 10px 0;
+    }
+    .stButton>button:hover { transform: scale(1.05); }
+    .footer {
+        position: fixed; left: 0; bottom: 0; width: 100%;
+        background-color: #fff; color: #555; text-align: center;
+        padding: 10px; font-size: 14px; border-top: 3px solid #b71c1c;
+        z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+    .footer p { margin: 0; font-family: sans-serif; line-height: 1.5; }
+    
+    /* CSS cho trình phát nhạc */
+    audio {
+        width: 60%; 
+        border-radius: 30px; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
 </style>
 """, unsafe_allow_html=True)
 
+# --- KHAI BÁO FILE TRANG ---
+PAGE_1 = "pages/1_Gia_Sư_Toán_AI.py"
+PAGE_2 = "pages/2_Sinh_Đề_Tự_Động.py"
+PAGE_3 = "pages/3_Giải_bài_tập_từ_ảnh.py"
+PAGE_4 = "pages/4_Học_liệu_đa_phương_tiện.py"
+PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 
-# -----------------------------------------
-# SIDEBAR
-# -----------------------------------------
+# --- XỬ LÝ NHẠC H'MÔNG (LOCAL & ONLINE) ---
+MUSIC_FILE = "nhac_nen.mp3"  # Tên file nhạc bạn cần chép vào cùng thư mục code
+
+def get_audio_html(file_path):
+    """Hàm đọc file nhạc local và chuyển sang mã HTML để phát"""
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as f:
+            data = f.read()
+        b64 = base64.b64encode(data).decode()
+        return f'<source src="data:audio/mp3;base64,{b64}" type="audio/mp3">'
+    else:
+        # Link dự phòng nếu chưa có file nhạc (Tiếng sáo trúc demo)
+        fallback_url = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" 
+        return f'<source src="{fallback_url}" type="audio/mp3">'
+
+# Gọi hàm lấy source nhạc
+audio_source_html = get_audio_html(MUSIC_FILE)
+
+# --- 3. MENU BÊN TRÁI ---
 with st.sidebar:
-    st.image(app_icon, width=150)
-    st.markdown("<h3 style='text-align:center;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
+    col_logo1, col_logo2, col_logo3 = st.columns([1, 2, 1])
+    with col_logo2:
+        st.image(sidebar_logo, width=150)
+    
+    st.markdown("<h3 style='text-align: center; color: #b71c1c; margin-top: 10px;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
     st.markdown("---")
+    st.markdown("### 🚀 Menu Chức Năng")
 
-    st.page_link("Home.py", label="🏠 Trang chủ")
-
-    pages = [
-        ("pages/1_Gia_Sư_Toán_AI.py", "🏔️  Gia Sư Toán AI"),
-        ("pages/2_Sinh_Đề_Tự_Động.py", "⚡  Sinh Đề Tự Động"),
-        ("pages/3_Giải_bài_tập_từ_ảnh.py", "🧿  Giải Bài Tập Từ Ảnh"),
-        ("pages/4_Học_liệu_đa_phương_tiện.py", "📽️  Học Liệu Đa Phương Tiện"),
-    ]
-
-    for p, label in pages:
-        if os.path.exists(p):
-            st.page_link(p, label=label)
+    if st.button("🏠 Trang Chủ"):
+        st.rerun()
+    if os.path.exists(PAGE_1):
+        st.page_link(PAGE_1, label="Gia Sư Toán AI", icon="🏔️")
+    if os.path.exists(PAGE_2):
+        st.page_link(PAGE_2, label="Sinh Đề Tự Động", icon="⚡")
+    if os.path.exists(PAGE_3):
+        st.page_link(PAGE_3, label="Giải bài tập từ ảnh", icon="🧿")
+    if os.path.exists(PAGE_4):
+        st.page_link(PAGE_4, label="Học liệu đa phương tiện", icon="📽️")
+    if os.path.exists(PAGE_5):
+        st.page_link(PAGE_5, label="Văn hóa cội nguồn", icon="🌽")
 
     st.markdown("---")
-    st.info("👥 Lượt truy cập: **1**")
+    if 'visit_count' not in st.session_state:
+        st.session_state.visit_count = 0
+    st.success(f"👥 Lượt truy cập: **{st.session_state.visit_count}**")
 
-
-# -----------------------------------------
-# HEADER
-# -----------------------------------------
+# --- 4. NỘI DUNG TRANG CHÍNH ---
 st.markdown("""
 <div class="main-header">
     <h1>🇻🇳 CỔNG GIÁO DỤC SỐ NA Ư</h1>
-    <h3>Tri thức vùng cao – Vươn xa thế giới</h3>
+    <h3>"Tri thức vùng cao - Vươn xa thế giới"</h3>
 </div>
 """, unsafe_allow_html=True)
 
-
-# -----------------------------------------
-# NHẠC NỀN
-# -----------------------------------------
+# --- THANH NHẠC H'MÔNG (ĐÃ NÂNG CẤP) ---  
 st.markdown(f"""
-<div style='text-align:center;'>
-<h4>🎵 Giai điệu bản Mông</h4>
+<div style="text-align:center; margin-bottom:30px;">
+<h4 style="color: #555;">🎵 Giai điệu bản Mông</h4>
 <audio controls autoplay>
-    {audio_html}
+  {audio_source_html}
+  Trình duyệt của bạn không hỗ trợ audio.
 </audio>
 </div>
 """, unsafe_allow_html=True)
 
-
-# -----------------------------------------
-# 4 Ô VUÔNG CHỨC NĂNG (Đã cập nhật hàm card)
-# -----------------------------------------
-st.markdown('<div class="box-row">', unsafe_allow_html=True)
-
-def card(icon, title, desc, page):
-    # Kiểm tra sự tồn tại của file và tạo đường dẫn tương đối cho Streamlit
-    # Đường dẫn cần là tuyệt đối hoặc tương đối: /pages/1_Gia_Sư_Toán_AI.py
-    page_url = f"/{page}" if os.path.exists(page) else "#"
-    
-    st.markdown(f"""
-    <a href="{page_url}" style="text-decoration:none; color:inherit;">
-        <div class="feature">
-            <div class="icon">{icon}</div>
-            <div class="title">{title}</div>
-            <div class="desc">{desc}</div>
-        </div>
-    </a>
-    """, unsafe_allow_html=True)
-    # Đã loại bỏ st.page_link riêng biệt.
-
+# --- CARD CHỨC NĂNG ---
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    card("🏔️", "Gia Sư Toán AI", "Học toán song ngữ thông minh.", "pages/1_Gia_Sư_Toán_AI.py")
+    st.markdown('<div class="feature-card"><div class="icon-box">🏔️</div><div class="card-title">Gia Sư Toán AI</div><p>Học toán song ngữ.</p></div>', unsafe_allow_html=True)
+    if os.path.exists(PAGE_1):
+        st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
 
 with col2:
-    card("⚡", "Sinh Đề Tự Động", "Tạo đề kiểm tra cực nhanh.", "pages/2_Sinh_Đề_Tự_Động.py")
+    st.markdown('<div class="feature-card"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tạo đề trắc nghiệm trong vài giây.</p></div>', unsafe_allow_html=True)
+    if os.path.exists(PAGE_2):
+        st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
 
 with col3:
-    card("🧿", "Giải Bài Tập Từ Ảnh", "AI phân tích & giải tức thì.", "pages/3_Giải_bài_tập_từ_ảnh.py")
+    st.markdown('<div class="feature-card"><div class="icon-box">🧿</div><div class="card-title">Giải bài tập từ ảnh</div><p>Giải bài mọi môn học bằng AI.</p></div>', unsafe_allow_html=True)
+    if os.path.exists(PAGE_3):
+        st.page_link(PAGE_3, label="Giải ngay ➜", icon="📸", use_container_width=True)
 
 with col4:
-    card("📽️", "Đa Phương Tiện", "Học liệu văn hóa H'Mông.", "pages/4_Học_liệu_đa_phương_tiện.py")
+    st.markdown('<div class="feature-card"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Học liệu văn hóa H\'Mông.</p></div>', unsafe_allow_html=True)
+    if os.path.exists(PAGE_4):
+        st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
 
-st.markdown("</div>", unsafe_allow_html=True)
-
-
-# -----------------------------------------
-# FOOTER
-# -----------------------------------------
+# --- 5. CHÂN TRANG (FOOTER) ---
 st.markdown("""
-<div class='footer'>
-    <p>👨‍🏫 Nhóm tác giả: Trường PTDTBT TH&THCS Na Ư</p>
-    <p style='font-size:12px;color:#555;'>© 2025 Cổng Giáo Dục Số Na Ư</p>
+<div class="footer">
+    <p>👨‍🏫 <b>Nhóm tác giả:</b> Trường PTDTBT TH&THCS Na Ư</p>
+    <p style="font-size: 12px; color: #888;">© 2025 Cổng Giáo Dục Số Na Ư</p>
 </div>
 """, unsafe_allow_html=True)
