@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 import base64
-import random # Thêm thư viện random để tạo hiệu ứng rơi ngẫu nhiên
+import random 
 
 # --- 0. CÁC HÀM TIỆN ÍCH (Khởi tạo trước khi Cấu hình Trang) ---
 def get_base64_image(image_path):
@@ -84,7 +84,6 @@ else:
     """
 
 # --- 2.1. CHÈN CSS GIAO DIỆN CHUNG ---
-# Khối CSS không chứa marquee và hoa ban (sử dụng f-string vì có header_css)
 st.markdown(f"""
 <style>
     {header_css}
@@ -126,10 +125,17 @@ st.markdown(f"""
         border-radius: 30px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }}
+    
+    /* Cấu hình container cho hiệu ứng hoa rơi */
+    #petal-container {{
+        position: relative; /* Rất quan trọng: cho phép cánh hoa position: absolute bên trong */
+        min-height: 100vh; /* Đảm bảo container đủ cao để hoa rơi */
+        z-index: 1; /* Đảm bảo hoa rơi nằm trên nền */
+    }}
 </style>
 """, unsafe_allow_html=True)
 
-# Khối CSS chạy chữ và HOA BAN RƠI TÁCH BIỆT (KHÔNG dùng f-string)
+# Khối CSS chạy chữ và HOA BAN RƠI TÁCH BIỆT
 st.markdown("""
 <style>
     /* CSS cho chữ chạy ngang */
@@ -156,12 +162,12 @@ st.markdown("""
 
     /* CSS CHO HIỆU ỨNG HOA BAN RƠI */
     .petal {
-        position: fixed;
-        background-color: white; /* Màu trắng của cánh hoa */
-        border-radius: 50%; /* Hình tròn hoặc ellipse nhẹ */
-        opacity: 0.8; /* Hơi trong suốt */
-        pointer-events: none; /* Không chặn click chuột */
-        z-index: 9999; /* Luôn ở trên cùng */
+        position: absolute; /* ĐÃ SỬA: Dùng absolute so với #petal-container */
+        background-color: white; 
+        border-radius: 50%; 
+        opacity: 0.8; 
+        pointer-events: none; 
+        z-index: 9999; 
         animation: fall linear infinite;
     }
 
@@ -184,22 +190,15 @@ st.markdown("""
             opacity: 0.8;
         }
         50% {
-            transform: translate3d(random(-20px, 20px), 50vh, 0) rotate(180deg); /* Thêm dịch chuyển ngang để bay lượn */
+            /* Tăng độ bay lượn */
+            transform: translate3d(random(-50px, 50px), 50vh, 0) rotate(180deg); 
             opacity: 0.6;
         }
         100% {
-            transform: translate3d(0, 100vh, 0) rotate(360deg);
+            /* Đảm bảo cánh hoa rơi xuống dưới cùng của container */
+            transform: translate3d(0, 100vh, 0) rotate(360deg); 
             opacity: 0.3;
         }
-    }
-
-    /* Nếu muốn hiệu ứng phức tạp hơn với các hình dạng cánh hoa */
-    .petal-shape {
-        background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="%23FFFFFF" d="M50 0 C75 0 100 25 100 50 C100 75 75 100 50 100 C25 100 0 75 0 50 C0 25 25 0 50 0 Z"/></svg>') no-repeat center center;
-        background-size: contain;
-        width: 15px; /* Kích thước icon hoa ban */
-        height: 15px;
-        opacity: 0.7;
     }
 </style>
 
@@ -207,33 +206,40 @@ st.markdown("""
     // JavaScript để tạo hiệu ứng hoa ban rơi
     document.addEventListener('DOMContentLoaded', () => {
         const numPetals = 30; // Số lượng cánh hoa
-        const body = document.body;
+        
+        // ĐÃ SỬA: Tìm container mà Streamlit đang render nội dung vào
+        const container = document.getElementById('petal-container') || document.body;
+        
+        // Chỉ chạy nếu tìm thấy container để tránh lỗi
+        if (container) {
+            for (let i = 0; i < numPetals; i++) {
+                const petal = document.createElement('div');
+                petal.classList.add('petal');
+                
+                // Kích thước ngẫu nhiên
+                const sizes = ['size-small', 'size-medium', 'size-large'];
+                petal.classList.add(sizes[Math.floor(Math.random() * sizes.length)]);
 
-        for (let i = 0; i < numPetals; i++) {
-            const petal = document.createElement('div');
-            petal.classList.add('petal');
-            
-            // Kích thước ngẫu nhiên
-            const sizes = ['size-small', 'size-medium', 'size-large'];
-            petal.classList.add(sizes[Math.floor(Math.random() * sizes.length)]);
+                // Hướng gió/tốc độ ngẫu nhiên
+                const winds = ['wind-1', 'wind-2', 'wind-3', 'wind-4', 'wind-5'];
+                petal.classList.add(winds[Math.floor(Math.random() * winds.length)]);
 
-            // Hướng gió/tốc độ ngẫu nhiên
-            const winds = ['wind-1', 'wind-2', 'wind-3', 'wind-4', 'wind-5'];
-            petal.classList.add(winds[Math.floor(Math.random() * winds.length)]);
+                // Vị trí ngang ngẫu nhiên
+                petal.style.left = Math.random() * 100 + '%'; 
+                petal.style.top = - (Math.random() * 10) + 'vh'; // Bắt đầu từ trên container
 
-            petal.style.left = Math.random() * window.innerWidth + 'px';
-            petal.style.top = - (Math.random() * 100) + 'px'; // Bắt đầu từ trên màn hình
+                // Animation delay ngẫu nhiên 
+                petal.style.animationDelay = `${Math.random() * 20}s`; 
 
-            // Animation delay ngẫu nhiên để các cánh hoa rơi không đồng thời
-            petal.style.animationDelay = `${Math.random() * 20}s`; 
+                // Duration ngẫu nhiên cho mỗi cánh hoa
+                petal.style.animationDuration = `${10 + Math.random() * 15}s`; 
 
-            // Duration ngẫu nhiên cho mỗi cánh hoa
-            petal.style.animationDuration = `${10 + Math.random() * 15}s`; 
+                // Rotation ngẫu nhiên ban đầu
+                petal.style.transform = `rotate(${Math.random() * 360}deg)`;
 
-            // Rotation ngẫu nhiên ban đầu
-            petal.style.transform = `rotate(${Math.random() * 360}deg)`;
-
-            body.appendChild(petal);
+                // ĐÃ SỬA: Chèn cánh hoa vào container tùy chỉnh
+                container.appendChild(petal);
+            }
         }
     });
 </script>
@@ -276,6 +282,9 @@ with st.sidebar:
     st.success(f"👥 Lượt truy cập: **{st.session_state.visit_count}**")
 
 # --- 4. NỘI DUNG TRANG CHÍNH ---
+
+# BẮT ĐẦU CONTAINER LỚN CHO HOA RƠI
+st.markdown('<div id="petal-container">', unsafe_allow_html=True)
 
 # CHÈN DÒNG CHỮ CHẠY
 st.markdown("""
@@ -327,6 +336,9 @@ with col4:
     st.markdown('<div class="feature-card"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Học liệu văn hóa H\'Mông.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_4):
         st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
+
+# KẾT THÚC CONTAINER LỚN CHO HOA RƠI
+st.markdown('</div>', unsafe_allow_html=True)
 
 # --- 5. CHÂN TRANG (FOOTER) ---
 st.markdown("""
