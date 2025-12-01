@@ -50,7 +50,7 @@ st.set_page_config(
 )
 
 # -----------------------------------------
-# CSS
+# CSS (Đã thêm CSS cho liên kết)
 # -----------------------------------------
 st.markdown(f"""
 <style>
@@ -98,6 +98,13 @@ st.markdown(f"""
     transform: translateY(-8px);
     border-color: #e65100;
     box-shadow: 0 8px 22px rgba(0,0,0,0.2);
+    cursor: pointer; /* Thêm con trỏ để chỉ ra có thể nhấp chuột */
+}}
+
+/* CSS MỚI: Đảm bảo liên kết không bị gạch chân và thừa hưởng màu */
+.box-row a {{
+    text-decoration: none !important;
+    color: inherit;
 }}
 
 .icon {{
@@ -180,20 +187,25 @@ st.markdown(f"""
 
 
 # -----------------------------------------
-# 4 Ô VUÔNG CHỨC NĂNG
+# 4 Ô VUÔNG CHỨC NĂNG (Đã cập nhật hàm card)
 # -----------------------------------------
 st.markdown('<div class="box-row">', unsafe_allow_html=True)
 
 def card(icon, title, desc, page):
+    # Kiểm tra sự tồn tại của file và tạo đường dẫn tương đối cho Streamlit
+    # Đường dẫn cần là tuyệt đối hoặc tương đối: /pages/1_Gia_Sư_Toán_AI.py
+    page_url = f"/{page}" if os.path.exists(page) else "#"
+    
     st.markdown(f"""
-    <div class="feature">
-        <div class="icon">{icon}</div>
-        <div class="title">{title}</div>
-        <div class="desc">{desc}</div>
-    </div>
+    <a href="{page_url}" style="text-decoration:none; color:inherit;">
+        <div class="feature">
+            <div class="icon">{icon}</div>
+            <div class="title">{title}</div>
+            <div class="desc">{desc}</div>
+        </div>
+    </a>
     """, unsafe_allow_html=True)
-    if os.path.exists(page):
-        st.page_link(page, label=" 👉 Mở", use_container_width=True)
+    # Đã loại bỏ st.page_link riêng biệt.
 
 col1, col2, col3, col4 = st.columns(4)
 
