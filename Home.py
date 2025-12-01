@@ -2,9 +2,24 @@ import streamlit as st
 import os
 import base64
 
-# --- CẤU HÌNH LOGO ---
+# --- CẤU HÌNH LOGO VÀ ẢNH NỀN ---
 LOGO_PATH = "image_2.png.png" # Lưu ý: Kiểm tra lại tên file logo của bạn
 LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
+
+# --- KHAI BÁO THÊM CHO ẢNH NỀN ---
+BACKGROUND_IMAGE_PATH = "bantrang.jpg" # Tên file ảnh nền của bạn
+
+# Hàm chuyển ảnh thành Base64
+def get_base64_image(image_path):
+    """Hàm chuyển ảnh local thành Base64 để nhúng vào CSS"""
+    if os.path.exists(image_path):
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    return ""
+
+# Gọi hàm để tạo biến chứa chuỗi Base64 của ảnh nền
+base64_image = get_base64_image(BACKGROUND_IMAGE_PATH)
+
 
 if os.path.exists(LOGO_PATH):
     app_icon = LOGO_PATH
@@ -21,9 +36,45 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CSS GIAO DIỆN ---
-st.markdown("""
+# --- 2. CSS GIAO DIỆN (ĐÃ CẬP NHẬT) ---
+# Sử dụng biến base64_image ở đây
+st.markdown(f"""
 <style>
+    /* BẮT ĐẦU PHẦN ĐẶT ẢNH NỀN */
+    .stApp {{ 
+        margin-bottom: 60px;
+        /* Thêm ảnh nền nếu chuỗi Base64 tồn tại */
+        {"background-image: url(data:image/jpg;base64," + base64_image + ");" if base64_image else "background-color: #f8f9fa;"}
+        background-size: cover; 
+        background-position: center; 
+        background-attachment: fixed; /* Giúp ảnh nền không cuộn */
+    }}
+    /* ĐIỀU CHỈNH ĐỘ TRONG SUỐT ĐỂ DỄ ĐỌC */
+    .main-header {{
+        background: linear-gradient(135deg, rgba(183, 28, 28, 0.9) 0%, rgba(211, 47, 47, 0.9) 60%, rgba(255, 111, 0, 0.9) 100%);
+        color: white; padding: 30px; border-radius: 20px; text-align: center;
+        box-shadow: 0 10px 30px rgba(183, 28, 28, 0.4); border-bottom: 6px solid #fdd835;
+        margin-bottom: 20px; margin-top: -20px;
+    }}
+    .feature-card {{
+        background: rgba(255, 255, 255, 0.9); /* Làm mờ Card để nội dung nổi bật */
+        padding: 20px; border-radius: 20px; text-align: center;
+        border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        height: 350px; display: flex; flex-direction: column; justify-content: space-between;
+        transition: transform 0.3s;
+    }}
+    [data-testid="stSidebar"] {{
+        background-color: rgba(255, 255, 255, 0.85); /* Làm mờ Sidebar */
+    }}
+    .footer {{
+        position: fixed; left: 0; bottom: 0; width: 100%;
+        background-color: rgba(255, 255, 255, 0.95); /* Làm mờ Footer */
+        color: #555; text-align: center;
+        padding: 10px; font-size: 14px; border-top: 3px solid #b71c1c;
+        z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }}
+    /* KẾT THÚC PHẦN ĐẶT ẢNH NỀN */
+
     [data-testid="stHeader"] { background-color: rgba(0,0,0,0); color: transparent; }
     [data-testid="stToolbar"] { visibility: hidden !important; display: none !important; }
     [data-testid="stDecoration"] { visibility: hidden !important; display: none !important; }
@@ -32,20 +83,9 @@ st.markdown("""
         color: #b71c1c !important; background-color: white; border-radius: 50%;
         padding: 5px; z-index: 999999;
     }
-    .stApp { background-color: #f8f9fa; margin-bottom: 60px; }
-    .main-header {
-        background: linear-gradient(135deg, #b71c1c 0%, #d32f2f 60%, #ff6f00 100%);
-        color: white; padding: 30px; border-radius: 20px; text-align: center;
-        box-shadow: 0 10px 30px rgba(183, 28, 28, 0.4); border-bottom: 6px solid #fdd835;
-        margin-bottom: 20px; margin-top: -20px;
-    }
+    
     .main-header h1 { font-size: 2.5rem; font-weight: 900; margin: 0; }
-    .feature-card {
-        background: white; padding: 20px; border-radius: 20px; text-align: center;
-        border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        height: 350px; display: flex; flex-direction: column; justify-content: space-between;
-        transition: transform 0.3s;
-    }
+    
     .feature-card:hover { transform: translateY(-5px); border-color: #ff9800; }
     .icon-box { font-size: 3.5rem; margin-bottom: 10px; }
     .card-title { color: #d84315; font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; }
@@ -54,12 +94,7 @@ st.markdown("""
         border: none; color: white; font-weight: bold; padding: 10px 0;
     }
     .stButton>button:hover { transform: scale(1.05); }
-    .footer {
-        position: fixed; left: 0; bottom: 0; width: 100%;
-        background-color: #fff; color: #555; text-align: center;
-        padding: 10px; font-size: 14px; border-top: 3px solid #b71c1c;
-        z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-    }
+    
     .footer p { margin: 0; font-family: sans-serif; line-height: 1.5; }
     
     /* CSS cho trình phát nhạc */
@@ -81,6 +116,7 @@ PAGE_5 = "pages/5_Văn_hóa_cội_nguồn.py"
 # --- XỬ LÝ NHẠC H'MÔNG (LOCAL & ONLINE) ---
 MUSIC_FILE = "nhac_nen.mp3"  # Tên file nhạc bạn cần chép vào cùng thư mục code
 
+# Hàm này giữ nguyên như code cũ của bạn
 def get_audio_html(file_path):
     """Hàm đọc file nhạc local và chuyển sang mã HTML để phát"""
     if os.path.exists(file_path):
