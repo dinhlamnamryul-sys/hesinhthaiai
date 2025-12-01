@@ -82,10 +82,11 @@ else:
     }
     """
 
-# --- 2.1. CHÈN CSS GIAO DIỆN CHUNG (SỬA LỖI F-STRING BẰNG CÁCH DÙNG {{ }}) ---
+# --- 2.1. CHÈN CSS GIAO DIỆN CHUNG (TÁCH KHỎI F-STRING CHÍNH) ---
+# Khối CSS không chứa marquee (sử dụng f-string vì có header_css)
 st.markdown(f"""
 <style>
-    {header_css} /* CHÈN CSS HEADER ĐÃ XỬ LÝ Ở TRÊN */
+    {header_css}
     [data-testid="stHeader"] {{ background-color: rgba(0,0,0,0); color: transparent; }}
     [data-testid="stToolbar"] {{ visibility: hidden !important; display: none !important; }}
     [data-testid="stDecoration"] {{ visibility: hidden !important; display: none !important; }}
@@ -124,27 +125,32 @@ st.markdown(f"""
         border-radius: 30px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }}
-    
+</style>
+""", unsafe_allow_html=True)
+
+# Khối CSS chạy chữ TÁCH BIỆT (KHÔNG dùng f-string)
+st.markdown("""
+<style>
     /* CSS MỚI: Chữ chạy ngang (Marquee effect) */
-    .running-text-container {{
-        overflow: hidden; /* Che đi phần chữ bị tràn */
-        background-color: #ffffff; /* Nền trắng */
-        color: #b71c1c; /* Chữ màu đỏ */
+    .running-text-container {
+        overflow: hidden; 
+        background-color: #ffffff; 
+        color: #b71c1c; 
         font-weight: bold;
         padding: 5px 0;
-        margin-bottom: 10px; /* Tạo khoảng cách với banner dưới */
+        margin-bottom: 10px; 
         border-bottom: 2px solid #ff9800;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }}
-    .running-text {{
+    }
+    .running-text {
         display: inline-block;
         white-space: nowrap;
-        animation: marquee 20s linear infinite; /* Điều chỉnh 20s để thay đổi tốc độ */
-    }}
-    @keyframes marquee {{
-        0%   {{ transform: translate(100%, 0); }} /* SỬA LỖI: Dùng {{ }} thay cho { } */
-        100% {{ transform: translate(-100%, 0); }} /* SỬA LỖI: Dùng {{ }} thay cho { } */
-    }}
+        animation: marquee 20s linear infinite;
+    }
+    @keyframes marquee {
+        0%   { transform: translate(100%, 0); }
+        100% { transform: translate(-100%, 0); }
+    }
 </style>
 """, unsafe_allow_html=True)
 
