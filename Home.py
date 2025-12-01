@@ -141,10 +141,10 @@ with st.sidebar:
     st.page_link("Home.py", label="🏠 Trang chủ")
 
     pages = [
-        ("pages/1_Gia_Sư_Toán_AI.py", "🏔️  Gia Sư Toán AI"),
-        ("pages/2_Sinh_Đề_Tự_Động.py", "⚡  Sinh Đề Tự Động"),
-        ("pages/3_Giải_bài_tập_từ_ảnh.py", "🧿  Giải Bài Tập Từ Ảnh"),
-        ("pages/4_Học_liệu_đa_phương_tiện.py", "📽️  Học Liệu Đa Phương Tiện"),
+        ("pages/1_Gia_Sư_Toán_AI.py", "🏔️  Gia Sư Toán AI"),
+        ("pages/2_Sinh_Đề_Tự_Động.py", "⚡  Sinh Đề Tự Động"),
+        ("pages/3_Giải_bài_tập_từ_ảnh.py", "🧿  Giải Bài Tập Từ Ảnh"),
+        ("pages/4_Học_liệu_đa_phương_tiện.py", "📽️  Học Liệu Đa Phương Tiện"),
     ]
 
     for p, label in pages:
