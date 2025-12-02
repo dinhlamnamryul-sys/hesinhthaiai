@@ -4,12 +4,15 @@ from docx import Document
 from io import BytesIO
 import docx
 
-st.set_page_config(page_title="Tạo đề tự động theo CV7791", page_icon="📝", layout="wide")
-st.title("📝 Tạo đề kiểm tra tự động (theo CV7791)")
+st.set_page_config(page_title="Tạo đề tự động theo SGK KNTT", page_icon="📝", layout="wide")
+st.title("📝 Tạo đề kiểm tra tự động (theo SGK Kết nối tri thức)")
 
 st.markdown("""
 Upload Excel (.xlsx) hoặc Word (.docx) chứa ma trận câu hỏi. 
-Hệ thống sẽ cho phép bạn chọn môn, chương, chủ đề, bài và số lượng câu muốn tạo.
+Hệ thống sẽ tự động nhận diện cột và cho phép:
+- Chọn môn, chương, bài, chủ đề
+- Chọn tổng số câu, tỉ lệ câu theo chủ đề
+- Tạo đề theo CV7791
 """)
 
 # -------------------- HÀM CHUẨN HÓA CỘT --------------------
@@ -41,7 +44,6 @@ def read_matrix_from_docx(file):
     doc = docx.Document(file)
     data = []
     table_found = False
-
     for table in doc.tables:
         if len(table.rows) < 2:
             continue
@@ -58,14 +60,13 @@ def read_matrix_from_docx(file):
             data.append(item)
         table_found = True
         break
-
     if not table_found:
         return pd.DataFrame()
     return pd.DataFrame(data)
 
-# -------------------- TỰ ĐỘNG XỬ LÝ CỘT THIẾU --------------------
+# -------------------- TỰ ĐỘNG THÊM CỘT THIẾU --------------------
 def auto_fill_missing_columns(df):
-    required_cols = ["ChuDe", "NoiDung", "MucDo", "SoCau", "Mon", "Chuong", "Bai"]
+    required_cols = ["Mon", "Chuong", "Bai", "ChuDe", "NoiDung", "MucDo", "SoCau"]
     for col in required_cols:
         if col not in df.columns:
             if col == "SoCau":
@@ -74,7 +75,7 @@ def auto_fill_missing_columns(df):
                 df[col] = "Chưa xác định"
     return df
 
-# -------------------- XỬ LÝ FILE UPLOAD --------------------
+# -------------------- FILE UPLOAD --------------------
 uploaded_matrix = st.file_uploader("📤 Tải lên ma trận (Excel hoặc Word)", type=["xlsx", "docx"])
 
 if uploaded_matrix:
@@ -95,35 +96,37 @@ if uploaded_matrix:
     else:
         df = normalize_columns(df)
         df = auto_fill_missing_columns(df)
-        st.write("📋 Bảng ma trận sau khi chuẩn hóa và tự động điền cột:")
+        st.write("📋 Ma trận sau khi chuẩn hóa:")
         st.dataframe(df)
 
-        # -------------------- LỌC THEO MÔN / CHƯƠNG / BÀI / CHỦ ĐỀ --------------------
-        mon = st.selectbox("Chọn môn học:", options=sorted(df['Mon'].unique()))
-        chuong_options = sorted(df[df['Mon']==mon]['Chuong'].unique())
-        chuong = st.selectbox("Chọn chương:", options=chuong_options)
-        bai_options = sorted(df[(df['Mon']==mon) & (df['Chuong']==chuong)]['Bai'].unique())
-        bai = st.selectbox("Chọn bài:", options=bai_options)
-        chu_de_options = sorted(df[(df['Mon']==mon) & (df['Chuong']==chuong) & (df['Bai']==bai)]['ChuDe'].unique())
-        chu_de = st.multiselect("Chọn chủ đề (có thể nhiều):", options=chu_de_options, default=chu_de_options)
+        # -------------------- CHỌN MÔN / CHƯƠNG / BÀI / CHỦ ĐỀ --------------------
+        mon_list = sorted(df['Mon'].unique())
+        mon = st.selectbox("Chọn môn học:", mon_list)
+
+        chuong_list = sorted(df[df['Mon']==mon]['Chuong'].unique())
+        chuong = st.selectbox("Chọn chương:", chuong_list)
+
+        bai_list = sorted(df[(df['Mon']==mon) & (df['Chuong']==chuong)]['Bai'].unique())
+        bai = st.selectbox("Chọn bài:", bai_list)
+
+        chu_de_list = sorted(df[(df['Mon']==mon) & (df['Chuong']==chuong) & (df['Bai']==bai)]['ChuDe'].unique())
+        chu_de = st.multiselect("Chọn chủ đề (có thể nhiều):", chu_de_list, default=chu_de_list)
 
         so_cau_total = st.number_input("Tổng số câu muốn tạo:", min_value=1, max_value=100, value=10)
 
-        # Tỉ lệ câu theo chủ đề
-        st.markdown("**Tỉ lệ câu theo chủ đề:**")
-        tỉ_le_dict = {}
+        st.markdown("**Tỉ lệ câu theo chủ đề (%)**")
+        ti_le_dict = {}
         for cd in chu_de:
-            tỉ_le_dict[cd] = st.slider(f"{cd} (%)", min_value=0, max_value=100, value=round(100/len(chu_de)))
+            ti_le_dict[cd] = st.slider(f"{cd} (%)", min_value=0, max_value=100, value=round(100/len(chu_de)))
 
         if st.button("📘 Tạo đề tự động"):
-            # Lọc theo lựa chọn
             df_filtered = df[(df['Mon']==mon) & (df['Chuong']==chuong) & (df['Bai']==bai) & (df['ChuDe'].isin(chu_de))]
-
-            # Tạo danh sách câu theo tỉ lệ
             questions = []
             q_number = 1
+
+            # Sinh câu theo tỉ lệ
             for cd in chu_de:
-                n_cau = round(so_cau_total * tỉ_le_dict[cd] / 100)
+                n_cau = round(so_cau_total * ti_le_dict[cd] / 100)
                 df_cd = df_filtered[df_filtered['ChuDe']==cd]
                 for _, row in df_cd.iterrows():
                     so_cau_row = int(float(row.get("SoCau", 1)))
@@ -137,6 +140,7 @@ if uploaded_matrix:
                     if n_cau <= 0:
                         break
 
+            # Hiển thị đề
             st.subheader("📄 Đề kiểm tra:")
             for q in questions:
                 st.markdown(q)
