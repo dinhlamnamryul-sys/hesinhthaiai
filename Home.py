@@ -326,6 +326,6 @@ with col4:
 st.markdown("""
 <div class="footer">
     <p>👨‍🏫 <b>Nhóm tác giả:</b> Đinh Công Lâm - Lò Văn Hanh - Nguyễn Trọng Dương</p> </b> Trường PTDTBT TH&THCS Na Ư</p>
-    <p style="font-size: 12px; color: #888;">© 2025 Cổng Giáo Dục Số Na Ư - Powered by AI & Streamlit</p>
+    <p style="font-size: 12px; color: #888;">© Năm học 2025 - 2026 - Cổng Giáo Dục Số Na Ư </p>
 </div>
 """, unsafe_allow_html=True)
