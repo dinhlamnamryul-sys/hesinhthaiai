@@ -3,17 +3,13 @@ import pandas as pd
 from docx import Document
 from io import BytesIO
 import docx
-import re
 
-st.set_page_config(page_title="Tạo đề tự động từ ma trận", page_icon="📝", layout="wide")
-st.title("📝 Tạo đề kiểm tra tự động từ ma trận (tự nhận diện cột)")
+st.set_page_config(page_title="Tạo đề tự động theo CV7791", page_icon="📝", layout="wide")
+st.title("📝 Tạo đề kiểm tra tự động (theo CV7791)")
 
 st.markdown("""
-Upload Excel (.xlsx) hoặc Word (.docx). Hệ thống sẽ cố gắng tự động nhận diện các cột:
-- Chủ đề
-- Nội dung
-- Mức độ
-- Số câu
+Upload Excel (.xlsx) hoặc Word (.docx) chứa ma trận câu hỏi. 
+Hệ thống sẽ cho phép bạn chọn môn, chương, chủ đề, bài và số lượng câu muốn tạo.
 """)
 
 # -------------------- HÀM CHUẨN HÓA CỘT --------------------
@@ -29,6 +25,12 @@ def normalize_columns(df):
             col_map[col] = "MucDo"
         elif "số câu" in lc or "socau" in lc or "num" in lc or "quantity" in lc:
             col_map[col] = "SoCau"
+        elif "môn" in lc or "subject" in lc:
+            col_map[col] = "Mon"
+        elif "chương" in lc or "chapter" in lc:
+            col_map[col] = "Chuong"
+        elif "bài" in lc or "lesson" in lc:
+            col_map[col] = "Bai"
         else:
             col_map[col] = col
     df = df.rename(columns=col_map)
@@ -42,7 +44,7 @@ def read_matrix_from_docx(file):
 
     for table in doc.tables:
         if len(table.rows) < 2:
-            continue  # Bỏ qua bảng không có dữ liệu
+            continue
         keys = [cell.text.strip() for cell in table.rows[0].cells]
         if all(not k for k in keys):
             continue
@@ -55,7 +57,7 @@ def read_matrix_from_docx(file):
                     item[key] = ""
             data.append(item)
         table_found = True
-        break  # Lấy bảng đầu tiên hợp lệ
+        break
 
     if not table_found:
         return pd.DataFrame()
@@ -63,15 +65,13 @@ def read_matrix_from_docx(file):
 
 # -------------------- TỰ ĐỘNG XỬ LÝ CỘT THIẾU --------------------
 def auto_fill_missing_columns(df):
-    # Cột quan trọng
-    required_cols = ["ChuDe", "NoiDung", "MucDo", "SoCau"]
-    missing_cols = [c for c in required_cols if c not in df.columns]
-
-    for col in missing_cols:
-        if col == "SoCau":
-            df[col] = 1
-        else:
-            df[col] = "Chưa xác định"
+    required_cols = ["ChuDe", "NoiDung", "MucDo", "SoCau", "Mon", "Chuong", "Bai"]
+    for col in required_cols:
+        if col not in df.columns:
+            if col == "SoCau":
+                df[col] = 1
+            else:
+                df[col] = "Chưa xác định"
     return df
 
 # -------------------- XỬ LÝ FILE UPLOAD --------------------
@@ -98,24 +98,45 @@ if uploaded_matrix:
         st.write("📋 Bảng ma trận sau khi chuẩn hóa và tự động điền cột:")
         st.dataframe(df)
 
+        # -------------------- LỌC THEO MÔN / CHƯƠNG / BÀI / CHỦ ĐỀ --------------------
+        mon = st.selectbox("Chọn môn học:", options=sorted(df['Mon'].unique()))
+        chuong_options = sorted(df[df['Mon']==mon]['Chuong'].unique())
+        chuong = st.selectbox("Chọn chương:", options=chuong_options)
+        bai_options = sorted(df[(df['Mon']==mon) & (df['Chuong']==chuong)]['Bai'].unique())
+        bai = st.selectbox("Chọn bài:", options=bai_options)
+        chu_de_options = sorted(df[(df['Mon']==mon) & (df['Chuong']==chuong) & (df['Bai']==bai)]['ChuDe'].unique())
+        chu_de = st.multiselect("Chọn chủ đề (có thể nhiều):", options=chu_de_options, default=chu_de_options)
+
+        so_cau_total = st.number_input("Tổng số câu muốn tạo:", min_value=1, max_value=100, value=10)
+
+        # Tỉ lệ câu theo chủ đề
+        st.markdown("**Tỉ lệ câu theo chủ đề:**")
+        tỉ_le_dict = {}
+        for cd in chu_de:
+            tỉ_le_dict[cd] = st.slider(f"{cd} (%)", min_value=0, max_value=100, value=round(100/len(chu_de)))
+
         if st.button("📘 Tạo đề tự động"):
-            st.success("✅ Đã tạo đề!")
+            # Lọc theo lựa chọn
+            df_filtered = df[(df['Mon']==mon) & (df['Chuong']==chuong) & (df['Bai']==bai) & (df['ChuDe'].isin(chu_de))]
+
+            # Tạo danh sách câu theo tỉ lệ
             questions = []
             q_number = 1
-            for _, row in df.iterrows():
-                chu_de = row.get("ChuDe", "Chưa xác định")
-                nd = row.get("NoiDung", "Chưa xác định")
-                md = row.get("MucDo", "")
-                try:
-                    so_cau = int(float(row.get("SoCau", 1)))
-                except:
-                    so_cau = 1
-                for i in range(so_cau):
-                    q_text = f"Câu {q_number}. ({md}) – Chủ đề {chu_de}\nNội dung: {nd}\n→ Hãy trình bày câu trả lời."
-                    questions.append(q_text)
-                    q_number += 1
+            for cd in chu_de:
+                n_cau = round(so_cau_total * tỉ_le_dict[cd] / 100)
+                df_cd = df_filtered[df_filtered['ChuDe']==cd]
+                for _, row in df_cd.iterrows():
+                    so_cau_row = int(float(row.get("SoCau", 1)))
+                    for i in range(min(so_cau_row, n_cau)):
+                        q_text = f"Câu {q_number}. ({row.get('MucDo','')}) – Chủ đề {cd}\nNội dung: {row.get('NoiDung','')}\n→ Hãy trình bày câu trả lời."
+                        questions.append(q_text)
+                        q_number += 1
+                        n_cau -= 1
+                        if n_cau <= 0:
+                            break
+                    if n_cau <= 0:
+                        break
 
-            # Hiển thị đề
             st.subheader("📄 Đề kiểm tra:")
             for q in questions:
                 st.markdown(q)
@@ -123,7 +144,7 @@ if uploaded_matrix:
 
             # Xuất Word
             doc = Document()
-            doc.add_heading("ĐỀ KIỂM TRA TỰ ĐỘNG", 0)
+            doc.add_heading(f"ĐỀ KIỂM TRA: {mon} - {chuong} - {bai}", 0)
             for q in questions:
                 doc.add_paragraph(q)
                 doc.add_paragraph("..............................................")
@@ -134,6 +155,6 @@ if uploaded_matrix:
             st.download_button(
                 "📥 Tải xuống file Word",
                 data=buffer,
-                file_name="De_Kiem_Tra_Tu_Dong.docx",
+                file_name=f"De_Kiem_Tra_{mon}_{chuong}_{bai}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
