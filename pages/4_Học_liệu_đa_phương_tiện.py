@@ -1,4 +1,4 @@
-# app.py — Ứng dụng Streamlit: Tổng hợp kiến thức Toán + xuất DOCX/PDF
+# app.py — Ứng dụng Streamlit: Tổng hợp Toán + AI Features
 import re
 import io
 import json
@@ -11,32 +11,38 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.utils import ImageReader
 from PIL import Image
 import matplotlib.pyplot as plt
+from gtts import gTTS  # Thư viện mới để đọc văn bản
 
 # -----------------------
 # Cấu hình page
 # -----------------------
-st.set_page_config(page_title="Tổng hợp kiến thức Toán - Đa phương tiện", layout="wide", page_icon="🎓")
-st.title("🎓 Tổng hợp kiến thức Toán (Gemini API) — Ổn định, không lỗi")
+st.set_page_config(page_title="Trợ lý Toán học & Giáo dục AI", layout="wide", page_icon="🎓")
+st.title("🎓 Trợ lý Giáo dục Đa năng (Gemini API)")
 
 st.markdown("""
 <style>
 .block-container { padding-top: 1rem; }
+.stTabs [data-baseweb="tab-list"] { gap: 2px; }
+.stTabs [data-baseweb="tab"] { height: 50px; white-space: pre-wrap; background-color: #f0f2f6; border-radius: 4px 4px 0 0; gap: 1px; padding-top: 10px; padding-bottom: 10px; }
+.stTabs [aria-selected="true"] { background-color: #ffffff; border-top: 2px solid #ff4b4b; }
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------
-# API Key
+# API Key & Config
 # -----------------------
-# Lấy từ secrets nếu có, nếu không yêu cầu nhập
 api_key = st.secrets.get("GOOGLE_API_KEY", "")
-if not api_key:
-    api_key = st.sidebar.text_input("Nhập Google API Key:", type="password")
-
-MODEL_DEFAULT = st.sidebar.selectbox("Chọn model (nếu không sure, giữ mặc định):",
-                                     ["models/gemini-2.0-flash", "models/gemini-2.0", "models/text-bison-001"])
+with st.sidebar:
+    st.header("⚙️ Cấu hình")
+    if not api_key:
+        api_key = st.text_input("Nhập Google API Key:", type="password")
+    
+    MODEL_DEFAULT = st.selectbox("Chọn model AI:",
+                                 ["models/gemini-2.0-flash", "models/gemini-1.5-flash", "models/gemini-1.5-pro"])
+    st.info("Lưu ý: Tính năng đọc văn bản cần kết nối internet.")
 
 # -----------------------
-# Hỗ trợ LaTeX → ảnh
+# Hỗ trợ LaTeX → ảnh (GIỮ NGUYÊN)
 # -----------------------
 LATEX_RE = re.compile(r"\$\$(.+?)\$\$", re.DOTALL)
 
@@ -44,19 +50,21 @@ def find_latex_blocks(text):
     return [(m.span(), m.group(0), m.group(1)) for m in LATEX_RE.finditer(text)]
 
 def render_latex_png_bytes(latex_code, fontsize=20, dpi=200):
-    # Tạo ảnh PNG từ LaTeX (matplotlib)
-    fig = plt.figure()
-    fig.patch.set_alpha(0.0)
-    fig.text(0, 0, f"${latex_code}$", fontsize=fontsize)
-    buf = io.BytesIO()
-    plt.axis('off')
-    plt.savefig(buf, format='png', dpi=dpi, bbox_inches='tight', pad_inches=0.02, transparent=True)
-    plt.close(fig)
-    buf.seek(0)
-    return buf.read()
+    try:
+        fig = plt.figure()
+        fig.patch.set_alpha(0.0)
+        fig.text(0, 0, f"${latex_code}$", fontsize=fontsize)
+        buf = io.BytesIO()
+        plt.axis('off')
+        plt.savefig(buf, format='png', dpi=dpi, bbox_inches='tight', pad_inches=0.02, transparent=True)
+        plt.close(fig)
+        buf.seek(0)
+        return buf.read()
+    except Exception:
+        return None
 
 # -----------------------
-# Xuất DOCX / PDF
+# Xuất DOCX / PDF (GIỮ NGUYÊN)
 # -----------------------
 def create_docx_bytes(text):
     doc = Document()
@@ -68,12 +76,14 @@ def create_docx_bytes(text):
             doc.add_paragraph(line)
         try:
             png_bytes = render_latex_png_bytes(inner)
-            img_stream = io.BytesIO(png_bytes)
-            p = doc.add_paragraph()
-            r = p.add_run()
-            r.add_picture(img_stream, width=Inches(3))
-        except Exception as e:
-            # nếu render lỗi thì chèn nguyên block latex
+            if png_bytes:
+                img_stream = io.BytesIO(png_bytes)
+                p = doc.add_paragraph()
+                r = p.add_run()
+                r.add_picture(img_stream, width=Inches(3))
+            else:
+                doc.add_paragraph(full)
+        except Exception:
             doc.add_paragraph(full)
         last = end
     for line in text[last:].splitlines():
@@ -90,200 +100,249 @@ def create_pdf_bytes(text):
     margin = 40
     y = height - 50
     last = 0
+    
+    def check_page_break(current_y):
+        if current_y < 60:
+            c.showPage()
+            return height - 50
+        return current_y
+
     for span, full, inner in find_latex_blocks(text):
         start, end = span
         before = text[last:start]
         for line in before.splitlines():
             c.drawString(margin, y, line)
             y -= 14
-            if y < 60:
-                c.showPage()
-                y = height - 50
+            y = check_page_break(y)
         try:
             png_bytes = render_latex_png_bytes(inner)
-            img_reader = ImageReader(io.BytesIO(png_bytes))
-            img = Image.open(io.BytesIO(png_bytes))
-            draw_w = 300
-            draw_h = img.height / img.width * draw_w
-            if y - draw_h < 60:
-                c.showPage()
-                y = height - 50
-            c.drawImage(img_reader, margin, y - draw_h, width=draw_w, height=draw_h, mask='auto')
-            y -= draw_h + 8
-        except Exception as e:
+            if png_bytes:
+                img_reader = ImageReader(io.BytesIO(png_bytes))
+                img = Image.open(io.BytesIO(png_bytes))
+                draw_w = 300
+                draw_h = img.height / img.width * draw_w
+                if y - draw_h < 60:
+                    c.showPage()
+                    y = height - 50
+                c.drawImage(img_reader, margin, y - draw_h, width=draw_w, height=draw_h, mask='auto')
+                y -= draw_h + 8
+            else:
+                c.drawString(margin, y, full)
+                y -= 14
+        except Exception:
             c.drawString(margin, y, full)
             y -= 14
-            if y < 60:
-                c.showPage()
-                y = height - 50
+        y = check_page_break(y)
         last = end
+    
     for line in text[last:].splitlines():
         c.drawString(margin, y, line)
         y -= 14
-        if y < 60:
-            c.showPage()
-            y = height - 50
+        y = check_page_break(y)
+    
     c.save()
     buf.seek(0)
     return buf
 
 # -----------------------
-# HÀM GIÚP: TÌM TEXT TRONG JSON (để phòng model trả khác cấu trúc)
+# HÀM GIÚP: Xử lý API (GIỮ NGUYÊN & BỔ SUNG)
 # -----------------------
 def extract_text_from_api_response(data):
-    """
-    Cố gắng lấy string text hữu dụng từ response JSON của Gemini.
-    Trả về None nếu không tìm thấy.
-    """
-    # 1) Nếu có 'candidates' list
     if isinstance(data, dict) and "candidates" in data:
         cands = data.get("candidates") or []
         for cand in cands:
-            # thường có cand["content"] hoặc cand["text"]
-            # dò sâu trong cand để tìm key 'text' chứa string
-            text = deep_find_first_string(cand, keys=["text", "output", "content"])
-            if text:
-                return text
+            text = deep_find_first_string(cand)
+            if text: return text
+    text = deep_find_first_string(data)
+    return text if text else None
 
-    # 2) Nếu có 'output' trực tiếp
-    text = deep_find_first_string(data, keys=["text", "output", "content"])
-    if text:
-        return text
-
-    return None
-
-def deep_find_first_string(obj, keys=None):
-    """
-    Duyệt đệ quy object JSON để tìm giá trị chuỗi đầu tiên của các keys thường dùng.
-    Trả về string hoặc None.
-    """
-    if keys is None:
-        keys = ["text", "output", "content"]
-
+def deep_find_first_string(obj, keys=["text", "output", "content"]):
     if isinstance(obj, dict):
-        # ưu tiên keys được liệt kê
         for k in keys:
-            if k in obj and isinstance(obj[k], str):
-                return obj[k]
-        # nếu là list hoặc dict lồng, duyệt tiếp
+            if k in obj and isinstance(obj[k], str): return obj[k]
         for v in obj.values():
             res = deep_find_first_string(v, keys)
-            if res:
-                return res
-        return None
+            if res: return res
     elif isinstance(obj, list):
         for item in obj:
             res = deep_find_first_string(item, keys)
-            if res:
-                return res
-        return None
-    else:
-        return None
+            if res: return res
+    return None
 
-# -----------------------
-# GỌI API: đã chỉnh để an toàn
-# -----------------------
-def generate_with_gemini(api_key, prompt, model=MODEL_DEFAULT, timeout=60):
-    if not api_key:
-        return {"ok": False, "message": "Thiếu API Key."}
-
-    model = model or MODEL_DEFAULT
+def generate_with_gemini(api_key, prompt, model=MODEL_DEFAULT):
+    if not api_key: return {"ok": False, "message": "Thiếu API Key."}
     url = f"https://generativelanguage.googleapis.com/v1/{model}:generateContent?key={api_key}"
     payload = {"contents":[{"role":"user","parts":[{"text":prompt}]}]}
-
-    # Headers (nếu cần)
     headers = {"Content-Type": "application/json"}
-
     try:
-        resp = requests.post(url, json=payload, headers=headers, timeout=timeout)
-    except Exception as e:
-        return {"ok": False, "message": f"Lỗi kết nối tới API: {e}"}
-
-    # Cố gắng parse JSON (nếu không parse được, show status + text)
-    try:
+        resp = requests.post(url, json=payload, headers=headers, timeout=60)
         data = resp.json()
-    except Exception:
-        return {"ok": False, "message": f"API trả về non-JSON. HTTP {resp.status_code}: {resp.text}"}
-
-    # Nếu lỗi từ API (Google thường trả 'error')
-    if isinstance(data, dict) and data.get("error"):
-        err_msg = data["error"].get("message", str(data["error"]))
-        return {"ok": False, "message": f"API trả lỗi: {err_msg}", "raw": data}
-
-    # Thử lấy text theo nhiều cách
-    text = extract_text_from_api_response(data)
-    if text:
-        return {"ok": True, "text": text}
-
-    # Nếu không tìm được, trả về raw data để debug
-    return {"ok": False, "message": "Không tìm được trường text trong response API.", "raw": data}
+        if "error" in data: return {"ok": False, "message": data["error"]["message"]}
+        text = extract_text_from_api_response(data)
+        if text: return {"ok": True, "text": text}
+        return {"ok": False, "message": "Không tìm thấy text.", "raw": data}
+    except Exception as e:
+        return {"ok": False, "message": str(e)}
 
 # -----------------------
-# Build prompt
+# TÍNH NĂNG MỚI: TEXT TO SPEECH
 # -----------------------
-def build_prompt_summary_theo_chu_de(lop):
-    if lop == "Tất cả lớp":
-        lop_text = "từ lớp 1 đến lớp 9"
-    else:
-        lop_text = lop
-    prompt = f"""
-Bạn là giáo viên Toán. Hãy tổng hợp toàn bộ kiến thức môn Toán {lop_text} theo CHỦ ĐỀ CHÍNH.
-- Phân nhóm theo các chủ đề: Số học, Đại số, Hình học, Thống kê & Xác suất (nếu có).
-- Mỗi chủ đề chia thành: Khái niệm – Công thức – Ví dụ – Ứng dụng.
-- Viết công thức toán bằng LaTeX trong $$...$$.
-- Chỉ dùng tiếng Việt, trình bày rõ ràng để in ra DOCX/PDF.
-- Nếu có ví dụ minh họa, liệt kê dạng bullet hoặc số thứ tự.
-"""
-    return prompt
+def text_to_speech_bytes(text, lang='vi'):
+    try:
+        tts = gTTS(text=text, lang=lang)
+        buf = io.BytesIO()
+        tts.write_to_fp(buf)
+        buf.seek(0)
+        return buf
+    except Exception as e:
+        return None
 
 # -----------------------
-# UI: chọn lớp + nút tổng hợp
+# GIAO DIỆN CHÍNH (TABS)
 # -----------------------
-st.header("📘 Tổng hợp kiến thức Toán theo chủ đề")
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📘 Tổng hợp Kiến thức", 
+    "📝 Thiết kế Giáo án", 
+    "🎵 Sáng tác Lời bài hát", 
+    "🎧 Đọc Văn bản (TTS)"
+])
 
-lop_options = [f"Lớp {i}" for i in range(1, 10)] + ["Tất cả lớp"]
-lop = st.selectbox("Chọn lớp để tổng hợp kiến thức", lop_options)
+# --- TAB 1: TỔNG HỢP KIẾN THỨC (Cũ) ---
+with tab1:
+    st.subheader("Tổng hợp kiến thức Toán theo chủ đề")
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        lop_options = [f"Lớp {i}" for i in range(1, 10)] + ["Tất cả lớp"]
+        lop_sel = st.selectbox("Chọn lớp:", lop_options, key="tab1_lop")
+        
+    if st.button("🚀 Tổng hợp kiến thức", key="btn_tab1"):
+        prompt = f"""
+        Bạn là giáo viên Toán. Hãy tổng hợp kiến thức môn Toán {lop_sel} theo CHỦ ĐỀ.
+        - Phân nhóm: Số học, Đại số, Hình học, Thống kê.
+        - Cấu trúc: Khái niệm – Công thức (LaTeX trong $$...$$) – Ví dụ.
+        - Trình bày rõ ràng để in ấn.
+        """
+        with st.spinner("Đang tổng hợp..."):
+            res = generate_with_gemini(api_key, prompt)
+            if res["ok"]:
+                st.session_state["summary_text"] = res["text"]
+            else:
+                st.error(res["message"])
 
-if st.button("📄 Tổng hợp kiến thức theo chủ đề"):
-    if not api_key:
-        st.error("Thiếu API Key! Vui lòng điền API Key ở sidebar.")
-    else:
-        prompt = build_prompt_summary_theo_chu_de(lop)
-        with st.spinner("AI đang tổng hợp..."):
-            res = generate_with_gemini(api_key, prompt, model=MODEL_DEFAULT)
-        if not res.get("ok"):
-            st.error(res.get("message", "Lỗi không rõ"))
-            # nếu có raw JSON thì hiển thị để debug (chỉ hiển thị trong development)
-            if "raw" in res:
-                st.subheader("🔍 JSON trả về (debug):")
-                st.json(res["raw"])
+    if "summary_text" in st.session_state:
+        st.markdown(st.session_state["summary_text"].replace("\n", "<br>"), unsafe_allow_html=True)
+        
+        # Nút tải về
+        col_d1, col_d2 = st.columns(2)
+        with col_d1:
+            docx = create_docx_bytes(st.session_state["summary_text"])
+            st.download_button("📥 Tải DOCX", docx, "KienThucToan.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        with col_d2:
+            pdf = create_pdf_bytes(st.session_state["summary_text"])
+            st.download_button("📥 Tải PDF", pdf, "KienThucToan.pdf", "application/pdf")
+
+# --- TAB 2: THIẾT KẾ GIÁO ÁN (Mới) ---
+with tab2:
+    st.subheader("Trợ lý soạn giáo án (Lesson Plan)")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        ga_lop = st.selectbox("Lớp:", [f"Lớp {i}" for i in range(1, 10)], key="ga_lop")
+    with c2:
+        ga_bai = st.text_input("Tên bài học:", "Phương trình bậc nhất một ẩn")
+    with c3:
+        ga_phut = st.number_input("Thời lượng (phút):", value=45)
+
+    ga_yeucau = st.text_area("Yêu cầu thêm (VD: hoạt động nhóm, trò chơi, ứng dụng thực tế...):", height=100)
+
+    if st.button("✍️ Soạn giáo án", key="btn_ga"):
+        prompt_ga = f"""
+        Soạn giáo án chi tiết cho bài học: "{ga_bai}" môn Toán {ga_lop}.
+        Thời lượng: {ga_phut} phút.
+        Yêu cầu đặc biệt: {ga_yeucau}.
+        Cấu trúc giáo án (theo hướng phát triển năng lực):
+        1. Mục tiêu (Kiến thức, Năng lực, Phẩm chất).
+        2. Chuẩn bị (GV, HS).
+        3. Tiến trình dạy học:
+           - Hoạt động 1: Khởi động (Mở đầu).
+           - Hoạt động 2: Hình thành kiến thức mới.
+           - Hoạt động 3: Luyện tập.
+           - Hoạt động 4: Vận dụng & Tìm tòi mở rộng.
+        Trình bày chi tiết hoạt động của GV và HS.
+        """
+        with st.spinner("Đang soạn giáo án..."):
+            res = generate_with_gemini(api_key, prompt_ga)
+            if res["ok"]:
+                st.session_state["plan_text"] = res["text"]
+            else:
+                st.error(res["message"])
+
+    if "plan_text" in st.session_state:
+        st.markdown("---")
+        st.markdown(st.session_state["plan_text"])
+        docx_ga = create_docx_bytes(st.session_state["plan_text"])
+        st.download_button("📥 Tải Giáo án (DOCX)", docx_ga, f"GiaoAn_{ga_bai}.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+# --- TAB 3: CHẾ LỜI BÀI HÁT (Mới) ---
+with tab3:
+    st.subheader("Sáng tác nhạc Toán học 🎵")
+    st.write("Biến công thức khô khan thành giai điệu dễ nhớ!")
+    
+    col_music1, col_music2 = st.columns(2)
+    with col_music1:
+        music_topic = st.text_input("Chủ đề toán muốn phổ nhạc:", "Bảng cửu chương 7")
+    with col_music2:
+        music_style = st.selectbox("Phong cách nhạc:", ["Rap sôi động", "Vè dân gian", "Hò đối đáp", "Pop Ballad nhẹ nhàng", "Thơ lục bát"])
+
+    if st.button("🎤 Sáng tác ngay", key="btn_music"):
+        prompt_music = f"""
+        Hãy đóng vai một nhạc sĩ tài ba. Sáng tác lời bài hát về chủ đề toán học: "{music_topic}".
+        Phong cách: {music_style}.
+        Đối tượng: Học sinh.
+        Yêu cầu:
+        - Lời lẽ vui tươi, hóm hỉnh, dễ nhớ.
+        - Lồng ghép chính xác kiến thức toán học.
+        - Có phân đoạn rõ ràng (Verse, Chorus/Điệp khúc).
+        """
+        with st.spinner("Nhạc sĩ AI đang phiêu..."):
+            res = generate_with_gemini(api_key, prompt_music)
+            if res["ok"]:
+                st.session_state["lyrics_text"] = res["text"]
+            else:
+                st.error(res["message"])
+
+    if "lyrics_text" in st.session_state:
+        st.info("💡 Gợi ý: Bạn có thể copy lời này và dùng Suno AI hoặc Udio để tạo nhạc beat!")
+        st.text_area("Lời bài hát:", st.session_state["lyrics_text"], height=300)
+        
+        # Nút đọc thử lời bài hát
+        if st.button("🔊 Nghe lời bài hát (Đọc mẫu)", key="btn_read_lyrics"):
+            audio_bytes = text_to_speech_bytes(st.session_state["lyrics_text"])
+            if audio_bytes:
+                st.audio(audio_bytes, format='audio/mp3')
+
+# --- TAB 4: ĐỌC VĂN BẢN (TTS) (Mới) ---
+with tab4:
+    st.subheader("Công cụ Đọc văn bản (Text-to-Speech)")
+    tts_text = st.text_area("Nhập văn bản muốn đọc:", "Chào các em học sinh, hôm nay chúng ta sẽ học bài Định lý Py-ta-go.")
+    
+    c_tts1, c_tts2 = st.columns([1, 4])
+    with c_tts1:
+        lang_code = st.selectbox("Ngôn ngữ:", ["vi", "en"])
+    
+    if st.button("▶️ Đọc ngay", key="btn_tts"):
+        if tts_text:
+            with st.spinner("Đang tạo file âm thanh..."):
+                audio_data = text_to_speech_bytes(tts_text, lang=lang_code)
+                if audio_data:
+                    st.success("Đã tạo xong!")
+                    st.audio(audio_data, format='audio/mp3')
+                else:
+                    st.error("Lỗi khi tạo âm thanh (kiểm tra kết nối mạng).")
         else:
-            summary = res["text"]
-            st.success("🎉 Hoàn tất tổng hợp kiến thức!")
-            # Hiển thị an toàn (HTML cho xuống dòng)
-            st.markdown(summary.replace("\n", "<br>"), unsafe_allow_html=True)
-
-            # Xuất DOCX
-            try:
-                docx_io = create_docx_bytes(summary)
-                st.download_button("📥 Tải DOCX", data=docx_io.getvalue(),
-                                   file_name=f"Tong_hop_KT_{lop}.docx",
-                                   mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-            except Exception as e:
-                st.error(f"Lỗi khi tạo DOCX: {e}")
-
-            # Xuất PDF
-            try:
-                pdf_io = create_pdf_bytes(summary)
-                st.download_button("📥 Tải PDF", data=pdf_io.getvalue(),
-                                   file_name=f"Tong_hop_KT_{lop}.pdf",
-                                   mime="application/pdf")
-            except Exception as e:
-                st.error(f"Lỗi khi tạo PDF: {e}")
+            st.warning("Vui lòng nhập nội dung cần đọc.")
 
 # -----------------------
-# Gợi ý debug nếu vẫn lỗi
+# Footer
 # -----------------------
 st.markdown("---")
-st.markdown("**Gợi ý:** nếu vẫn gặp lỗi, bật `st.write(r.json())` hoặc xem log Streamlit Cloud. "
-            "Bạn có thể gửi cho mình phần JSON debug (nếu xuất hiện) để mình hỗ trợ tiếp.")
+st.caption("Developed with ❤️ using Streamlit & Gemini AI.")
