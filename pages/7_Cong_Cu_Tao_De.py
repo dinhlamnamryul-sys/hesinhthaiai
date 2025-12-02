@@ -1,157 +1,167 @@
 import streamlit as st
+import pandas as pd
 
-# --- CẤU HÌNH TRANG ---
+# ==================== CẤU HÌNH GIAO DIỆN ====================
 st.set_page_config(
-    page_title="Công Cụ Tạo Đề 7991",
+    page_title="Công Cụ Tạo Đề Kiểm Tra Tự Động",
     page_icon="📝",
     layout="wide"
 )
 
-# --- CSS TÙY CHỈNH CHO GIAO DIỆN ĐẸP HƠN ---
 st.markdown("""
 <style>
     .step-header {
         font-weight: bold;
-        color: #2e86de;
+        color: #0d6efd;
         font-size: 1.2rem;
         margin-bottom: 10px;
     }
     .info-box {
-        background-color: #f0f8ff;
+        background-color: #e7f1ff;
         padding: 15px;
         border-radius: 10px;
-        border-left: 5px solid #2e86de;
+        border-left: 6px solid #0d6efd;
         margin-bottom: 20px;
     }
 </style>
 """, unsafe_allow_html=True)
 
+# ==================== APP ====================
 def main():
-    # --- HEADER ---
-    st.title("📝 Trợ Lý Tạo Đề Kiểm Tra (Chuẩn 7991 & TT22)")
-    st.caption("Công cụ hỗ trợ giáo viên trường PTDTBT TH&THCS NA Ư xây dựng đề thi nhanh chóng với AI.")
-    
+
+    st.title("📝 HỆ THỐNG TẠO ĐỀ KIỂM TRA TỰ ĐỘNG DỰA TRÊN MA TRẬN")
+    st.caption("Giáo viên chỉ cần tải ma trận lên – Hệ thống tự sinh đề theo chuẩn 7991 & TT22.")
+
     st.divider()
 
-    # --- SIDEBAR: NHẬP THÔNG TIN ĐỀ BÀI ---
+    # ---------------- SIDEBAR ----------------
     with st.sidebar:
-        st.header("⚙️ Thiết lập thông số")
-        st.info("Nhập thông tin bài kiểm tra vào đây, Prompt sẽ tự động cập nhật.")
-        
-        # Nhóm thông tin chung
-        subject = st.text_input("📚 Môn học", value="Toán học")
-        grade_level = st.selectbox("🎓 Khối lớp", ["Lớp 6", "Lớp 7", "Lớp 8", "Lớp 9"], index=2)
-        exam_time = st.selectbox("⏱ Thời gian làm bài", ["15 phút", "45 phút", "60 phút", "90 phút"], index=0)
-        
-        # Nhóm nội dung
-        exam_topic = st.text_area("📖 Nội dung/Chủ đề kiểm tra", 
-                                  value="Chương III: Tam giác đồng dạng (Định lý Talet, Tính chất đường phân giác)",
-                                  height=100)
-        
-        # Nhóm cấu trúc đề (để Prompt 2 linh hoạt hơn)
-        st.subheader("Cấu trúc đề mong muốn")
-        col_s1, col_s2 = st.columns(2)
-        with col_s1:
-            num_tn = st.number_input("Số câu TN", value=10, min_value=0)
-            score_tn = st.number_input("Điểm/câu TN", value=0.5, step=0.1)
-        with col_s2:
-            num_tl = st.number_input("Số câu TL", value=3, min_value=0)
-            score_tl_total = st.number_input("Tổng điểm TL", value=5.0, step=0.5)
+        st.header("⚙️ Thiết lập đề kiểm tra")
 
-    # --- MAIN CONTENT: HIỂN THỊ PROMPT ---
-    
-    # Hiển thị tóm tắt cấu hình hiện tại
+        subject = st.text_input("📘 Môn học", "Toán học")
+        grade = st.selectbox("🎓 Khối lớp", ["Lớp 6", "Lớp 7", "Lớp 8", "Lớp 9"])
+        time = st.selectbox("⏱ Thời gian làm bài", ["15 phút", "45 phút", "60 phút", "90 phút"])
+
+        exam_name = st.text_input("📌 Tên bài kiểm tra", "Kiểm tra giữa học kỳ II")
+
+        st.subheader("📥 Tải ma trận đề")
+        uploaded_file = st.file_uploader("Chọn file Excel/CSV", type=["xlsx", "xls", "csv"])
+
+    # ---------------- MAIN CONTENT ----------------
     st.markdown(f"""
-    <div class="info-box">
-        Đang tạo bộ lệnh cho: <b>{subject} - {grade_level}</b><br>
-        Chủ đề: <i>{exam_topic}</i><br>
-        Thời gian: {exam_time} | Cấu trúc: {num_tn} Trắc nghiệm + {num_tl} Tự luận
-    </div>
+        <div class="info-box">
+            <b>Môn:</b> {subject} | 
+            <b>{grade}</b> | 
+            <b>Thời gian:</b> {time}<br>
+            <b>Tên đề:</b> {exam_name}
+        </div>
     """, unsafe_allow_html=True)
 
-    # Tạo các biến Prompt dựa trên Input (f-string)
-    
-    # Prompt 1: Ma trận
-    prompt_1 = f"""
-Bạn là chuyên gia xây dựng đề kiểm tra theo Thông tư 22 và chuẩn 7991.
-Hãy tạo ma trận đề kiểm tra {exam_time} môn {subject}, {grade_level}, nội dung về "{exam_topic}".
-Yêu cầu theo 4 mức độ nhận thức Bloom: Nhận biết – Thông hiểu – Vận dụng – Vận dụng cao.
-Xuất ma trận dưới dạng bảng rõ ràng, gồm các cột: Mạch kiến thức | Số câu | Điểm | Tỉ lệ % | Mức độ nhận thức.
-    """.strip()
+    # Nếu chưa tải file → thông báo
+    if uploaded_file is None:
+        st.warning("📌 Vui lòng tải lên ma trận để hệ thống tạo Prompt.")
+        return
 
-    # Prompt 2: Sinh đề
-    prompt_2 = f"""
-Từ ma trận vừa tạo, hãy sinh ra đề kiểm tra {exam_time} môn {subject}, {grade_level}, nội dung "{exam_topic}" gồm:
-- {num_tn} câu trắc nghiệm (mỗi câu {score_tn} điểm).
-- {num_tl} câu tự luận (tổng {score_tl_total} điểm).
-Viết đáp án chi tiết, nêu rõ mức độ nhận thức của từng câu và năng lực được đánh giá (Biết – Hiểu – Vận dụng).
-    """.strip()
+    # ---------------- ĐỌC FILE ----------------
+    try:
+        if uploaded_file.name.endswith(".csv"):
+            df = pd.read_csv(uploaded_file)
+        else:
+            df = pd.read_excel(uploaded_file)
+    except:
+        st.error("❌ Không thể đọc file. Vui lòng kiểm tra lại định dạng!")
+        return
 
-    # Prompt 3: Đánh giá (Cố định)
-    prompt_3 = """
-Phân tích đề kiểm tra trên theo hướng đánh giá năng lực.
-Hãy chỉ ra:
-1. Tỉ lệ câu hỏi ở từng mức độ Bloom.
-2. Năng lực học sinh được kiểm tra ở 3 mức: Biết – Hiểu – Vận dụng.
-3. Nhận xét tổng thể về độ cân đối – độ phân hóa – tính phù hợp chương trình.
-    """.strip()
+    st.success("✅ Đã tải ma trận thành công!")
+    st.write("### 📊 Ma trận bạn đã tải lên:")
+    st.dataframe(df, use_container_width=True)
 
-    # Prompt 4: Đề V2 (Cố định)
-    prompt_4 = """
-Dựa trên đề gốc ở trên, hãy tạo phiên bản 2 của đề kiểm tra (Mã đề chẵn/lẻ):
-1. Giữ nguyên ma trận và độ khó tương đương.
-2. Thay đổi ngữ liệu, dữ kiện, ví dụ minh họa (số liệu khác, tình huống khác).
-3. Đảm bảo không trùng câu hỏi hoặc đáp án với đề 1.
-Xuất kết quả ở định dạng: Câu hỏi – Đáp án – Mức độ – Gợi ý chấm.
-    """.strip()
+    # ================== TẠO PROMPTS ===================
 
-    # Prompt 5: Xuất file (Cố định)
-    prompt_5 = """
-Hãy tổng hợp toàn bộ nội dung của 2 đề kiểm tra (hoặc đề gốc) và đáp án chi tiết ở trên để tôi copy vào Word.
-Yêu cầu trình bày:
-1. Đánh số câu rõ ràng.
-2. Tạo phần đáp án riêng bên dưới cùng.
-3. Gợi ý rubric chấm điểm tự luận (theo 3 mức độ đạt).
-4. Trình bày gọn gàng, format đẹp, dễ in và dễ dùng cho giáo viên.
-    """.strip()
+    # Prompt ma trận → mô tả
+    matrix_prompt = f"""
+Bạn là chuyên gia xây dựng đề kiểm tra chuẩn 7991 & Thông tư 22.
+Tôi đang tạo đề môn **{subject}**, **{grade}**, thời gian **{time}**, tên đề: **{exam_name}**.
 
-    # --- HIỂN THỊ TABS ---
+Đây là ma trận đề kiểm tra (dạng bảng):
+
+{df.to_markdown(index=False)}
+
+➡️ Hãy phân tích ma trận trên và mô tả lại:
+- Các mạch kiến thức
+- Mức độ (NB – TH – VD – VDC)
+- Số câu – số điểm tương ứng
+- Tỉ lệ phần trăm
+"""
+
+    # Prompt sinh đề
+    generate_prompt = f"""
+Dựa vào ma trận đề tôi đã gửi, hãy tạo toàn bộ đề kiểm tra môn {subject}, {grade}:
+
+Yêu cầu:
+1. Sinh đầy đủ câu hỏi đúng theo số lượng và mức độ trong ma trận.
+2. Có cả trắc nghiệm + tự luận (nếu ma trận có).
+3. Ghi rõ mức độ nhận thức của từng câu.
+4. Viết đáp án chi tiết + thang điểm cho câu tự luận.
+5. Ngôn ngữ rõ ràng, phù hợp học sinh THCS.
+"""
+
+    # Prompt đánh giá đề
+    eval_prompt = """
+Hãy phân tích đề vừa sinh theo hướng đánh giá năng lực:
+- Tỉ lệ câu theo mức độ Bloom
+- Năng lực học sinh kiểm tra (Biết – Hiểu – Vận dụng)
+- Độ phân hóa – tính phù hợp – độ bao phủ kiến thức
+"""
+
+    # Prompt tạo đề số 2
+    reversion_prompt = """
+Hãy tạo mã đề số 2 (Đề B):
+- Giữ nguyên mức độ và cấu trúc theo ma trận
+- Đổi dữ kiện + bối cảnh + số liệu
+- Không trùng lại câu hỏi hoặc đáp án
+"""
+
+    # Prompt xuất Word
+    export_prompt = """
+Hãy tổng hợp toàn bộ đề kiểm tra và đáp án để tôi copy vào Word:
+- Trình bày đẹp, rõ ràng
+- Có phần đáp án riêng bên dưới
+- Có bảng Rubric chấm điểm tự luận theo 3 mức
+"""
+
+    # ================== GIAO DIỆN TABS ===================
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "1️⃣ Tạo Ma Trận", 
-        "2️⃣ Sinh Câu Hỏi", 
-        "3️⃣ Đánh Giá NL", 
-        "4️⃣ Tạo Đề Số 2", 
-        "5️⃣ Xuất Bản"
+        "📌 1. Phân tích Ma Trận",
+        "📝 2. Sinh Đề Tự Động",
+        "📊 3. Đánh Giá Đề",
+        "🔄 4. Tạo Đề Số 2",
+        "📤 5. Xuất Bản Word"
     ])
 
     with tab1:
-        st.markdown('<div class="step-header">Bước 1: Thiết lập khung ma trận</div>', unsafe_allow_html=True)
-        st.write("Copy đoạn lệnh này gửi cho AI để xác định cấu trúc đề thi:")
-        st.code(prompt_1, language="markdown")
-        
+        st.markdown("<div class='step-header'>Bước 1: Phân tích ma trận</div>", unsafe_allow_html=True)
+        st.code(matrix_prompt, language="markdown")
+
     with tab2:
-        st.markdown('<div class="step-header">Bước 2: Sinh nội dung đề chi tiết</div>', unsafe_allow_html=True)
-        st.write("Sau khi AI đã có ma trận, gửi tiếp lệnh này để tạo câu hỏi:")
-        st.code(prompt_2, language="markdown")
-        
+        st.markdown("<div class='step-header'>Bước 2: Sinh đề theo ma trận</div>", unsafe_allow_html=True)
+        st.code(generate_prompt, language="markdown")
+
     with tab3:
-        st.markdown('<div class="step-header">Bước 3: Thẩm định chất lượng đề</div>', unsafe_allow_html=True)
-        st.write("Yêu cầu AI đóng vai hội đồng thẩm định để kiểm tra độ phân hóa:")
-        st.code(prompt_3, language="markdown")
-        
+        st.markdown("<div class='step-header'>Bước 3: Đánh giá năng lực</div>", unsafe_allow_html=True)
+        st.code(eval_prompt, language="markdown")
+
     with tab4:
-        st.markdown('<div class="step-header">Bước 4: Tạo đề hoán vị (Đề B)</div>', unsafe_allow_html=True)
-        st.write("Tạo thêm một mã đề nữa với độ khó tương đương để chống quay cóp:")
-        st.code(prompt_4, language="markdown")
-        
+        st.markdown("<div class='step-header'>Bước 4: Sinh đề B (hoán vị)</div>", unsafe_allow_html=True)
+        st.code(reversion_prompt, language="markdown")
+
     with tab5:
-        st.markdown('<div class="step-header">Bước 5: Hoàn thiện và In ấn</div>', unsafe_allow_html=True)
-        st.write("Lệnh cuối cùng để AI trình bày lại văn bản đẹp mắt phục vụ in ấn:")
-        st.code(prompt_5, language="markdown")
+        st.markdown("<div class='step-header'>Bước 5: Xuất bản đề để copy sang Word</div>", unsafe_allow_html=True)
+        st.code(export_prompt, language="markdown")
 
-    # --- FOOTER ---
     st.divider()
-    st.caption("© 2025 Trường PTDTBT TH&THCS NA Ư - Hệ thống hỗ trợ dạy học số.")
+    st.caption("© 2025 Hệ thống hỗ trợ giáo viên tạo đề tự động – PTDTBT TH&THCS NA Ư")
 
+# RUN
 if __name__ == "__main__":
     main()
