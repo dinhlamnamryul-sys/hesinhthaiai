@@ -36,7 +36,8 @@ def normalize_columns(df):
 # -------------------- HÀM ĐỌC WORD --------------------
 def read_matrix_from_docx(file):
     doc = docx.Document(file)
-    # Nếu có nhiều bảng, lấy bảng đầu tiên
+    if not doc.tables:
+        return pd.DataFrame()
     table = doc.tables[0]
     data = []
     keys = [cell.text.strip() for cell in table.rows[0].cells]
@@ -49,39 +50,40 @@ def read_matrix_from_docx(file):
 uploaded_matrix = st.file_uploader("📤 Tải lên ma trận (Excel hoặc Word)", type=["xlsx", "docx"])
 
 if uploaded_matrix:
+    # Đọc dữ liệu
     if uploaded_matrix.name.endswith(".xlsx"):
         df = pd.read_excel(uploaded_matrix)
     elif uploaded_matrix.name.endswith(".docx"):
         df = read_matrix_from_docx(uploaded_matrix)
 
-    df = normalize_columns(df)
-    st.write("📋 Bảng ma trận sau khi chuẩn hóa cột:")
-    st.dataframe(df)
+    if df.empty:
+        st.error("❌ File không chứa dữ liệu hoặc bảng không hợp lệ!")
+    else:
+        df = normalize_columns(df)
+        st.write("📋 Bảng ma trận sau khi chuẩn hóa cột:")
+        st.dataframe(df)
 
-    # Kiểm tra các cột quan trọng
-    required_cols = ["ChuDe", "NoiDung", "MucDo", "SoCau"]
-    missing_cols = [c for c in required_cols if c not in df.columns]
-
-    # Nếu thiếu cột, cho người dùng chọn cột thay thế
-    col_selection = {}
-    if missing_cols:
-        st.warning(f"❌ Không tìm thấy các cột chuẩn: {missing_cols}")
-        for col in missing_cols:
-            col_selection[col] = st.selectbox(f"Chọn cột thay thế cho '{col}'", df.columns, key=col)
-        # Đổi tên các cột do người dùng chọn
-        df = df.rename(columns=col_selection)
+        # Các cột quan trọng
+        required_cols = ["ChuDe", "NoiDung", "MucDo", "SoCau"]
         missing_cols = [c for c in required_cols if c not in df.columns]
 
-    if not missing_cols:
+        if missing_cols:
+            st.warning(f"⚠ Một số cột quan trọng không tìm thấy: {missing_cols}. Hệ thống sẽ dùng giá trị mặc định nếu cần.")
+            # Thêm cột mặc định nếu thiếu
+            for col in missing_cols:
+                if col == "SoCau":
+                    df[col] = 1  # Mặc định 1 câu
+                else:
+                    df[col] = "Chưa xác định"
+
         if st.button("📘 Tạo đề tự động"):
-            st.success("Đã tạo đề!")
+            st.success("✅ Đã tạo đề!")
             questions = []
             q_number = 1
             for _, row in df.iterrows():
                 chu_de = row.get("ChuDe", "Chưa xác định")
                 nd = row.get("NoiDung", "Chưa xác định")
                 md = row.get("MucDo", "")
-                # Chuyển số câu về dạng int, nếu lỗi thì mặc định 1
                 try:
                     so_cau = int(float(row.get("SoCau", 1)))
                 except:
