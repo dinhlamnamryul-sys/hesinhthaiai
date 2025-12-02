@@ -279,7 +279,7 @@ st.markdown("""
 # HEADER CHÍNH
 st.markdown("""
 <div class="main-header">
-    <h1>🇻🇳 CỔNG GIÁO DỤC SỐ NA Ư</h1>
+    <h1> CỔNG GIÁO DỤC SỐ NA Ư</h1>
     <h3>"Tri thức vùng cao - Vươn xa thế giới"</h3>
 </div>
 """, unsafe_allow_html=True)
@@ -325,7 +325,7 @@ with col4:
 # --- 5. CHÂN TRANG (FOOTER) ---
 st.markdown("""
 <div class="footer">
-    <p>👨‍🏫 <b>Nhóm tác giả:</b> Trường PTDTBT TH&THCS Na Ư</p>
+    <p>👨‍🏫 <b>Nhóm tác giả:</b> Đinh Công Lâm - Lò Văn Hanh - Nguyễn Trọng Dương</p> </b> Trường PTDTBT TH&THCS Na Ư</p>
     <p style="font-size: 12px; color: #888;">© 2025 Cổng Giáo Dục Số Na Ư - Powered by AI & Streamlit</p>
 </div>
 """, unsafe_allow_html=True)
