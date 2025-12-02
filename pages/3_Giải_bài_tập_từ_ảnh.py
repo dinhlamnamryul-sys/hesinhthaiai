@@ -1,70 +1,4 @@
-import streamlit as st
-import requests
-import base64
-from PIL import Image
-from io import BytesIO
-
-# --- Cấu hình trang ---
-st.set_page_config(page_title="📸 Chấm Bài AI Song Ngữ", page_icon="📸")
-st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông)")
-
-# --- LẤY KEY ---
-api_key = st.secrets.get("GOOGLE_API_KEY", "")
-
-if not api_key:
-    st.warning("⚠️ Chưa có API Key trong hệ thống.")
-    api_key = st.text_input("Nhập Google API Key:", type="password")
-
-# --- HÀM PHÂN TÍCH ẢNH ---
-def analyze_real_image(api_key, image, prompt):
-    if image.mode == "RGBA":
-        image = image.convert("RGB")
-
-    buffered = BytesIO()
-    image.save(buffered, format="JPEG")
-    img_base64 = base64.b64encode(buffered.getvalue()).decode()
-
-    MODEL = "models/gemini-2.0-flash"
-    url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
-
-    payload = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [
-                    {"text": prompt},
-                    {"inline_data": {"mime_type": "image/jpeg", "data": img_base64}}
-                ]
-            }
-        ]
-    }
-
-    try:
-        response = requests.post(url, json=payload)
-        if response.status_code != 200:
-            return f"❌ Lỗi API {response.status_code}: {response.text}"
-        data = response.json()
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-    except Exception as e:
-        return f"❌ Lỗi kết nối: {str(e)}"
-
-# -----------------------------
-# 🚀 TÍNH NĂNG CHỤP CAMERA / TẢI ẢNH
-# -----------------------------
-st.subheader("📷 Hoặc chụp trực tiếp từ Camera")
-camera_photo = st.camera_input("Chụp ảnh bài làm tại đây")
-
-st.subheader("📤 Hoặc tải ảnh bài làm (PNG, JPG)")
-uploaded_file = st.file_uploader("Chọn ảnh:", type=["png", "jpg", "jpeg"])
-
-# --- Chọn ảnh ưu tiên ---
-image = None
-if camera_photo is not None:
-    image = Image.open(camera_photo)
-elif uploaded_file is not None:
-    image = Image.open(uploaded_file)
-
-# --- Xử lý ảnh ---
+# Nếu có ảnh → hiển thị + xử lý
 if image:
     col1, col2 = st.columns([1, 1.5])
 
@@ -79,8 +13,9 @@ if image:
                 st.error("Thiếu API Key!")
             else:
                 with st.spinner("⏳ AI đang xử lý..."):
+
                     # --- PROMPT SONG NGỮ & LaTeX ---
-                    prompt_text = r"""
+                    prompt_text = """
 Bạn là giáo viên Toán giỏi, đọc ảnh bài làm của học sinh. 
 Yêu cầu:
 
@@ -94,22 +29,16 @@ Yêu cầu:
 - Hiển thị song song:
 🇻🇳 Nhận xét tiếng Việt
 🟦 Nhận xét H’Mông
-- **Tất cả nhận xét đều viết trong môi trường LaTeX**, ví dụ: 
-$$\text{Bước 1: Sai, lý do: ...}$$
 
 3️⃣ Giải chi tiết:
 - Viết từng bước bằng **LaTeX**, hiển thị song song:
 🇻🇳 Công thức / bước bằng tiếng Việt
 🟦 Công thức / bước bằng tiếng H’Mông
 - Nếu học sinh sai → giải lại đúng ở cả hai ngôn ngữ.
-- **MỌI Bước, nhận xét, giải thích đều phải trong LaTeX**, ví dụ:
-$$\text{Bước 1 (🇻🇳): ...}$$
-$$\text{Bước 1 (🟦): ...}$$
 
-4️⃣ **QUAN TRỌNG:** 
-- Inline formula: `\(x^2 + y^2 = z^2\)`
-- Block formula: `$$x^2 + y^2 = z^2$$`
-- Toàn bộ lời giải, nhận xét, ghi chú phải trong LaTeX.
+4️⃣ **QUAN TRỌNG:** Tất cả các công thức toán phải ở dạng LaTeX, ví dụ: 
+- Inline: `\(x^2 + y^2 = z^2\)`
+- Block: `$$x^2 + y^2 = z^2$$`
 
 MỌI CÂU TRẢ LỜI PHẢI:
 - Rõ ràng, đầy đủ, theo thứ tự.
@@ -123,5 +52,8 @@ MỌI CÂU TRẢ LỜI PHẢI:
                         st.error(result)
                     else:
                         st.success("🎉 Đã phân tích xong!")
-                        # --- Hiển thị LaTeX chuẩn toàn bộ ---
-                        st.markdown(f"```latex\n{result}\n```", unsafe_allow_html=True)
+
+                        # Hiển thị LaTeX đúng cách
+                        # Streamlit hỗ trợ LaTeX block: st.latex() nhưng cần parse block $$...$$
+                        # Đơn giản nhất là render trực tiếp markdown:
+                        st.markdown(result, unsafe_allow_html=True)
