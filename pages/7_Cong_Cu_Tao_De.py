@@ -13,15 +13,76 @@ Bạn có thể tự chọn Môn, Chương, Bài, Chủ đề và cấu hình t�
 """)
 
 # -------------------- MOCK DATA (DỮ LIỆU GIẢ LẬP MA TRẬN) --------------------
-# Dữ liệu này mô phỏng ma trận câu hỏi đã được chuẩn hóa (thay thế cho việc upload file)
+# Đã thêm dữ liệu cho Toán 6, 7, 8, 9 (KNTT)
 data = {
-    "Mon": ["Toán 10", "Toán 10", "Toán 10", "Toán 10", "Lý 10", "Lý 10", "Lý 10", "Hóa 10", "Hóa 10"],
-    "Chuong": ["Chương I: Tập hợp", "Chương I: Tập hợp", "Chương II: Hàm số", "Chương II: Hàm số", "Chương I: Động học", "Chương I: Động học", "Chương II: Lực", "Chương I: Nguyên tử", "Chương I: Nguyên tử"],
-    "Bai": ["Bài 1: Mở đầu", "Bài 2: Các phép toán", "Bài 3: Định nghĩa", "Bài 4: Khảo sát", "Bài 1: Chuyển động", "Bài 2: Tốc độ", "Bài 3: Lực", "Bài 1: Cấu tạo", "Bài 2: Đồng vị"],
-    "ChuDe": ["Khái niệm tập hợp", "Phép toán giao/hợp", "Tìm tập xác định", "Tính đơn điệu", "Khái niệm CĐ", "Tính vận tốc TB", "Xác định lực", "Cấu hình e", "Khái niệm đồng vị"],
-    "NoiDung": ["Nhận dạng tập hợp", "Giải bài tập giao/hợp", "Tìm TXĐ", "Khảo sát hàm số bậc hai", "Định nghĩa CĐ", "Tính toán TB", "Phân tích lực", "Viết cấu hình", "Tính khối lượng TB"],
-    "MucDo": ["Nhận biết", "Thông hiểu", "Nhận biết", "Vận dụng", "Nhận biết", "Thông hiểu", "Vận dụng cao", "Thông hiểu", "Vận dụng"],
-    "SoCau": [3, 2, 4, 1, 3, 2, 1, 2, 1] # Trọng số số câu cho từng mục tiêu (Tổng điểm/số câu có sẵn)
+    "Mon": [
+        # Dữ liệu Toán 6
+        "Toán 6", "Toán 6",
+        # Dữ liệu Toán 7
+        "Toán 7", "Toán 7",
+        # Dữ liệu Toán 8
+        "Toán 8", "Toán 8",
+        # Dữ liệu Toán 9
+        "Toán 9", "Toán 9",
+        # Dữ liệu hiện tại (Toán 10, Lý 10, Hóa 10)
+        "Toán 10", "Toán 10", "Toán 10", "Toán 10", 
+        "Lý 10", "Lý 10", "Lý 10", 
+        "Hóa 10", "Hóa 10"
+    ],
+    "Chuong": [
+        "Chương I: Số tự nhiên", "Chương II: Số nguyên",
+        "Chương I: Số hữu tỉ", "Chương II: Số thực",
+        "Chương I: Đa thức", "Chương II: Hình học",
+        "Chương I: Phương trình", "Chương II: Hàm số",
+        "Chương I: Tập hợp", "Chương I: Tập hợp", "Chương II: Hàm số", "Chương II: Hàm số", 
+        "Chương I: Động học", "Chương I: Động học", "Chương II: Lực", 
+        "Chương I: Nguyên tử", "Chương I: Nguyên tử"
+    ],
+    "Bai": [
+        "Bài 5: Lũy thừa", "Bài 12: Phép cộng",
+        "Bài 1: Số hữu tỉ", "Bài 7: Đại lượng tỉ lệ",
+        "Bài 3: Hằng đẳng thức", "Bài 8: Tứ giác",
+        "Bài 2: Phương trình bậc hai", "Bài 5: Đồ thị",
+        "Bài 1: Mở đầu", "Bài 2: Các phép toán", "Bài 3: Định nghĩa", "Bài 4: Khảo sát", 
+        "Bài 1: Chuyển động", "Bài 2: Tốc độ", "Bài 3: Lực", 
+        "Bài 1: Cấu tạo", "Bài 2: Đồng vị"
+    ],
+    "ChuDe": [
+        "Tính toán lũy thừa", "Phép cộng số nguyên",
+        "Biểu diễn số hữu tỉ", "Tỉ lệ thuận/nghịch",
+        "Bình phương tổng", "Định nghĩa tứ giác",
+        "Giải phương trình", "Đồ thị hàm số bậc hai",
+        "Khái niệm tập hợp", "Phép toán giao/hợp", "Tìm tập xác định", "Tính đơn điệu", 
+        "Khái niệm CĐ", "Tính vận tốc TB", "Xác định lực", 
+        "Cấu hình e", "Khái niệm đồng vị"
+    ],
+    "NoiDung": [
+        "Tính giá trị biểu thức lũy thừa", "Cộng hai số nguyên khác dấu",
+        "Biểu diễn số hữu tỉ trên trục số", "Giải bài toán tỉ lệ nghịch",
+        "Khai triển hằng đẳng thức", "Tính góc trong tứ giác",
+        "Giải PT bậc hai bằng công thức", "Tìm đỉnh Parabol",
+        "Nhận dạng tập hợp", "Giải bài tập giao/hợp", "Tìm TXĐ", "Khảo sát hàm số bậc hai", 
+        "Định nghĩa CĐ", "Tính toán TB", "Phân tích lực", 
+        "Viết cấu hình", "Tính khối lượng TB"
+    ],
+    "MucDo": [
+        "Nhận biết", "Thông hiểu",
+        "Nhận biết", "Vận dụng",
+        "Thông hiểu", "Nhận biết",
+        "Vận dụng", "Vận dụng cao",
+        "Nhận biết", "Thông hiểu", "Nhận biết", "Vận dụng", 
+        "Nhận biết", "Thông hiểu", "Vận dụng cao", 
+        "Thông hiểu", "Vận dụng"
+    ],
+    "SoCau": [
+        3, 2, 
+        4, 2, 
+        3, 2,
+        3, 1,
+        3, 2, 4, 1, 
+        3, 2, 1, 
+        2, 1
+    ] # Trọng số số câu cho từng mục tiêu (Tổng điểm/số câu có sẵn)
 }
 df = pd.DataFrame(data)
 
