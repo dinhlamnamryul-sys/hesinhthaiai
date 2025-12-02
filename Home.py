@@ -23,6 +23,32 @@ def get_audio_html(file_path):
         fallback_url = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
         return f'<source src="{fallback_url}" type="audio/mp3">'
 
+# --- HÀM MỚI: XỬ LÝ ĐẾM LƯỢT TRUY CẬP TOÀN CỤC ---
+def update_global_visit_count():
+    count_file = "visit_count.txt"
+    
+    # 1. Đọc số hiện tại từ file, nếu chưa có file thì tạo mới bắt đầu từ 500
+    if not os.path.exists(count_file):
+        current_count = 500
+        with open(count_file, "w") as f:
+            f.write(str(current_count))
+    else:
+        with open(count_file, "r") as f:
+            try:
+                current_count = int(f.read())
+            except:
+                current_count = 500
+
+    # 2. Logic tăng đếm: Chỉ tăng nếu phiên làm việc này chưa được đếm (tránh F5 liên tục bị tăng ảo)
+    if 'has_counted' not in st.session_state:
+        current_count += 1
+        st.session_state.has_counted = True # Đánh dấu người này đã được đếm
+        # Lưu số mới vào file
+        with open(count_file, "w") as f:
+            f.write(str(current_count))
+            
+    return current_count
+
 # --- 0.1. XỬ LÝ FILE (Thực hiện nhanh chóng) ---
 LOGO_PATH = "image_2.png.png"
 LOGO_URL_ONLINE = "https://cdn-icons-png.flaticon.com/512/2997/2997235.png"
@@ -217,7 +243,7 @@ st.markdown("""
         animation: marquee 35s linear infinite; 
     }
     @keyframes marquee {
-        0%   { transform: translate(100%, 0); }
+        0%    { transform: translate(100%, 0); }
         100% { transform: translate(-100%, 0); }
     }
 </style>
@@ -256,14 +282,10 @@ with st.sidebar:
 
     st.markdown("---")
     
-    # ĐÃ SỬA: Khởi tạo Lượt truy cập từ 500
-    if 'visit_count' not in st.session_state:
-        st.session_state.visit_count = 500 
-    
-    # Tăng lượt truy cập lên 1 mỗi khi trang được load/rerun
-    st.session_state.visit_count += 1 
-
-    st.success(f"👥 Lượt truy cập: **{st.session_state.visit_count}**")
+    # --- PHẦN XỬ LÝ ĐẾM LƯỢT TRUY CẬP (ĐÃ SỬA) ---
+    # Gọi hàm để lấy số lượt truy cập toàn cục
+    global_count = update_global_visit_count()
+    st.success(f"👥 Lượt truy cập: **{global_count}**")
 
 # --- 4. NỘI DUNG TRANG CHÍNH ---
 
@@ -305,7 +327,7 @@ with col1:
         st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
 
 with col2:
-    # Card 2: Sinh Đề Tốc Độ (Electric Blue Text)
+    # Card 2: Tạo Đề Tốc Độ (Electric Blue Text)
     st.markdown('<div class="feature-card card-quiz"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tự động tạo các bộ đề thi trắc nghiệm theo chương trình, giúp tiết kiệm thời gian cho giáo viên.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_2):
         st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
