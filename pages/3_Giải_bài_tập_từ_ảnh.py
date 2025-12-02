@@ -4,7 +4,8 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸")
+# --- Cấu hình trang ---
+st.set_page_config(page_title="📸 Chấm Bài AI Song Ngữ", page_icon="📸")
 st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông)")
 
 # --- LẤY KEY ---
@@ -48,23 +49,22 @@ def analyze_real_image(api_key, image, prompt):
         return f"❌ Lỗi kết nối: {str(e)}"
 
 # -----------------------------
-# 🚀 TÍNH NĂNG MỚI: CHỤP CAMERA
+# 🚀 TÍNH NĂNG CHỤP CAMERA / TẢI ẢNH
 # -----------------------------
 st.subheader("📷 Hoặc chụp trực tiếp từ Camera")
 camera_photo = st.camera_input("Chụp ảnh bài làm tại đây")
 
-# --- GIAO DIỆN TẢI ẢNH ---
 st.subheader("📤 Hoặc tải ảnh bài làm (PNG, JPG)")
 uploaded_file = st.file_uploader("Chọn ảnh:", type=["png", "jpg", "jpeg"])
 
-# --- CHỌN NGUỒN ẢNH ƯU TIÊN ---
+# --- Chọn ảnh ưu tiên ---
 image = None
 if camera_photo is not None:
     image = Image.open(camera_photo)
 elif uploaded_file is not None:
     image = Image.open(uploaded_file)
 
-# --- XỬ LÝ ẢNH ---
+# --- Xử lý ảnh ---
 if image:
     col1, col2 = st.columns([1, 1.5])
 
@@ -80,7 +80,7 @@ if image:
             else:
                 with st.spinner("⏳ AI đang xử lý..."):
                     # --- PROMPT SONG NGỮ & LaTeX ---
-                    prompt_text = """
+                    prompt_text = r"""
 Bạn là giáo viên Toán giỏi, đọc ảnh bài làm của học sinh. 
 Yêu cầu:
 
@@ -94,16 +94,22 @@ Yêu cầu:
 - Hiển thị song song:
 🇻🇳 Nhận xét tiếng Việt
 🟦 Nhận xét H’Mông
+- **Tất cả nhận xét đều viết trong môi trường LaTeX**, ví dụ: 
+$$\text{Bước 1: Sai, lý do: ...}$$
 
 3️⃣ Giải chi tiết:
 - Viết từng bước bằng **LaTeX**, hiển thị song song:
 🇻🇳 Công thức / bước bằng tiếng Việt
 🟦 Công thức / bước bằng tiếng H’Mông
 - Nếu học sinh sai → giải lại đúng ở cả hai ngôn ngữ.
+- **MỌI Bước, nhận xét, giải thích đều phải trong LaTeX**, ví dụ:
+$$\text{Bước 1 (🇻🇳): ...}$$
+$$\text{Bước 1 (🟦): ...}$$
 
-4️⃣ **QUAN TRỌNG:** Tất cả công thức toán phải ở dạng LaTeX:
-- Inline: `\(x^2 + y^2 = z^2\)`
-- Block: `$$x^2 + y^2 = z^2$$`
+4️⃣ **QUAN TRỌNG:** 
+- Inline formula: `\(x^2 + y^2 = z^2\)`
+- Block formula: `$$x^2 + y^2 = z^2$$`
+- Toàn bộ lời giải, nhận xét, ghi chú phải trong LaTeX.
 
 MỌI CÂU TRẢ LỜI PHẢI:
 - Rõ ràng, đầy đủ, theo thứ tự.
@@ -117,5 +123,5 @@ MỌI CÂU TRẢ LỜI PHẢI:
                         st.error(result)
                     else:
                         st.success("🎉 Đã phân tích xong!")
-                        # --- Hiển thị LaTeX chuẩn ---
-                        st.markdown(result, unsafe_allow_html=True)
+                        # --- Hiển thị LaTeX chuẩn toàn bộ ---
+                        st.markdown(f"```latex\n{result}\n```", unsafe_allow_html=True)
