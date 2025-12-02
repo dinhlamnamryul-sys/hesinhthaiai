@@ -8,26 +8,87 @@ st.set_page_config(page_title="Tạo đề Toán 6-9 theo SGK KNTT (CV 7991)", p
 st.title("📝 Tạo đề kiểm tra môn Toán (Lớp 6-9) theo CV 7991")
 
 st.markdown("""
-Hệ thống sử dụng ma trận câu hỏi mẫu được **tổng hợp từ mục lục sách giáo khoa Toán 6, 7, 8, 9 (Tập 1 - Kết nối tri thức với cuộc sống)** để bạn lựa chọn.
+Hệ thống sử dụng ma trận câu hỏi mẫu được **tổng hợp đầy đủ từ mục lục sách giáo khoa Toán 6, 7, 8, 9 (Tập 1 - Kết nối tri thức với cuộc sống)**.
 Bạn có thể chọn Môn, Chương, Bài, Chủ đề và cấu hình tỉ lệ phân bổ câu hỏi theo 4 mức độ nhận thức (CV 7991) để tạo đề.
 """)
 
-# -------------------- DỮ LIỆU MOCK THEO MỤC LỤC SGK TOÁN 6-9 KNTT TẬP 1 --------------------
-# Dữ liệu được trích xuất từ các file PDF sách giáo khoa Toán 6, 7, 8, 9 bạn đã gửi.
-data = {'Mon': ['Toán 6', 'Toán 6', 'Toán 6', 'Toán 6', 'Toán 6', 'Toán 6', 'Toán 6', 'Toán 6', 'Toán 6', 'Toán 7', 'Toán 7', 'Toán 7', 'Toán 7', 'Toán 7', 'Toán 7', 'Toán 7', 'Toán 7', 'Toán 8', 'Toán 8', 'Toán 8', 'Toán 8', 'Toán 8', 'Toán 8', 'Toán 8', 'Toán 8', 'Toán 9', 'Toán 9', 'Toán 9', 'Toán 9', 'Toán 9', 'Toán 9', 'Toán 9', 'Toán 9', 'Toán 9'], 
-        'Chuong': ['Chương I: Tập hợp các số tự nhiên', 'Chương I: Tập hợp các số tự nhiên', 'Chương I: Tập hợp các số tự nhiên', 'Chương II: Tính chia hết', 'Chương II: Tính chia hết', 'Chương III: Số nguyên', 'Chương III: Số nguyên', 'Chương IV: Hình học thực tiễn', 'Chương IV: Hình học thực tiễn', 'Chương I: Số hữu tỉ', 'Chương I: Số hữu tỉ', 'Chương II: Số thực', 'Chương III: Góc và đường thẳng song song', 'Chương III: Góc và đường thẳng song song', 'Chương IV: Tam giác bằng nhau', 'Chương IV: Tam giác bằng nhau', 'Chương V: Thu thập và biểu diễn dữ liệu', 'Chương I: Đa thức', 'Chương I: Đa thức', 'Chương II: Hằng đẳng thức', 'Chương II: Hằng đẳng thức', 'Chương III: Tứ giác', 'Chương III: Tứ giác', 'Chương IV: Định lí Thalès', 'Chương IV: Định lí Thalès', 'Chương I: Phương trình và Hệ phương trình', 'Chương I: Phương trình và Hệ phương trình', 'Chương II: Căn bậc hai và Căn bậc ba', 'Chương II: Căn bậc hai và Căn bậc ba', 'Chương III: Hệ thức lượng trong tam giác vuông', 'Chương III: Hệ thức lượng trong tam giác vuông', 'Chương IV: Đường tròn', 'Chương IV: Đường tròn', 'Chương IV: Đường tròn'], 
-        'Bai': ['Bài 1. Tập hợp', 'Bài 4. Phép cộng và phép trừ', 'Bài 6. Luỹ thừa với số mũ tự nhiên', 'Bài 9. Dấu hiệu chia hết', 'Bài 12. Ước chung lớn nhất. Bội chung nhỏ nhất', 'Bài 14. Phép cộng và phép trừ số nguyên', 'Bài 16. Phép nhân số nguyên', 'Bài 18. Hình tam giác đều. Hình vuông. Hình lục giác đều', 'Bài 20. Chu vi và diện tích', 'Bài 1. Tập hợp các số hữu tỉ', 'Bài 2. Cộng, trừ, nhân, chia số hữu tỉ', 'Bài 6. Số vô tỉ. Căn bậc hai số học', 'Bài 8. Góc ở vị trí đặc biệt', 'Bài 9. Hai đường thẳng song song', 'Bài 13. Hai tam giác bằng nhau', 'Bài 15. Các trường hợp bằng nhau của tam giác vuông', 'Bài 17. Thu thập và phân loại dữ liệu', 'Bài 1. Đơn thức', 'Bài 3. Phép cộng và phép trừ đa thức', 'Bài 6. Hiệu hai bình phương', 'Bài 9. Phân tích đa thức thành nhân tử', 'Bài 10. Tứ giác', 'Bài 14. Hình thoi và hình vuông', 'Bài 15. Định lí Thalès trong tam giác', 'Bài 17. Tính chất đường phân giác', 'Bài 1. Khái niệm phương trình và hệ hai phương trình', 'Bài 2. Giải hệ hai phương trình bậc nhất hai ẩn', 'Bài 5. Căn bậc hai và căn thức bậc hai', 'Bài 7. Các phép biến đổi căn thức bậc hai', 'Bài 10. Hệ thức về cạnh và đường cao', 'Bài 11. Tỉ số lượng giác của góc nhọn', 'Bài 13. Mở đầu về đường tròn', 'Bài 17. Góc ở tâm. Số đo cung', 'Bài 18. Góc nội tiếp'], 
-        'ChuDe': ['Khái niệm tập hợp', 'Phép toán số tự nhiên', 'Lũy thừa', 'Dấu hiệu chia hết', 'ƯCLN và BCNN', 'Cộng/Trừ số nguyên', 'Phép nhân số nguyên', 'Các hình cơ bản', 'Tính diện tích', 'Khái niệm số hữu tỉ', 'Phép toán số hữu tỉ', 'Căn bậc hai', 'Góc đặc biệt', 'Dấu hiệu song song', 'Trường hợp bằng nhau c.c.c', 'Tam giác vuông', 'Thống kê', 'Khái niệm đơn thức', 'Cộng/Trừ đa thức', 'HĐT cơ bản', 'Phân tích nhân tử', 'Tính chất tứ giác', 'Hình đặc biệt', 'Định lí Thalès', 'Đường phân giác', 'Khái niệm hệ PT', 'Giải hệ PT', 'Điều kiện có nghĩa', 'Rút gọn biểu thức', 'Hệ thức lượng', 'Tỉ số lượng giác', 'Đường tròn cơ bản', 'Góc ở tâm', 'Góc nội tiếp'], 
-        'NoiDung': ['Nhận biết tập hợp và các phần tử', 'Thực hiện phép cộng/trừ số tự nhiên', 'Tính giá trị biểu thức lũy thừa', 'Vận dụng dấu hiệu chia hết', 'Giải bài toán thực tế dùng ƯCLN/BCNN', 'Thực hiện phép tính cộng, trừ số nguyên', 'Áp dụng quy tắc nhân số nguyên', 'Nhận biết đặc điểm các hình cơ bản', 'Tính chu vi/diện tích các hình đã học', 'Nhận biết số hữu tỉ và biểu diễn trên trục số', 'Thực hiện các phép toán với số hữu tỉ', 'Tính toán với căn bậc hai số học', 'Nhận biết và tính góc đối đỉnh, kề bù', 'Sử dụng dấu hiệu nhận biết hai đường thẳng song song', 'Chứng minh hai tam giác bằng nhau theo c.c.c', 'Chứng minh tam giác vuông bằng nhau', 'Phân loại dữ liệu (định tính, định lượng)', 'Nhận biết đơn thức, bậc, hệ số', 'Thực hiện phép cộng, trừ đa thức', 'Khai triển HĐT (A-B)(A+B)', 'Phân tích đa thức thành nhân tử (dùng HĐT, đặt nhân tử chung)', 'Tính góc trong tứ giác', 'Chứng minh một tứ giác là hình thoi/hình vuông', 'Vận dụng định lí Thalès để tính độ dài', 'Áp dụng tính chất đường phân giác', 'Nhận biết nghiệm của hệ phương trình', 'Giải hệ phương trình bằng phương pháp thế/cộng đại số', 'Tìm điều kiện xác định của căn thức', 'Thực hiện phép biến đổi và rút gọn biểu thức', 'Áp dụng các hệ thức lượng trong tam giác vuông', 'Tính tỉ số lượng giác', 'Xác định vị trí tương đối của điểm/đường thẳng với đường tròn', 'Tính số đo cung, góc ở tâm', 'Chứng minh các hệ thức liên quan đến góc nội tiếp'], 
-        'MucDo': ['Nhận biết', 'Thông hiểu', 'Vận dụng', 'Vận dụng', 'Vận dụng cao', 'Thông hiểu', 'Thông hiểu', 'Nhận biết', 'Vận dụng', 'Nhận biết', 'Thông hiểu', 'Thông hiểu', 'Nhận biết', 'Vận dụng', 'Vận dụng', 'Vận dụng cao', 'Thông hiểu', 'Nhận biết', 'Thông hiểu', 'Thông hiểu', 'Vận dụng', 'Nhận biết', 'Vận dụng', 'Vận dụng', 'Vận dụng cao', 'Nhận biết', 'Thông hiểu', 'Nhận biết', 'Vận dụng', 'Thông hiểu', 'Thông hiểu', 'Nhận biết', 'Vận dụng', 'Vận dụng cao'], 
-        'SoCau': [3, 4, 2, 3, 2, 3, 2, 3, 2, 3, 4, 2, 3, 3, 3, 2, 1, 2, 3, 3, 4, 2, 3, 3, 2, 2, 4, 2, 4, 3, 2, 2, 3, 2]}
+# -------------------- DỮ LIỆU MOCK THEO MỤC LỤC SGK TOÁN 6-9 KNTT TẬP 1 (Đầy đủ) --------------------
+# Bộ dữ liệu mô phỏng đầy đủ các bài học (Bài) chính trong sách Toán 6, 7, 8, 9 - Tập 1
+full_data = {
+    'Mon': [], 'Chuong': [], 'Bai': [], 'ChuDe': [], 'NoiDung': [], 'MucDo': [], 'SoCau': []
+}
 
-df = pd.DataFrame(data)
+def add_lesson(mon, chuong, bai, chude, noidung, mucdo, socau):
+    full_data['Mon'].append(mon)
+    full_data['Chuong'].append(chuong)
+    full_data['Bai'].append(bai)
+    full_data['ChuDe'].append(chude)
+    full_data['NoiDung'].append(noidung)
+    full_data['MucDo'].append(mucdo)
+    full_data['SoCau'].append(socau)
+
+# --- TOÁN 6 - TẬP 1 (Chương I - IV) ---
+mon = 'Toán 6'
+add_lesson(mon, 'Chương I: Tập hợp các số tự nhiên', 'Bài 1. Tập hợp', 'Khái niệm tập hợp', 'Nhận biết tập hợp và các phần tử', 'Nhận biết', 3)
+add_lesson(mon, 'Chương I: Tập hợp các số tự nhiên', 'Bài 2. Các phép toán trong tập hợp', 'Phép toán tập hợp', 'Thực hiện phép toán giao, hợp', 'Thông hiểu', 2)
+add_lesson(mon, 'Chương I: Tập hợp các số tự nhiên', 'Bài 4. Phép cộng và phép trừ', 'Phép toán số tự nhiên', 'Thực hiện phép cộng/trừ số tự nhiên', 'Thông hiểu', 4)
+add_lesson(mon, 'Chương I: Tập hợp các số tự nhiên', 'Bài 5. Phép nhân và phép chia', 'Phép toán số tự nhiên', 'Thực hiện phép nhân/chia số tự nhiên', 'Thông hiểu', 3)
+add_lesson(mon, 'Chương I: Tập hợp các số tự nhiên', 'Bài 6. Luỹ thừa với số mũ tự nhiên', 'Lũy thừa', 'Tính giá trị biểu thức lũy thừa', 'Vận dụng', 2)
+add_lesson(mon, 'Chương II: Tính chia hết', 'Bài 8. Quan hệ chia hết. Tính chất chia hết', 'Quan hệ chia hết', 'Nhận biết quan hệ chia hết', 'Nhận biết', 3)
+add_lesson(mon, 'Chương II: Tính chia hết', 'Bài 9. Dấu hiệu chia hết', 'Dấu hiệu chia hết', 'Vận dụng dấu hiệu chia hết', 'Vận dụng', 3)
+add_lesson(mon, 'Chương II: Tính chia hết', 'Bài 11. Số nguyên tố. Hợp số', 'Số nguyên tố', 'Phân biệt số nguyên tố, hợp số', 'Thông hiểu', 2)
+add_lesson(mon, 'Chương II: Tính chia hết', 'Bài 12. Ước chung lớn nhất. Bội chung nhỏ nhất', 'ƯCLN và BCNN', 'Giải bài toán thực tế dùng ƯCLN/BCNN', 'Vận dụng cao', 2)
+add_lesson(mon, 'Chương III: Số nguyên', 'Bài 14. Phép cộng và phép trừ số nguyên', 'Cộng/Trừ số nguyên', 'Thực hiện phép tính cộng, trừ số nguyên', 'Thông hiểu', 3)
+add_lesson(mon, 'Chương III: Số nguyên', 'Bài 16. Phép nhân số nguyên', 'Phép nhân số nguyên', 'Áp dụng quy tắc nhân số nguyên', 'Thông hiểu', 2)
+add_lesson(mon, 'Chương IV: Hình học thực tiễn', 'Bài 18. Hình tam giác đều. Hình vuông. Hình lục giác đều', 'Các hình cơ bản', 'Nhận biết đặc điểm các hình cơ bản', 'Nhận biết', 3)
+add_lesson(mon, 'Chương IV: Hình học thực tiễn', 'Bài 20. Chu vi và diện tích', 'Tính diện tích', 'Tính chu vi/diện tích các hình đã học', 'Vận dụng', 2)
+
+# --- TOÁN 7 - TẬP 1 (Chương I - V) ---
+mon = 'Toán 7'
+add_lesson(mon, 'Chương I: Số hữu tỉ', 'Bài 1. Tập hợp các số hữu tỉ', 'Khái niệm số hữu tỉ', 'Nhận biết số hữu tỉ và biểu diễn trên trục số', 'Nhận biết', 3)
+add_lesson(mon, 'Chương I: Số hữu tỉ', 'Bài 2. Cộng, trừ, nhân, chia số hữu tỉ', 'Phép toán số hữu tỉ', 'Thực hiện các phép toán với số hữu tỉ', 'Thông hiểu', 4)
+add_lesson(mon, 'Chương I: Số hữu tỉ', 'Bài 4. Quy tắc dấu ngoặc và quy tắc chuyển vế', 'Quy tắc đại số', 'Áp dụng quy tắc dấu ngoặc, chuyển vế', 'Thông hiểu', 3)
+add_lesson(mon, 'Chương II: Số thực', 'Bài 6. Số vô tỉ. Căn bậc hai số học', 'Căn bậc hai', 'Tính toán với căn bậc hai số học', 'Thông hiểu', 2)
+add_lesson(mon, 'Chương III: Góc và đường thẳng song song', 'Bài 8. Góc ở vị trí đặc biệt', 'Góc đặc biệt', 'Nhận biết và tính góc đối đỉnh, kề bù', 'Nhận biết', 3)
+add_lesson(mon, 'Chương III: Góc và đường thẳng song song', 'Bài 9. Hai đường thẳng song song', 'Dấu hiệu song song', 'Sử dụng dấu hiệu nhận biết hai đường thẳng song song', 'Vận dụng', 3)
+add_lesson(mon, 'Chương IV: Tam giác bằng nhau', 'Bài 12. Tổng các góc trong một tam giác', 'Tổng góc tam giác', 'Tính số đo góc tam giác', 'Thông hiểu', 2)
+add_lesson(mon, 'Chương IV: Tam giác bằng nhau', 'Bài 13. Hai tam giác bằng nhau', 'Trường hợp bằng nhau c.c.c', 'Chứng minh hai tam giác bằng nhau theo c.c.c', 'Vận dụng', 3)
+add_lesson(mon, 'Chương IV: Tam giác bằng nhau', 'Bài 15. Các trường hợp bằng nhau của tam giác vuông', 'Tam giác vuông', 'Chứng minh tam giác vuông bằng nhau', 'Vận dụng cao', 2)
+add_lesson(mon, 'Chương V: Thu thập và biểu diễn dữ liệu', 'Bài 17. Thu thập và phân loại dữ liệu', 'Thống kê', 'Phân loại dữ liệu (định tính, định lượng)', 'Thông hiểu', 1)
+
+# --- TOÁN 8 - TẬP 1 (Chương I - IV) ---
+mon = 'Toán 8'
+add_lesson(mon, 'Chương I: Đa thức', 'Bài 1. Đơn thức', 'Khái niệm đơn thức', 'Nhận biết đơn thức, bậc, hệ số', 'Nhận biết', 2)
+add_lesson(mon, 'Chương I: Đa thức', 'Bài 3. Phép cộng và phép trừ đa thức', 'Cộng/Trừ đa thức', 'Thực hiện phép cộng, trừ đa thức', 'Thông hiểu', 3)
+add_lesson(mon, 'Chương I: Đa thức', 'Bài 5. Phép nhân và phép chia đa thức', 'Nhân/Chia đa thức', 'Thực hiện phép nhân, chia đa thức', 'Thông hiểu', 3)
+add_lesson(mon, 'Chương II: Hằng đẳng thức', 'Bài 6. Hiệu hai bình phương', 'HĐT cơ bản', 'Khai triển HĐT (A-B)(A+B)', 'Thông hiểu', 3)
+add_lesson(mon, 'Chương II: Hằng đẳng thức', 'Bài 9. Phân tích đa thức thành nhân tử', 'Phân tích nhân tử', 'Phân tích đa thức thành nhân tử (dùng HĐT, đặt nhân tử chung)', 'Vận dụng', 4)
+add_lesson(mon, 'Chương III: Tứ giác', 'Bài 10. Tứ giác', 'Tính chất tứ giác', 'Tính góc trong tứ giác', 'Nhận biết', 2)
+add_lesson(mon, 'Chương III: Tứ giác', 'Bài 12. Hình thang cân', 'Hình đặc biệt', 'Nhận biết và tính chất hình thang cân', 'Thông hiểu', 2)
+add_lesson(mon, 'Chương III: Tứ giác', 'Bài 14. Hình thoi và hình vuông', 'Hình đặc biệt', 'Chứng minh một tứ giác là hình thoi/hình vuông', 'Vận dụng', 3)
+add_lesson(mon, 'Chương IV: Định lí Thalès', 'Bài 15. Định lí Thalès trong tam giác', 'Định lí Thalès', 'Vận dụng định lí Thalès để tính độ dài', 'Vận dụng', 3)
+add_lesson(mon, 'Chương IV: Định lí Thalès', 'Bài 17. Tính chất đường phân giác', 'Đường phân giác', 'Áp dụng tính chất đường phân giác', 'Vận dụng cao', 2)
+
+# --- TOÁN 9 - TẬP 1 (Chương I - IV) ---
+mon = 'Toán 9'
+add_lesson(mon, 'Chương I: Phương trình và Hệ phương trình', 'Bài 1. Khái niệm phương trình và hệ hai phương trình', 'Khái niệm hệ PT', 'Nhận biết nghiệm của hệ phương trình', 'Nhận biết', 2)
+add_lesson(mon, 'Chương I: Phương trình và Hệ phương trình', 'Bài 2. Giải hệ hai phương trình bậc nhất hai ẩn', 'Giải hệ PT', 'Giải hệ phương trình bằng phương pháp thế/cộng đại số', 'Thông hiểu', 4)
+add_lesson(mon, 'Chương II: Căn bậc hai và Căn bậc ba', 'Bài 5. Căn bậc hai và căn thức bậc hai', 'Điều kiện có nghĩa', 'Tìm điều kiện xác định của căn thức', 'Nhận biết', 2)
+add_lesson(mon, 'Chương II: Căn bậc hai và Căn bậc ba', 'Bài 7. Các phép biến đổi căn thức bậc hai', 'Rút gọn biểu thức', 'Thực hiện phép biến đổi và rút gọn biểu thức', 'Vận dụng', 4)
+add_lesson(mon, 'Chương III: Hệ thức lượng trong tam giác vuông', 'Bài 10. Hệ thức về cạnh và đường cao', 'Hệ thức lượng', 'Áp dụng các hệ thức lượng trong tam giác vuông', 'Thông hiểu', 3)
+add_lesson(mon, 'Chương III: Hệ thức lượng trong tam giác vuông', 'Bài 11. Tỉ số lượng giác của góc nhọn', 'Tỉ số lượng giác', 'Tính tỉ số lượng giác', 'Thông hiểu', 2)
+add_lesson(mon, 'Chương IV: Đường tròn', 'Bài 13. Mở đầu về đường tròn', 'Đường tròn cơ bản', 'Xác định vị trí tương đối của điểm/đường thẳng với đường tròn', 'Nhận biết', 2)
+add_lesson(mon, 'Chương IV: Đường tròn', 'Bài 17. Góc ở tâm. Số đo cung', 'Góc ở tâm', 'Tính số đo cung, góc ở tâm', 'Vận dụng', 3)
+add_lesson(mon, 'Chương IV: Đường tròn', 'Bài 18. Góc nội tiếp', 'Góc nội tiếp', 'Chứng minh các hệ thức liên quan đến góc nội tiếp', 'Vận dụng cao', 2)
+
+df = pd.DataFrame(full_data)
+# -------------------- END: DỮ LIỆU MOCK ĐẦY ĐỦ --------------------
+
 
 # -------------------- HÀM TẠO MA TRẬN THEO CV 7991 (PHỤ LỤC 1) --------------------
 
 def create_ma_tran_cv7991(df_input, total_cau):
-    """Tạo DataFrame Ma trận theo cấu trúc Phụ lục 1 của CV 7991 (đã chỉnh sửa)."""
+    """Tạo DataFrame Ma trận theo cấu trúc Phụ lục 1 của CV 7991."""
     
     df_temp = df_input.copy()
     
@@ -40,7 +101,7 @@ def create_ma_tran_cv7991(df_input, total_cau):
     for col in matrix_cols_9:
         df_temp[col] = 0
         
-    # Ánh xạ số câu N_to_Take vào 9 cột ma trận 
+    # Ánh xạ số câu N_to_Take vào 9 cột ma trận (Giả định NL: Nhận biết/Thông hiểu; TL: Vận dụng/Vận dụng cao)
     df_temp.loc[df_temp['MucDo'] == 'Nhận biết', 'NL - Biết'] = df_temp['N_to_Take']
     df_temp.loc[df_temp['MucDo'] == 'Thông hiểu', 'NL - Hiểu'] = df_temp['N_to_Take']
     df_temp.loc[df_temp['MucDo'].isin(['Vận dụng', 'Vận dụng cao']), 'TL - Vận dụng'] = df_temp['N_to_Take']
@@ -73,19 +134,17 @@ def create_ma_tran_cv7991(df_input, total_cau):
     diem_muc_do = {k: round((v / 100) * tong_diem, 1) for k, v in ti_le_muc_do.items() if k != 'Tổng'}
     diem_muc_do['Tổng'] = round(sum(diem_muc_do.values()), 1)
     
-    # Điều chỉnh điểm tổng để đảm bảo tổng là 10.0
-    if tong_diem > 0 and diem_muc_do['Tổng'] != tong_diem:
+    # Điều chỉnh điểm tổng để đảm bảo tổng là 10.0 (nếu có sai số làm tròn nhỏ)
+    if tong_diem > 0 and abs(diem_muc_do['Tổng'] - tong_diem) > 0.05:
         diff = tong_diem - diem_muc_do['Tổng']
-        if abs(diff) > 0.05: 
-            max_key = max(diem_muc_do, key=diem_muc_do.get)
-            if max_key != 'Tổng':
-                diem_muc_do[max_key] = round(diem_muc_do[max_key] + diff, 1)
-            diem_muc_do['Tổng'] = tong_diem
+        max_key = max(diem_muc_do, key=diem_muc_do.get)
+        if max_key != 'Tổng':
+            diem_muc_do[max_key] = round(diem_muc_do[max_key] + diff, 1)
+        diem_muc_do['Tổng'] = tong_diem
 
 
     final_ma_tran = pivot_table.reset_index() 
     
-    # GÁN CỘT MỚI (Đã Fix lỗi ValueError: Length mismatch)
     new_cols = ['Chủ đề', 'Nội dung'] + list(pivot_table.columns) 
     final_ma_tran.columns = new_cols 
 
@@ -146,7 +205,6 @@ df_dac_ta_display = pd.DataFrame()
 col1, col2 = st.columns(2)
 with col1:
     mon_list = sorted(df['Mon'].unique())
-    # Chỉ có môn Toán
     mon = st.selectbox("1. Chọn môn học:", mon_list, index=0) 
     
     df_mon = df[df['Mon']==mon]
@@ -211,7 +269,6 @@ if st.button("📘 Tạo đề tự động", use_container_width=True):
     remaining_total_q = so_cau_total
     levels = ["Nhận biết", "Thông hiểu", "Vận dụng", "Vận dụng cao"]
     
-    # Calculate required questions
     for i, md in enumerate(levels):
         ratio = normalized_ti_le.get(md, 0)
         if i < len(levels) - 1:
@@ -240,35 +297,28 @@ if st.button("📘 Tạo đề tự động", use_container_width=True):
         # Proportional calculation
         df_filtered.loc[df_md_index, 'N_Needed'] = (df_filtered.loc[df_md_index, 'SoCau'] / total_available_points) * n_cau_level
         
-        # Simple rounding for initial take count
         df_filtered.loc[df_md_index, 'N_to_Take'] = df_filtered.loc[df_md_index, 'N_Needed'].apply(lambda x: round(x))
         
-        # Ensure N_to_Take doesn't exceed mock SoCau
         df_filtered.loc[df_md_index, 'N_to_Take'] = df_filtered.apply(
             lambda row: min(row['N_to_Take'], row['SoCau']) if row['MucDo'] == md else row['N_to_Take'], axis=1)
 
-        # Adjustment loop to match the exact required number (n_cau_level)
         current_total_take = df_filtered.loc[df_md_index, 'N_to_Take'].sum()
         
-        # Adjust down if current total > required
-        while current_total_take > n_cau_level:
-            rows_to_adjust = df_filtered.loc[df_md_index].sort_values(by='N_to_Take', ascending=False).index.tolist()
-            if not rows_to_adjust: break
-            
-            idx = rows_to_adjust.pop(0) 
-            if df_filtered.loc[idx, 'N_to_Take'] > 0:
+        # Adjustment loop
+        while current_total_take != n_cau_level:
+            if current_total_take > n_cau_level:
+                rows_to_adjust = df_filtered.loc[df_md_index].sort_values(by='N_to_Take', ascending=False).index.tolist()
+                idx = next((i for i in rows_to_adjust if df_filtered.loc[i, 'N_to_Take'] > 0), None)
+                if idx is None: break
                 df_filtered.loc[idx, 'N_to_Take'] -= 1
-            current_total_take = df_filtered.loc[df_md_index, 'N_to_Take'].sum()
-
-        # Adjust up if current total < required
-        while current_total_take < n_cau_level:
-            rows_to_adjust = df_filtered.loc[df_md_index].sort_values(by='N_Needed', ascending=False).index.tolist()
-            if not rows_to_adjust: break
-            
-            idx = rows_to_adjust.pop(0) 
-            if df_filtered.loc[idx, 'N_to_Take'] < df_filtered.loc[idx, 'SoCau']:
+            else: # current_total_take < n_cau_level
+                rows_to_adjust = df_filtered.loc[df_md_index].sort_values(by='N_Needed', ascending=False).index.tolist()
+                idx = next((i for i in rows_to_adjust if df_filtered.loc[i, 'N_to_Take'] < df_filtered.loc[i, 'SoCau']), None)
+                if idx is None: break
                 df_filtered.loc[idx, 'N_to_Take'] += 1
+                
             current_total_take = df_filtered.loc[df_md_index, 'N_to_Take'].sum()
+            if not df_md_index.any(): break
             
         # Generate question text
         for index, row in df_filtered.loc[df_md_index].iterrows():
@@ -294,7 +344,7 @@ if st.button("📘 Tạo đề tự động", use_container_width=True):
         st.write(f"Ma trận cho môn: **{mon}**, Chương: **{chuong}**, Tổng số câu: **{so_cau_total}**")
         st.dataframe(ma_tran_df_final, hide_index=True, use_container_width=True)
     else:
-        st.error(f"Lỗi phân bổ: Số câu tạo được ({len(questions)}) không khớp với Tổng số câu yêu cầu ({so_cau_total}). Vui lòng thử lại với cấu hình khác hoặc điều chỉnh tỉ lệ.")
+        st.error(f"Lỗi phân bổ: Số câu tạo được ({len(questions)}) **không khớp** với Tổng số câu yêu cầu ({so_cau_total}). Vui lòng thử lại với cấu hình khác, điều chỉnh tỉ lệ, hoặc chọn thêm Chủ đề.")
         st.stop()
         
     # 4. Hiển thị Bản Đặc tả (Tóm tắt)
@@ -317,10 +367,11 @@ if st.button("📘 Tạo đề tự động", use_container_width=True):
     st.success(f"Đã tạo thành công {len(questions)} câu hỏi theo cấu trúc CV 7991!")
     st.subheader("📄 3. ĐỀ KIỂM TRA TỰ ĐỘNG:")
     
+    output_text = ""
     for q in questions:
-        # Sử dụng 2 space và \n để xuống dòng trong markdown
         st.markdown(q.replace('\n', '  \n')) 
         st.markdown("---")
+        output_text += q + "\n" + "---" + "\n\n"
 
     # 6. Xuất Word (Bao gồm Ma trận và Bản Đặc tả)
     doc = Document()
@@ -334,18 +385,15 @@ if st.button("📘 Tạo đề tự động", use_container_width=True):
     table_ma_tran_word = doc.add_table(rows=num_rows, cols=num_cols)
     table_ma_tran_word.style = 'Table Grid'
     
-    # Ghi Multi-Index Header vào 2 hàng đầu
     for j, (h1, h2) in enumerate(ma_tran_df_final.columns):
         table_ma_tran_word.cell(0, j).text = h1
         table_ma_tran_word.cell(1, j).text = h2
         
-    # Gộp ô cho header
     table_ma_tran_word.cell(0, 0).merge(table_ma_tran_word.cell(0, 1)) 
     table_ma_tran_word.cell(0, 2).merge(table_ma_tran_word.cell(0, 4)) 
     table_ma_tran_word.cell(0, 5).merge(table_ma_tran_word.cell(0, 7)) 
     table_ma_tran_word.cell(0, 8).merge(table_ma_tran_word.cell(0, 10)) 
     
-    # Thêm dữ liệu (bắt đầu từ hàng thứ 3)
     for i in range(ma_tran_df_final.shape[0]):
         for j in range(ma_tran_df_final.shape[1]):
             table_ma_tran_word.cell(i + 2, j).text = str(ma_tran_df_final.iloc[i, j])
