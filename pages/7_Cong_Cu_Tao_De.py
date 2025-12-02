@@ -13,7 +13,7 @@ Hệ thống sử dụng dữ liệu mục lục SGK Toán 6-9 KNTT.
 Bạn chỉ cần chọn **Lớp** và **Chương**; hệ thống sẽ tự động phân bổ **21 câu hỏi** (10 điểm, tỉ lệ điểm 25/25/50) vào các nội dung đã chọn và tạo Ma trận/Đặc tả/Đề thi & Đáp án theo format chuẩn.
 """)
 
-# -------------------- DỮ LIỆU MOCK (Đã sửa lỗi TypeError) --------------------
+# -------------------- DỮ LIỆU MOCK (Đã sửa lỗi cú pháp) --------------------
 full_data = {
     'Mon': [], 'Chuong': [], 'Bai': [], 'ChuDe': [], 'NoiDung': [], 'MucDo': [], 'SoCau': []
 }
@@ -41,9 +41,7 @@ add_lesson(mon, 'Chương IV: Hình học thực tiễn', 'Bài 20. Chu vi và d
 # --- TOÁN 7 - TẬP 1 (Chương I - V) ---
 mon = 'Toán 7'
 add_lesson(mon, 'Chương I: Số hữu tỉ', 'Bài 2. Cộng, trừ, nhân, chia số hữu tỉ', 'Phép toán số hữu tỉ', 'Thực hiện các phép toán với số hữu tỉ', 'Thông hiểu', 4)
-# Dòng lỗi (Sửa lỗi thiếu tham số): Thêm Chủ đề 'Đường thẳng song song'
 add_lesson(mon, 'Chương III: Góc và đường thẳng song song', 'Bài 9. Hai đường thẳng song song', 'Đường thẳng song song', 'Sử dụng dấu hiệu nhận biết hai đường thẳng song song', 'Vận dụng', 3)
-# Dòng lỗi (Sửa lỗi thiếu tham số): Thêm Chủ đề 'Tam giác bằng nhau'
 add_lesson(mon, 'Chương IV: Tam giác bằng nhau', 'Bài 13. Hai tam giác bằng nhau', 'Tam giác bằng nhau', 'Chứng minh hai tam giác bằng nhau theo c.c.c', 'Vận dụng', 3)
 
 # --- TOÁN 8 - TẬP 1 (Chương I - IV) ---
@@ -61,7 +59,7 @@ add_lesson(mon, 'Chương III: Hệ thức lượng trong tam giác vuông', 'B�
 df = pd.DataFrame(full_data)
 # -------------------- END: DỮ LIỆU MOCK --------------------
 
-# -------------------- HÀM TẠO MA TRẬN VÀ PHÂN BỔ (GIỮ NGUYÊN LOGIC) --------------------
+# -------------------- HÀM TẠO MA TRẬN VÀ PHÂN BỔ --------------------
 
 def create_ma_tran_cv7991_fixed_auto(df_input):
     """Tạo Ma trận và phân bổ cố định 21 câu: 6 NB, 8 TH, 7 VĐ/VDC. (Logic giữ nguyên)"""
@@ -210,6 +208,7 @@ def create_ma_tran_cv7991_fixed_auto(df_input):
     header_2_data = ['Chủ đề', 'Nội dung'] + ['Biết', 'Hiểu', 'VĐ'] * 3 + ['Số câu/điểm']
     final_ma_tran.columns = pd.MultiIndex.from_arrays([header_1_data, header_2_data])
     
+    # Sử dụng chuỗi rỗng '' cho giá trị 0 (như yêu cầu trước), việc xử lý int() sẽ được thực hiện sau.
     return final_ma_tran.astype(str).replace('0', '').replace('nan', ''), df_with_n_take
 
 # -------------------- GIAO DIỆN TỐI GIẢN --------------------
@@ -244,7 +243,22 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
         st.stop()
         
     ma_tran_df_final, df_with_n_take = create_ma_tran_cv7991_fixed_auto(df_filtered)
-    final_total_questions = int(ma_tran_df_final[('Tổng', 'Số câu/điểm')].iloc[-3])
+    
+    # -------------------- KHẮC PHỤC LỖI VALUEERROR --------------------
+    def safe_int(s):
+        """Chuyển đổi chuỗi thành số nguyên, an toàn với chuỗi rỗng."""
+        return int(s) if s and s.strip() else 0
+        
+    # Lấy hàng tổng số câu (hàng thứ 3 từ dưới lên)
+    ma_tran_summary = ma_tran_df_final.iloc[-3]
+    
+    # SỬ DỤNG safe_int ĐỂ TÍNH TỔNG CÁC PHẦN
+    NL_count = safe_int(ma_tran_summary[('Nhiều lựa chọn', 'Biết')]) + safe_int(ma_tran_summary[('Nhiều lựa chọn', 'Hiểu')]) + safe_int(ma_tran_summary[('Nhiều lựa chọn', 'VĐ')])
+    DS_count = safe_int(ma_tran_summary[('Đúng - Sai', 'Biết')]) + safe_int(ma_tran_summary[('Đúng - Sai', 'Hiểu')]) + safe_int(ma_tran_summary[('Đúng - Sai', 'VĐ')])
+    TL_count = safe_int(ma_tran_summary[('Tự luận', 'Biết')]) + safe_int(ma_tran_summary[('Tự luận', 'Hiểu')]) + safe_int(ma_tran_summary[('Tự luận', 'VĐ')])
+    # Lấy tổng số câu thực tế đã tạo
+    final_total_questions = safe_int(ma_tran_df_final[('Tổng', 'Số câu/điểm')].iloc[-3])
+    # ------------------------------------------------------------------
 
     if final_total_questions < 21:
         st.warning(f"Cảnh báo: Chỉ tạo được **{final_total_questions}** câu (thiếu {21-final_total_questions} câu) do nguồn câu hỏi tiềm năng bị giới hạn. Vui lòng chọn thêm Chương/Bài.")
@@ -270,12 +284,6 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
     st.dataframe(df_dac_ta_display.astype(str), hide_index=True, use_container_width=True)
 
     # 3. PHÂN LOẠI CÂU HỎI VÀ TẠO CHUỖI ĐỀ & ĐÁP ÁN
-    
-    # Lấy tổng số câu của mỗi loại từ Ma trận (đã phân bổ)
-    ma_tran_summary = ma_tran_df_final.iloc[-3]
-    NL_count = int(ma_tran_summary[('Nhiều lựa chọn', 'Biết')]) + int(ma_tran_summary[('Nhiều lựa chọn', 'Hiểu')]) + int(ma_tran_summary[('Nhiều lựa chọn', 'VĐ')])
-    DS_count = int(ma_tran_summary[('Đúng - Sai', 'Biết')]) + int(ma_tran_summary[('Đúng - Sai', 'Hiểu')]) + int(ma_tran_summary[('Đúng - Sai', 'VĐ')])
-    TL_count = int(ma_tran_summary[('Tự luận', 'Biết')]) + int(ma_tran_summary[('Tự luận', 'Hiểu')]) + int(ma_tran_summary[('Tự luận', 'VĐ')])
     
     # Tách 7 câu TL thành 4 TLN và 3 TL Essay (nếu đủ câu)
     TLN_count = min(TL_count, 4) 
@@ -305,7 +313,7 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
 
     # Sắp xếp và đánh số lại theo thứ tự ưu tiên NL -> DS -> TL
     
-    NL_questions = [q for q in questions_list if q['Type'] == 'NL'][:12]
+    NL_questions = [q for q in questions_list if q['Type'] == 'NL'][:NL_count]
     DS_questions_raw = [q for q in questions_list if q['Type'] == 'DS'][:DS_count]
     TL_questions_raw = [q for q in questions_list if q['Type'] == 'TL'][:TL_count]
     
@@ -352,7 +360,7 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
         ds_q_count = len(DS_questions_raw)
         diem_ds = 2.0 / 2 * ds_q_count if ds_q_count > 0 else 0.0 
         de_parts.append(f"\n**Phần II: Trắc nghiệm đúng sai ({diem_ds:0.2f} điểm)**\n")
-        de_parts.append("Thí sinh trả lời từ câu 13 đến hết. Trong mỗi ý (a, b, c, d) ở mỗi câu, thí sinh chọn Đúng hoặc Sai.\n")
+        de_parts.append("Thí sinh trả lời từ câu {NL_count + 1} đến hết. Trong mỗi ý (a, b, c, d) ở mỗi câu, thí sinh chọn Đúng hoặc Sai.\n")
 
         ans_parts.append(f"\n**Phần II: Trắc nghiệm đúng sai ({diem_ds:0.2f} điểm)**\n")
         ans_parts.append(f"Mỗi ý trả lời đúng được {2.0/(ds_q_count*4):0.2f} điểm (giả sử mỗi câu có 4 ý).\n")
