@@ -13,12 +13,13 @@ Hệ thống sử dụng dữ liệu mục lục SGK Toán 6-9 KNTT.
 Bạn chỉ cần chọn **Lớp** và **Chương**; hệ thống sẽ tự động phân bổ **21 câu hỏi** (10 điểm, tỉ lệ điểm 25/25/50) vào các nội dung đã chọn và tạo Ma trận/Đặc tả/Đề thi & Đáp án theo format chuẩn.
 """)
 
-# -------------------- DỮ LIỆU MOCK (GIỮ NGUYÊN) --------------------
+# -------------------- DỮ LIỆU MOCK (Đã sửa lỗi TypeError) --------------------
 full_data = {
     'Mon': [], 'Chuong': [], 'Bai': [], 'ChuDe': [], 'NoiDung': [], 'MucDo': [], 'SoCau': []
 }
 
 def add_lesson(mon, chuong, bai, chude, noidung, mucdo, socau):
+    """Hàm thêm dữ liệu với 7 tham số: Môn, Chương, Bài, Chủ đề, Nội dung, Mức độ, Số câu."""
     full_data['Mon'].append(mon)
     full_data['Chuong'].append(chuong)
     full_data['Bai'].append(bai)
@@ -27,7 +28,7 @@ def add_lesson(mon, chuong, bai, chude, noidung, mucdo, socau):
     full_data['MucDo'].append(mucdo)
     full_data['SoCau'].append(socau)
 
-# --- Thêm dữ liệu mẫu (đã sử dụng ở các phiên bản trước) ---
+# --- TOÁN 6 - TẬP 1 (Chương I - IV) ---
 mon = 'Toán 6'
 add_lesson(mon, 'Chương I: Tập hợp các số tự nhiên', 'Bài 1. Tập hợp', 'Khái niệm tập hợp', 'Nhận biết tập hợp và các phần tử', 'Nhận biết', 3)
 add_lesson(mon, 'Chương I: Tập hợp các số tự nhiên', 'Bài 4. Phép cộng và phép trừ', 'Phép toán số tự nhiên', 'Thực hiện phép cộng/trừ số tự nhiên', 'Thông hiểu', 4)
@@ -37,16 +38,21 @@ add_lesson(mon, 'Chương II: Tính chia hết', 'Bài 12. Ước chung lớn nh
 add_lesson(mon, 'Chương III: Số nguyên', 'Bài 14. Phép cộng và phép trừ số nguyên', 'Cộng/Trừ số nguyên', 'Thực hiện phép tính cộng, trừ số nguyên', 'Thông hiểu', 3)
 add_lesson(mon, 'Chương IV: Hình học thực tiễn', 'Bài 20. Chu vi và diện tích', 'Tính diện tích', 'Tính chu vi/diện tích các hình đã học', 'Vận dụng', 2)
 
+# --- TOÁN 7 - TẬP 1 (Chương I - V) ---
 mon = 'Toán 7'
 add_lesson(mon, 'Chương I: Số hữu tỉ', 'Bài 2. Cộng, trừ, nhân, chia số hữu tỉ', 'Phép toán số hữu tỉ', 'Thực hiện các phép toán với số hữu tỉ', 'Thông hiểu', 4)
-add_lesson(mon, 'Chương III: Góc và đường thẳng song song', 'Bài 9. Hai đường thẳng song song', 'Sử dụng dấu hiệu nhận biết hai đường thẳng song song', 'Vận dụng', 3)
-add_lesson(mon, 'Chương IV: Tam giác bằng nhau', 'Bài 13. Hai tam giác bằng nhau', 'Chứng minh hai tam giác bằng nhau theo c.c.c', 'Vận dụng', 3)
+# Dòng lỗi (Sửa lỗi thiếu tham số): Thêm Chủ đề 'Đường thẳng song song'
+add_lesson(mon, 'Chương III: Góc và đường thẳng song song', 'Bài 9. Hai đường thẳng song song', 'Đường thẳng song song', 'Sử dụng dấu hiệu nhận biết hai đường thẳng song song', 'Vận dụng', 3)
+# Dòng lỗi (Sửa lỗi thiếu tham số): Thêm Chủ đề 'Tam giác bằng nhau'
+add_lesson(mon, 'Chương IV: Tam giác bằng nhau', 'Bài 13. Hai tam giác bằng nhau', 'Tam giác bằng nhau', 'Chứng minh hai tam giác bằng nhau theo c.c.c', 'Vận dụng', 3)
 
+# --- TOÁN 8 - TẬP 1 (Chương I - IV) ---
 mon = 'Toán 8'
 add_lesson(mon, 'Chương I: Đa thức', 'Bài 3. Phép cộng và phép trừ đa thức', 'Cộng/Trừ đa thức', 'Thực hiện phép tính cộng, trừ đa thức', 'Thông hiểu', 3)
 add_lesson(mon, 'Chương II: Hằng đẳng thức', 'Bài 9. Phân tích đa thức thành nhân tử', 'Phân tích nhân tử', 'Phân tích đa thức thành nhân tử (dùng HĐT, đặt nhân tử chung)', 'Vận dụng', 4)
 add_lesson(mon, 'Chương III: Tứ giác', 'Bài 14. Hình thoi và hình vuông', 'Hình đặc biệt', 'Chứng minh một tứ giác là hình thoi/hình vuông', 'Vận dụng', 3)
 
+# --- TOÁN 9 - TẬP 1 (Chương I - IV) ---
 mon = 'Toán 9'
 add_lesson(mon, 'Chương I: Phương trình và Hệ phương trình', 'Bài 2. Giải hệ hai phương trình bậc nhất hai ẩn', 'Giải hệ PT', 'Giải hệ phương trình bằng phương pháp thế/cộng đại số', 'Thông hiểu', 4)
 add_lesson(mon, 'Chương II: Căn bậc hai và Căn bậc ba', 'Bài 7. Các phép biến đổi căn thức bậc hai', 'Rút gọn biểu thức', 'Thực hiện phép biến đổi và rút gọn biểu thức', 'Vận dụng', 4)
@@ -62,7 +68,6 @@ def create_ma_tran_cv7991_fixed_auto(df_input):
     
     df_temp = df_input.copy()
     
-    # Phân bổ cố định 21 câu (6 NB, 8 TH, 7 VĐ/VDC)
     required_q_by_level = {
         'Nhận biết': 6, 'Thông hiểu': 8, 'Vận dụng': 4, 'Vận dụng cao': 3
     }
@@ -72,10 +77,6 @@ def create_ma_tran_cv7991_fixed_auto(df_input):
         'DS - Biết', 'DS - Hiểu', 'DS - Vận dụng',
         'TL - Biết', 'TL - Hiểu', 'TL - Vận dụng'
     ]
-    
-    # [LOGIC PHÂN BỔ N_to_Take VÀ 9 Ô MA TRẬN VẪN GIỮ NGUYÊN TỪ PHIÊN BẢN TRƯỚC]
-    # ... (Cần giữ lại toàn bộ nội dung của hàm này từ phiên bản trước) ...
-    # Để đảm bảo tính độc lập, tôi sẽ giữ phần phân bổ ma trận như cũ, đảm bảo đầu ra là `final_ma_tran` và `df_with_n_take`.
     
     # 1. Phân bổ N_to_Take
     df_temp['N_to_Take'] = 0
@@ -119,14 +120,14 @@ def create_ma_tran_cv7991_fixed_auto(df_input):
         df_with_n_take[col] = 0
         
     df_vd_index = df_with_n_take[df_with_n_take['MucDo'].isin(['Vận dụng', 'Vận dụng cao'])].index
-    df_with_n_take.loc[df_vd_index, 'TL - Vận dụng'] = df_with_n_take.loc[df_vd_index, 'N_to_Take'] # 7 câu VĐ/VDC vào TL-VĐ
+    df_with_n_take.loc[df_vd_index, 'TL - Vận dụng'] = df_with_n_take.loc[df_vd_index, 'N_to_Take'] 
 
-    df_nb_index = df_with_n_take[df_with_n_take['MucDo'] == 'Nhận biết'].index # 6 câu NB
+    df_nb_index = df_with_n_take[df_with_n_take['MucDo'] == 'Nhận biết'].index
     n_nb_total = df_with_n_take.loc[df_nb_index, 'N_to_Take'].sum() 
     
     if n_nb_total > 0:
         ratio_to_total_nb = df_with_n_take.loc[df_nb_index, 'N_to_Take'] / n_nb_total
-        n_nb_nl = round(n_nb_total * (12/14)) # Tỉ lệ NL/DS trong 14 câu
+        n_nb_nl = round(n_nb_total * (12/14)) 
         n_nb_ds = n_nb_total - n_nb_nl
         
         n_nb_nl = min(n_nb_nl, 12); n_nb_ds = min(n_nb_ds, 2)
@@ -139,8 +140,8 @@ def create_ma_tran_cv7991_fixed_auto(df_input):
             df_with_n_take.loc[index, 'NL - Biết'] = max(0, df_with_n_take.loc[index, 'NL - Biết'])
             df_with_n_take.loc[index, 'DS - Biết'] = max(0, df_with_n_take.loc[index, 'DS - Biết'])
                 
-    df_th_index = df_with_n_take[df_with_n_take['MucDo'] == 'Thông hiểu'].index # 8 câu TH
-    n_th_total = df_with_n_take.loc[df_th_index, 'N_to_Take'].sum() 
+    df_th_index = df_with_n_take[df_with_n_take['MucDo'] == 'Thông hiểu'].index
+    n_th_total = df_with_n_take.loc[df_th_index, 'N_to_Take'].sum()
     
     n_th_nl = TOTAL_NL - df_with_n_take['NL - Biết'].sum()
     n_th_ds = TOTAL_DS - df_with_n_take['DS - Biết'].sum()
@@ -295,7 +296,7 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
                 
                 for i in range(n_q_in_cell):
                     questions_list.append({
-                        'Q_ID': 0, # Sẽ điền sau
+                        'Q_ID': 0, 
                         'Type': loai_cau_hoi,
                         'MucDo': muc_do,
                         'ChuDe': row.get('ChuDe'),
@@ -349,7 +350,7 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
     # Phần II: Trắc nghiệm đúng sai (DS)
     if DS_questions_raw:
         ds_q_count = len(DS_questions_raw)
-        diem_ds = 2.0 / 2 * ds_q_count if ds_q_count > 0 else 0.0 # 2.0 điểm cho 2 câu DS
+        diem_ds = 2.0 / 2 * ds_q_count if ds_q_count > 0 else 0.0 
         de_parts.append(f"\n**Phần II: Trắc nghiệm đúng sai ({diem_ds:0.2f} điểm)**\n")
         de_parts.append("Thí sinh trả lời từ câu 13 đến hết. Trong mỗi ý (a, b, c, d) ở mỗi câu, thí sinh chọn Đúng hoặc Sai.\n")
 
@@ -373,7 +374,7 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
     if TLN_questions:
         diem_tln = 2.0 / 4 * len(TLN_questions)
         de_parts.append(f"\n**Phần III: Trắc nghiệm trả lời ngắn ({diem_tln:0.2f} điểm)**\n")
-        de_parts.append("Thí sinh trả lời từ câu {TLN_questions[0]['Q_ID']} đến hết.\n")
+        de_parts.append(f"Thí sinh trả lời từ câu {TLN_questions[0]['Q_ID']} đến hết.\n")
         
         ans_parts.append(f"\n**Phần III: Trắc nghiệm trả lời ngắn ({diem_tln:0.2f} điểm)**\n")
         ans_parts.append(f"Mỗi câu trả lời đúng được {2.0/4:0.2f} điểm.\n")
@@ -388,19 +389,20 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
 
     # Phần B: Tự luận (TL Essay)
     if TL_Essay_questions:
-        diem_tl_essay = 3.0 / 3 * len(TL_Essay_questions) # 3.0 điểm cho 3 câu
+        diem_tl_essay = 3.0 / 3 * len(TL_Essay_questions) 
         de_parts.append(f"\n**B. Tự luận ({diem_tl_essay:0.2f} điểm)**\n")
         ans_parts.append(f"\n**B. Tự luận ({diem_tl_essay:0.2f} điểm)**\n")
         
         for q in TL_Essay_questions:
             q_id = q['Q_ID']
-            de_parts.append(f"\n**Câu {q_id} ({3.0/3:0.2f} điểm).** (Mức độ: {q['MucDo']})\n")
+            diem_q = 3.0 / 3 / len(TL_Essay_questions) 
+            de_parts.append(f"\n**Câu {q_id} ({diem_q:0.2f} điểm).** (Mức độ: {q['MucDo']})\n")
             de_parts.append(f"Chủ đề: {q['ChuDe']}. Yêu cầu: {q['NoiDung']}\n")
             de_parts.append(f"a) Giải quyết phần cơ bản của yêu cầu. (0,5 điểm)\n")
             de_parts.append(f"b) Giải quyết phần nâng cao hơn của yêu cầu. (0,5 điểm)\n")
             de_parts.append(f"→ (Lưu ý: Bạn cần thay thế Nội dung này bằng câu hỏi tự luận thực tế.)\n")
 
-            ans_parts.append(f"\n**Câu {q_id} ({3.0/3:0.2f} điểm).**\n")
+            ans_parts.append(f"\n**Câu {q_id} ({diem_q:0.2f} điểm).**\n")
             ans_parts.append(f"a) Nội dung đáp án cho phần cơ bản (0,5 điểm).\n")
             ans_parts.append(f"b) Nội dung đáp án cho phần nâng cao (0,5 điểm).\n")
             
@@ -414,7 +416,7 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
     doc.add_heading("I. MA TRẬN VÀ BẢN ĐẶC TẢ", 1)
     
     doc.add_heading("1. MA TRẬN ĐỀ KIỂM TRA ĐỊNH KÌ", 2)
-    # Thêm bảng Ma trận vào doc
+    
     num_rows = ma_tran_df_final.shape[0] + 2 
     num_cols = ma_tran_df_final.shape[1]
     table_ma_tran_word = doc.add_table(rows=num_rows, cols=num_cols)
@@ -433,7 +435,7 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
             table_ma_tran_word.cell(i + 2, j).text = str(ma_tran_df_final.iloc[i, j])
 
     doc.add_heading("2. BẢN ĐẶC TẢ ĐỀ KIỂM TRA ĐỊNH KÌ", 2)
-    # Thêm bảng Đặc tả vào doc
+    
     table_dac_ta_word = doc.add_table(rows=df_dac_ta_display.shape[0] + 1, cols=df_dac_ta_display.shape[1])
     table_dac_ta_word.style = 'Table Grid'
     for j, col_name in enumerate(df_dac_ta_display.columns):
@@ -448,8 +450,7 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
     doc.add_heading("II. ĐỀ KIỂM TRA", 1)
     doc.add_heading(f"A. Trắc nghiệm ({7.0:0.1f} điểm)", 2)
     for part in de_parts:
-        if part.startswith("Câu,1,"): # Xử lý bảng đáp án NL
-            # Thêm bảng
+        if part.startswith("Câu,1,"): 
             header, data = part.split('\r\n')
             h_cells = header.split(',')
             d_cells = data.split(',')
@@ -458,7 +459,7 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
             for j in range(len(h_cells)):
                 table.cell(0, j).text = h_cells[j]
                 table.cell(1, j).text = d_cells[j]
-        elif part.startswith(",Đúng,Sai"): # Xử lý bảng đáp án DS
+        elif part.startswith(",Đúng,Sai"): 
             lines = part.split('\r\n')
             num_rows = len(lines)
             table = doc.add_table(rows=num_rows, cols=3)
@@ -467,8 +468,7 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
                 cells = line.split(',')
                 for j, cell_text in enumerate(cells):
                     table.cell(i, j).text = cell_text
-        elif part.startswith("Câu,Câu"): # Xử lý bảng đáp án TLN
-            # Thêm bảng kết quả TLN
+        elif part.startswith("Câu,Câu"): 
             header, data = part.split('\r\n')
             h_cells = header.split(',')
             d_cells = data.split(',')
@@ -489,8 +489,7 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
 
     doc.add_heading(f"A. Trắc nghiệm ({7.0:0.1f} điểm)", 2)
     for part in ans_parts:
-        if part.startswith("Câu,1,"): # Xử lý bảng đáp án NL
-            # Thêm bảng
+        if part.startswith("Câu,1,"): 
             header, data = part.split('\r\n')
             h_cells = header.split(',')
             d_cells = data.split(',')
@@ -499,8 +498,7 @@ if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_conta
             for j in range(len(h_cells)):
                 table.cell(0, j).text = h_cells[j]
                 table.cell(1, j).text = d_cells[j]
-        elif part.startswith("Câu,Câu"): # Xử lý bảng đáp án TLN
-            # Thêm bảng kết quả TLN
+        elif part.startswith("Câu,Câu"): 
             header, data = part.split('\r\n')
             h_cells = header.split(',')
             d_cells = data.split(',')
