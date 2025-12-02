@@ -4,15 +4,14 @@ from datetime import datetime
 import traceback
 
 # -----------------------
-# Thiết lập đường dẫn an toàn
+# Thiết lập đường dẫn
 # -----------------------
 BASE = Path(__file__).parent.resolve() 
 STORIES_DIR = BASE / "stories"
 
 # -----------------------
-# SỬA LẠI: NỘI DUNG TRUYỆN ĐẦY ĐỦ
+# NỘI DUNG TRUYỆN ĐẦY ĐỦ (Dữ liệu gốc)
 # -----------------------
-# Tôi đã viết đầy đủ sự tích vào đây thay vì chỉ để tóm tắt
 FULL_STORY_1 = """Ngày xưa, ở một bản Mông nọ, có một chàng trai tên là Khèn và một cô gái tên là Tớ Dày. Họ yêu nhau tha thiết như đôi chim rừng quấn quýt. Chàng thổi khèn hay, nàng múa đẹp, tiếng khèn và điệu múa của họ làm say đắm cả núi rừng.
 
 Nhưng nhà chàng Khèn nghèo quá, bố mẹ Tớ Dày không ưng thuận. Họ ép cô phải lấy con trai nhà thống lý giàu có trong vùng. Tớ Dày kiên quyết không chịu, nàng buồn bã bỏ chạy lên rừng để tìm đường đến với người yêu.
@@ -23,42 +22,47 @@ Cứ mỗi độ xuân về, khi cái rét ngọt tràn về bản, loài cây �
 
 Người Mông gọi đó là hoa Tớ Dày (Pang Tớ Dày). Hoa nở báo hiệu mùa xuân, mùa của tình yêu đôi lứa và mùa Tết của người Mông sắp về."""
 
-EMBEDDED_STORIES = [
-    FULL_STORY_1,
-    "Truyện mẫu 2: Vào mùa xuân, hoa rực rỡ khắp nương rẫy, người Mông hát múa đón Tết. Tiếng khèn vang vọng khắp núi rừng báo hiệu một năm mới ấm no...",
-    "Truyện mẫu 3: Có một em bé lên nương, gặp một cụ già; cụ truyền dạy bài học về lòng hiếu thảo và tình yêu thương thiên nhiên..."
+# Danh sách truyện mẫu
+SAMPLE_DATA = [
+    ("story_1.txt", FULL_STORY_1), # Truyện 1 đầy đủ
+    ("story_2.txt", "Truyện mẫu 2: Vào mùa xuân, hoa rực rỡ khắp nương rẫy, người Mông hát múa đón Tết. Tiếng khèn vang vọng khắp núi rừng..."),
+    ("story_3.txt", "Truyện mẫu 3: Có một em bé lên nương, gặp một cụ già; cụ truyền dạy bài học về lòng hiếu thảo...")
 ]
 
 # -----------------------
-# Hàm đảm bảo thư mục + file mẫu
+# Hàm xử lý file (ĐÃ SỬA: ÉP GHI ĐÈ FILE CŨ)
 # -----------------------
-def ensure_stories_folder(folder: Path, create_sample_files: bool = True):
+def ensure_stories_folder(folder: Path):
     try:
+        # Tạo thư mục nếu chưa có
         if not folder.exists():
             folder.mkdir(parents=True, exist_ok=True)
-            if create_sample_files:
-                samples = [
-                    ("story_1.txt", EMBEDDED_STORIES[0]),
-                    ("story_2.txt", EMBEDDED_STORIES[1]),
-                    ("story_3.txt", EMBEDDED_STORIES[2]),
-                ]
-                for fname, content in samples:
-                    fp = folder / fname
-                    if not fp.exists():
-                        fp.write_text(content, encoding="utf-8")
+            
+        # Ghi các file mẫu
+        for fname, content in SAMPLE_DATA:
+            fp = folder / fname
+            
+            # --- KHẮC PHỤC LỖI CŨ ---
+            # Nếu là story_1.txt, ta BẮT BUỘC ghi đè lại nội dung mới (mode='w')
+            # bất kể file đó đã có hay chưa.
+            if fname == "story_1.txt":
+                 fp.write_text(content, encoding="utf-8")
+            
+            # Các file khác thì chỉ tạo nếu chưa có
+            elif not fp.exists():
+                fp.write_text(content, encoding="utf-8")
+                
         return True
-    except Exception as e:
-        st.warning("⚠️ Không thể tạo thư mục `stories/`. Dùng truyện nhúng sẵn.")
+    except Exception:
         return False
 
 # -----------------------
-# Hàm đọc truyện từ thư mục
+# Hàm đọc truyện
 # -----------------------
 def load_stories_from_folder(folder: Path):
     stories = []
     try:
-        if not folder.exists(): 
-            return []
+        if not folder.exists(): return []
         for f in sorted(folder.glob("*.txt")):
             try:
                 txt = f.read_text(encoding="utf-8").strip()
@@ -70,20 +74,23 @@ def load_stories_from_folder(folder: Path):
 # -----------------------
 # LOGIC CHÍNH
 # -----------------------
-ensure_stories_folder(STORIES_DIR, create_sample_files=True)
+# 1. Chạy hàm tạo/cập nhật file
+ensure_stories_folder(STORIES_DIR)
+
+# 2. Đọc lại danh sách
 all_stories = load_stories_from_folder(STORIES_DIR)
 
+# Fallback nếu lỗi đọc file
 if not all_stories:
-    all_stories = EMBEDDED_STORIES.copy()
+    all_stories = [FULL_STORY_1]
 
-# Chọn truyện theo ngày
+# 3. Chọn truyện hôm nay
 day_index = datetime.now().timetuple().tm_yday
 story_today = all_stories[day_index % len(all_stories)]
 
-# Nếu truyện hôm nay quá ngắn (do code cũ lưu file), lấy lại nội dung đầy đủ từ biến code
-if len(story_today) < 100 and (day_index % len(all_stories)) == 0:
-    story_today = FULL_STORY_1
-
+# -----------------------
+# DỮ LIỆU HIỂN THỊ
+# -----------------------
 DATA_STORY = {
     "title": f"🌸 Câu chuyện số {(day_index % len(all_stories)) + 1}: Sự tích hoa Tớ Dày",
     "content_viet": story_today,
@@ -107,7 +114,7 @@ DATA_QUIZ = [
         "question": "Nhạc cụ nào sau đây KHÔNG PHẢI của người H'Mông?",
         "options": ["Khèn (Qeej)", "Đàn Đáy", "Sáo Mông"],
         "answer": "Đàn Đáy",
-        "explanation": "Đúng! Đàn Đáy là nhạc cụ của người Kinh (thường dùng trong Ca Trù), không phải của người Mông."
+        "explanation": "Đúng! Đàn Đáy là nhạc cụ của người Kinh, không phải của người Mông."
     }
 ]
 
@@ -162,11 +169,9 @@ with tab_story:
     with col_txt:
         st.subheader(DATA_STORY["title"])
         
-        # --- SỬA LẠI LINK AUDIO ---
-        # Dùng link nhạc mẫu ổn định hơn (tiếng sáo/nhạc nhẹ)
-        # Nếu muốn dùng file của bạn, hãy tải file mp3 lên cùng thư mục và đổi thành: st.audio("ten_file.mp3")
+        # Audio Player
         st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3", format="audio/mp3", start_time=0)
-        st.caption("🎵 Bấm nút Play để nghe nhạc nền khi đọc truyện")
+        st.caption("🎵 Bấm nút Play để nghe nhạc nền")
 
         with st.expander("📜 Đọc truyện hôm nay", expanded=True):
             st.markdown(f"**Tiếng Việt:**\n\n{DATA_STORY['content_viet']}")
@@ -192,7 +197,6 @@ with tab_quiz:
     st.subheader("🎯 Trả lời đúng nhận ngay 10 Bắp Ngô/câu")
     for i, item in enumerate(DATA_QUIZ):
         st.markdown(f"<div class='quiz-card'><strong>Câu {i+1}:</strong> {item['question']}</div>", unsafe_allow_html=True)
-        # Sử dụng index để tạo key duy nhất tránh lỗi Duplicate Widget ID
         user_choice = st.radio(f"Lựa chọn câu {i+1}", item['options'], key=f"q_{i}", label_visibility="collapsed")
         
         if st.button(f"Trả lời câu {i+1}", key=f"btn_{i}"):
