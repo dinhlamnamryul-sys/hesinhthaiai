@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 import base64
-# import random # KHÔNG CẦN DÙNG THƯ VIỆN RANDOM NỮA
 
 # --- 0. CÁC HÀM TIỆN ÍCH (Khởi tạo trước khi Cấu hình Trang) ---
 def get_base64_image(image_path):
@@ -83,7 +82,7 @@ else:
     }
     """
 
-# --- 2.1. CHÈN CSS GIAO DIỆN CHUNG & TÙY CHỈNH CARD MÀU ---
+# --- 2.1. CHÈN CSS GIAO DIỆN CHUNG & TÙY CHỈNH CARD 3D ---
 st.markdown(f"""
 <style>
     {header_css}
@@ -97,67 +96,105 @@ st.markdown(f"""
     }}
     .stApp {{ background-color: #f8f9fa; margin-bottom: 60px; }}
     .main-header h1 {{ font-size: 2.5rem; font-weight: 900; margin: 0; }}
+    
+    /* ------------------------------------- */
+    /* CSS CHO HIỆU ỨNG 3D VÀ MÀU SẮC RỰC RỠ */
+    /* ------------------------------------- */
     .feature-card {{
-        padding: 20px; border-radius: 20px; text-align: center;
-        /* Loại bỏ border và box-shadow chung để các card riêng tự định nghĩa */
-        /* border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05); */
-        height: 350px; display: flex; flex-direction: column; justify-content: space-between;
-        transition: transform 0.3s;
+        /* Cấu hình cơ bản */
+        padding: 30px; /* Tăng padding để rộng rãi hơn */
+        border-radius: 25px; /* Bo tròn hơn */
+        text-align: center;
+        height: 350px; 
+        display: flex; flex-direction: column; justify-content: space-between;
+        transition: all 0.4s ease-in-out;
+        position: relative; /* Quan trọng cho hiệu ứng 3D */
+        transform: translateY(0);
+        
+        /* Hiệu ứng nổi lên nhẹ khi hover */
     }}
-    .feature-card:hover {{ transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.2); }}
+    .feature-card:hover {{ 
+        transform: translateY(-8px) rotateX(2deg); 
+        z-index: 10;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+    }}
     
-    /* ------------------------------------- */
-    /* CSS TÙY CHỈNH MÀU NỀN CHO TỪNG CARD */
-    /* Đã dùng màu đậm hơn và bóng hơn để dễ thấy */
-    /* ------------------------------------- */
+    /* Thiết lập lại màu chữ cho nội dung p trong card */
+    .feature-card p {{ color: #444; font-size: 0.95rem; }}
+
+    /* Màu sắc và hiệu ứng 3D chi tiết cho từng card */
+    
+    /* 1. Gia Sư Toán AI (Màu Vàng/Cam) */
     .card-math {{
-        /* Màu Vàng/Cam (Toán) */
-        background: linear-gradient(145deg, #ffb300, #ff8f00); 
-        border: 2px solid #ff6f00;
-        color: #5d4037; /* Màu chữ nâu */
-        box-shadow: 0 6px 15px rgba(255, 179, 0, 0.4);
+        background: linear-gradient(145deg, #ffc107, #ff9800); 
+        border: 1px solid #ffb300;
+        box-shadow: 
+            0 10px 0 #ff6f00, /* Màu dưới cùng (3D bottom) */
+            0 10px 20px rgba(0,0,0,0.15); /* Bóng đổ chung */
     }}
-    .card-math .card-title {{ color: #a0522d; }}
+    .card-math:hover {{
+        box-shadow: 
+            0 10px 0 #ff6f00, 
+            0 20px 40px rgba(0,0,0,0.3);
+    }}
+    .card-math .card-title {{ color: #e65100; font-weight: 900; }}
 
+    /* 2. Sinh Đề Tốc Độ (Màu Xanh Lá Cây) */
     .card-quiz {{
-        /* Màu Xanh Lá Cây (Tạo đề) */
-        background: linear-gradient(145deg, #66bb6a, #388e3c); 
-        border: 2px solid #2e7d32;
-        color: #f1f8e9; /* Màu chữ trắng/nhạt */
-        box-shadow: 0 6px 15px rgba(102, 187, 106, 0.4);
+        background: linear-gradient(145deg, #8bc34a, #689f38); 
+        border: 1px solid #7cb342;
+        box-shadow: 
+            0 10px 0 #33691e, /* Màu dưới cùng (3D bottom) */
+            0 10px 20px rgba(0,0,0,0.15); 
     }}
-    .card-quiz .card-title {{ color: #e8f5e9; }}
+    .card-quiz:hover {{
+        box-shadow: 
+            0 10px 0 #33691e, 
+            0 20px 40px rgba(0,0,0,0.3);
+    }}
+    .card-quiz .card-title {{ color: #1b5e20; font-weight: 900; }}
 
+    /* 3. Giải bài tập từ ảnh (Màu Xanh Dương) */
     .card-image {{
-        /* Màu Xanh Dương/Tím (Giải bài tập) */
-        background: linear-gradient(145deg, #42a5f5, #1e88e5); 
-        border: 2px solid #1565c0;
-        color: #e3f2fd; /* Màu chữ trắng/nhạt */
-        box-shadow: 0 6px 15px rgba(66, 165, 245, 0.4);
+        background: linear-gradient(145deg, #4fc3f7, #29b6f6); 
+        border: 1px solid #03a9f4;
+        box-shadow: 
+            0 10px 0 #0277bd, /* Màu dưới cùng (3D bottom) */
+            0 10px 20px rgba(0,0,0,0.15); 
     }}
-    .card-image .card-title {{ color: #bbdefb; }}
+    .card-image:hover {{
+        box-shadow: 
+            0 10px 0 #0277bd, 
+            0 20px 40px rgba(0,0,0,0.3);
+    }}
+    .card-image .card-title {{ color: #01579b; font-weight: 900; }}
     
+    /* 4. Đa Phương Tiện (Màu Đỏ/Hồng) */
     .card-media {{
-        /* Màu Đỏ/Hồng (Văn hóa/Phương tiện) */
-        background: linear-gradient(145deg, #ef5350, #d32f2f); 
-        border: 2px solid #c62828;
-        color: #ffebee; /* Màu chữ trắng/nhạt */
-        box-shadow: 0 6px 15px rgba(239, 83, 80, 0.4);
+        background: linear-gradient(145deg, #ff8a65, #ff5722); 
+        border: 1px solid #ff7043;
+        box-shadow: 
+            0 10px 0 #bf360c, /* Màu dưới cùng (3D bottom) */
+            0 10px 20px rgba(0,0,0,0.15); 
     }}
-    .card-media .card-title {{ color: #ffcdd2; }}
+    .card-media:hover {{
+        box-shadow: 
+            0 10px 0 #bf360c, 
+            0 20px 40px rgba(0,0,0,0.3);
+    }}
+    .card-media .card-title {{ color: #880e4f; font-weight: 900; }}
 
-
-    .icon-box {{ font-size: 3.5rem; margin-bottom: 10px; }}
-    .card-title {{ font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; }}
     
-    /* Thiết lập lại màu chữ mặc định cho nội dung thường (p) trong card */
-    .feature-card p {{ color: inherit; }}
-
+    /* Các thành phần chung khác */
+    .icon-box {{ font-size: 3.5rem; margin-bottom: 10px; }}
+    
     .stButton>button {{
         width: 100%; border-radius: 50px; background: linear-gradient(90deg, #ff6f00, #ffca28);
         border: none; color: white; font-weight: bold; padding: 10px 0;
+        transform: translateY(0); transition: transform 0.2s;
     }}
-    .stButton>button:hover {{ transform: scale(1.05); }}
+    .stButton>button:hover {{ transform: scale(1.05); background: linear-gradient(90deg, #ff9800, #ffc107); }}
+    
     .footer {{
         position: fixed; left: 0; bottom: 0; width: 100%;
         background-color: #fff; color: #555; text-align: center;
@@ -274,7 +311,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- CARD CHỨC NĂNG (ĐÃ SỬ DỤNG MÀU ĐẬM HƠN) ---
+# --- CARD CHỨC NĂNG (ĐÃ CÓ HIỆU ỨNG 3D) ---
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
