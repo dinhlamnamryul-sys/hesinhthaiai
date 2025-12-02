@@ -272,7 +272,7 @@ with st.sidebar:
     if os.path.exists(PAGE_1):
         st.page_link(PAGE_1, label="Gia Sư Toán AI", icon="🏔️")
     if os.path.exists(PAGE_2):
-        st.page_link(PAGE_2, label="Sinh Đề Tự Động", icon="⚡")
+        st.page_link(PAGE_2, label="Tạo Đề Tự Động", icon="⚡")
     if os.path.exists(PAGE_3):
         st.page_link(PAGE_3, label="Giải bài tập từ ảnh", icon="🧿")
     if os.path.exists(PAGE_4):
@@ -328,7 +328,7 @@ with col1:
 
 with col2:
     # Card 2: Tạo Đề Tốc Độ (Electric Blue Text)
-    st.markdown('<div class="feature-card card-quiz"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tự động tạo các bộ đề thi trắc nghiệm theo chương trình, giúp tiết kiệm thời gian cho giáo viên.</p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="feature-card card-quiz"><div class="icon-box">⚡</div><div class="card-title">Tạo Đề Tự Động</div><p>Tự động tạo các bộ đề thi trắc nghiệm theo chương trình, giúp tiết kiệm thời gian cho giáo viên.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_2):
         st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
 
