@@ -12,7 +12,7 @@ from gtts import gTTS
 
 # --- CẤU HÌNH TRANG WEB ---
 st.set_page_config(
-    page_title="Gia sư Toán AI - Bản Mường (Lớp 1-9)",
+    page_title="Gia sư Toán AI (Lớp 1-9)",
     page_icon="🏔️",
     layout="wide"
 )
