@@ -47,29 +47,24 @@ def analyze_real_image(api_key, image, prompt):
     except Exception as e:
         return f"❌ Lỗi kết nối: {str(e)}"
 
-
 # -----------------------------
-# 🚀 **TÍNH NĂNG MỚI: CHỤP CAMERA**
+# 🚀 TÍNH NĂNG MỚI: CHỤP CAMERA
 # -----------------------------
 st.subheader("📷 Hoặc chụp trực tiếp từ Camera")
 camera_photo = st.camera_input("Chụp ảnh bài làm tại đây")
-
 
 # --- GIAO DIỆN TẢI ẢNH ---
 st.subheader("📤 Hoặc tải ảnh bài làm (PNG, JPG)")
 uploaded_file = st.file_uploader("Chọn ảnh:", type=["png", "jpg", "jpeg"])
 
-
 # --- CHỌN NGUỒN ẢNH ƯU TIÊN ---
 image = None
-
 if camera_photo is not None:
     image = Image.open(camera_photo)
 elif uploaded_file is not None:
     image = Image.open(uploaded_file)
 
-
-# Nếu có ảnh → hiển thị + xử lý
+# --- XỬ LÝ ẢNH ---
 if image:
     col1, col2 = st.columns([1, 1.5])
 
@@ -84,8 +79,7 @@ if image:
                 st.error("Thiếu API Key!")
             else:
                 with st.spinner("⏳ AI đang xử lý..."):
-
-                    # --- PROMPT SONG NGỮ ---
+                    # --- PROMPT SONG NGỮ & LaTeX ---
                     prompt_text = """
 Bạn là giáo viên Toán giỏi, đọc ảnh bài làm của học sinh. 
 Yêu cầu:
@@ -107,6 +101,10 @@ Yêu cầu:
 🟦 Công thức / bước bằng tiếng H’Mông
 - Nếu học sinh sai → giải lại đúng ở cả hai ngôn ngữ.
 
+4️⃣ **QUAN TRỌNG:** Tất cả công thức toán phải ở dạng LaTeX:
+- Inline: `\(x^2 + y^2 = z^2\)`
+- Block: `$$x^2 + y^2 = z^2$$`
+
 MỌI CÂU TRẢ LỜI PHẢI:
 - Rõ ràng, đầy đủ, theo thứ tự.
 - Song song Việt – H’Mông từng bước.
@@ -119,5 +117,5 @@ MỌI CÂU TRẢ LỜI PHẢI:
                         st.error(result)
                     else:
                         st.success("🎉 Đã phân tích xong!")
-                        st.markdown(result)
-
+                        # --- Hiển thị LaTeX chuẩn ---
+                        st.markdown(result, unsafe_allow_html=True)
