@@ -1,39 +1,100 @@
+# file: 5_Văn_hóa_cội_nguồn.py
 import streamlit as st
-import os
+from pathlib import Path
 from datetime import datetime
+import os
+import traceback
 
-# ============================
-# 1. HÀM ĐỌC TRUYỆN TỪ FILE
-# ============================
-def load_stories(folder="stories"):
+# -----------------------
+# Thiết lập đường dẫn an toàn
+# -----------------------
+BASE = Path(__file__).parent.resolve()  # nơi file .py đang nằm (hữu dụng khi bạn dùng pages/)
+STORIES_DIR = BASE / "stories"
+
+# -----------------------
+# Mấy truyện mẫu (dùng khi không thể đọc file)
+# -----------------------
+EMBEDDED_STORIES = [
+    "Ngày xưa, trong một bản Mông nọ có chàng trai tên là Khèn và cô gái tên Tớ Dày yêu nhau tha thiết...",
+    "Truyện mẫu 2: Vào mùa xuân, hoa rực rỡ khắp nương rẫy, người Mông hát múa đón Tết...",
+    "Truyện mẫu 3: Có một em bé lên nương, gặp một cụ già; cụ truyền dạy bài học về lòng hiếu thảo..."
+]
+
+# -----------------------
+# Hàm đảm bảo thư mục + file mẫu
+# -----------------------
+def ensure_stories_folder(folder: Path, create_sample_files: bool = True):
+    try:
+        if not folder.exists():
+            folder.mkdir(parents=True, exist_ok=True)
+            if create_sample_files:
+                # tạo vài file .txt mẫu để không bị lỗi
+                samples = [
+                    ("story_1.txt", EMBEDDED_STORIES[0]),
+                    ("story_2.txt", EMBEDDED_STORIES[1]),
+                    ("story_3.txt", EMBEDDED_STORIES[2]),
+                ]
+                for fname, content in samples:
+                    fp = folder / fname
+                    # chỉ tạo nếu chưa có
+                    if not fp.exists():
+                        fp.write_text(content, encoding="utf-8")
+        return True
+    except Exception as e:
+        # Nếu không thể tạo thư mục (ví dụ bị readonly), ghi log cho dev và trả False
+        st.warning("⚠️ Không thể tạo thư mục `stories/` tự động. Ứng dụng sẽ dùng truyện mặc định nhúng sẵn.")
+        st.write("Chi tiết lỗi (đã ghi lại):")
+        st.code(traceback.format_exc())
+        return False
+
+# -----------------------
+# Hàm đọc truyện từ thư mục
+# -----------------------
+def load_stories_from_folder(folder: Path):
     stories = []
-    for filename in os.listdir(folder):
-        if filename.endswith(".txt"):
-            with open(os.path.join(folder, filename), "r", encoding="utf-8") as f:
-                stories.append(f.read())
-    return stories
+    try:
+        # đảm bảo folder là Path
+        if not folder.exists():
+            raise FileNotFoundError(f"Folder not found: {folder}")
+        for f in sorted(folder.glob("*.txt")):
+            try:
+                txt = f.read_text(encoding="utf-8").strip()
+                if txt:
+                    stories.append(txt)
+            except Exception:
+                # nếu đọc 1 file lỗi, bỏ qua file đó
+                st.warning(f"Không đọc được file: {f.name}. Bỏ qua file này.")
+        return stories
+    except Exception as e:
+        # trả về rỗng để xử lý bên ngoài
+        return []
 
-# Lấy danh sách truyện
-all_stories = load_stories()
+# -----------------------
+# TRY: tạo thư mục nếu cần, rồi đọc truyện
+# -----------------------
+created = ensure_stories_folder(STORIES_DIR, create_sample_files=True)
+all_stories = load_stories_from_folder(STORIES_DIR)
 
+# Nếu không lấy được file nào, fallback về EMBEDDED_STORIES
 if not all_stories:
-    st.error("❌ Không tìm thấy truyện nào trong thư mục 'stories/'. Hãy thêm file .txt vào!")
-    st.stop()
+    st.info("Sử dụng truyện mẫu nhúng sẵn vì không tìm thấy file .txt hợp lệ trong 'stories/'.")
+    all_stories = EMBEDDED_STORIES.copy()
 
-# Chọn truyện theo ngày (xoay vòng)
+# -----------------------
+# Chọn truyện của ngày (xoay vòng)
+# -----------------------
 day_index = datetime.now().timetuple().tm_yday
 story_today = all_stories[day_index % len(all_stories)]
 
-# Dữ liệu story cho hôm nay
 DATA_STORY = {
     "title": f"🌸 Câu chuyện số {day_index % len(all_stories) + 1}",
     "content_viet": story_today,
-    "content_mong": "Phiên bản tiếng H’Mông đang được cập nhật..."
+    "content_mong": "Phiên bản H'Mông đang được cập nhật..."
 }
 
-# ============================
-# 2. QUIZ DATA
-# ============================
+# -----------------------
+# Phần còn lại của app: (giữ nguyên UI, quiz, v.v.)
+# -----------------------
 DATA_QUIZ = [
     {
         "question": "Hoa Tớ Dày (Pang Tớ Dày) thường nở vào dịp nào trong năm?",
@@ -55,13 +116,10 @@ DATA_QUIZ = [
     }
 ]
 
-# ============================
-# 3. GIAO DIỆN CSS
-# ============================
+# CSS + UI (bạn giữ nguyên hoặc thay đổi)
 st.markdown("""
     <style>
     .main { background-color: #fffbf0; }
-
     .header-box {
         background: linear-gradient(90deg, #b71c1c, #d32f2f);
         padding: 20px;
@@ -71,7 +129,6 @@ st.markdown("""
         margin-bottom: 20px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.25);
     }
-
     .quiz-card {
         background-color: white;
         padding: 15px;
@@ -82,9 +139,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ============================
-# 4. HEADER
-# ============================
 st.markdown(f"""
     <div class="header-box">
         <h1>🏛️ DI SẢN BẢN MÔNG</h1>
@@ -92,14 +146,10 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Quản lý điểm
 if 'score' not in st.session_state:
     st.session_state.score = 150
 
-# ============================
-# 5. THÔNG TIN CHUNG
-# ============================
-c1, c2 = st.columns([3, 1])
+c1, c2 = st.columns([3,1])
 with c1:
     st.write(f"👋 Chào em! Hôm nay chúng ta cùng nghe **{DATA_STORY['title']}**")
 with c2:
@@ -107,56 +157,39 @@ with c2:
 
 tab_story, tab_pattern, tab_quiz = st.tabs(["📖 Chuyện kể", "🧵 Hoa văn & Trang phục", "🏆 Thử thách lấy quà"])
 
-# ============================
-# 6. TAB 1 – STORY
-# ============================
 with tab_story:
-    col_img, col_txt = st.columns([1, 2])
+    col_img, col_txt = st.columns([1,2])
     with col_img:
         st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Prunus_cerasoides_flower.jpg/640px-Prunus_cerasoides_flower.jpg", caption="Hoa Tớ Dày báo hiệu mùa xuân")
-
     with col_txt:
         st.subheader(DATA_STORY["title"])
+        # audio placeholder
         st.audio("https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c4/Guzheng_Pingshu_Lotus.ogg/Guzheng_Pingshu_Lotus.ogg.mp3", format="audio/mp3")
-
         with st.expander("📜 Đọc truyện hôm nay", expanded=True):
             st.markdown(f"**Tiếng Việt:**\n\n{DATA_STORY['content_viet']}")
             st.markdown("---")
             st.markdown(f"**Tiếng H'Mông:**\n\n{DATA_STORY['content_mong']}")
 
-# ============================
-# 7. TAB 2 – HOA VĂN
-# ============================
 with tab_pattern:
     st.subheader("Vẻ đẹp trên trang phục người Mông")
-
     c_p1, c_p2, c_p3 = st.columns(3)
-
     with c_p1:
         st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Hmong_girls_in_Vietnam.jpg/480px-Hmong_girls_in_Vietnam.jpg", caption="Trang phục phụ nữ Mông")
         with st.popover("🔍 Xem chi tiết"):
             st.write("Váy người Mông được làm từ vải lanh, nhuộm chàm và thêu hoa văn sặc sỡ.")
-
     with c_p2:
         st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Hmong_Khen_performance.jpg/640px-Hmong_Khen_performance.jpg", caption="Nghệ thuật múa Khèn")
         with st.popover("🔍 Xem chi tiết"):
             st.write("Cây Khèn vừa là nhạc cụ, vừa là đạo cụ múa, thể hiện bản lĩnh của chàng trai Mông.")
-
     with c_p3:
         st.markdown("### 💡 Bạn có biết?")
         st.info("Người Mông dùng sáp ong vẽ hoa văn lên vải trước khi nhuộm chàm – tạo nên màu trắng xanh đặc trưng rất bền.")
 
-# ============================
-# 8. TAB 3 – QUIZ
-# ============================
 with tab_quiz:
     st.subheader("🎯 Trả lời đúng nhận ngay 10 Bắp Ngô/câu")
-
     for i, item in enumerate(DATA_QUIZ):
         st.markdown(f"<div class='quiz-card'><strong>Câu {i+1}:</strong> {item['question']}</div>", unsafe_allow_html=True)
-
         user_choice = st.radio(f"Đáp án câu {i+1}:", item['options'], key=f"q_{i}", label_visibility="collapsed")
-
         if st.button(f"Trả lời câu {i+1}", key=f"btn_{i}"):
             if user_choice == item['answer']:
                 st.balloons()
