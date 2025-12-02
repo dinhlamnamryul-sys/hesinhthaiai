@@ -865,5 +865,5 @@ with col_phai:
 
 # Footer
 st.markdown("---")
-st.caption("© 2025 Trường PTDTBT TH&THCS Na Ư - Bản Mường.")
+st.caption("© 2025 Trường PTDTBT TH&THCS Na Ư ")
 
