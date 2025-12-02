@@ -86,10 +86,6 @@ data = {
 }
 df = pd.DataFrame(data)
 
-# -------------------- HIỂN THỊ MA TRẬN MẪU --------------------
-st.write("📋 Ma trận câu hỏi mẫu:")
-st.dataframe(df[['Mon', 'Chuong', 'Bai', 'ChuDe', 'NoiDung', 'MucDo', 'SoCau']], use_container_width=True)
-
 # -------------------- CHỌN LỌC DỮ LIỆU ĐẦU VÀO --------------------
 col1, col2 = st.columns(2)
 with col1:
