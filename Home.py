@@ -340,7 +340,7 @@ with col3:
 
 with col4:
     # Card 4: Đa Phương Tiện (Crimson Red Text)
-    st.markdown('<div class="feature-card card-media"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Khám phá kho học liệu phong phú </p></div>', unsafe_allow_html=True)
+    st.markdown('<div class="feature-card card-media"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Khám phá kho học liệu phong phú nhiều tính năng.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_4):
         st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
 
