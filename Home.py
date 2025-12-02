@@ -83,7 +83,7 @@ else:
     }
     """
 
-# --- 2.1. CHÈN CSS GIAO DIỆN CHUNG ---
+# --- 2.1. CHÈN CSS GIAO DIỆN CHUNG & TÙY CHỈNH CARD MÀU ---
 st.markdown(f"""
 <style>
     {header_css}
@@ -98,12 +98,33 @@ st.markdown(f"""
     .stApp {{ background-color: #f8f9fa; margin-bottom: 60px; }}
     .main-header h1 {{ font-size: 2.5rem; font-weight: 900; margin: 0; }}
     .feature-card {{
-        background: white; padding: 20px; border-radius: 20px; text-align: center;
+        padding: 20px; border-radius: 20px; text-align: center;
         border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         height: 350px; display: flex; flex-direction: column; justify-content: space-between;
         transition: transform 0.3s;
     }}
     .feature-card:hover {{ transform: translateY(-5px); border-color: #ff9800; }}
+    
+    /* ------------------------------------- */
+    /* CSS TÙY CHỈNH MÀU NỀN CHO TỪNG CARD */
+    /* ------------------------------------- */
+    .card-math {{
+        background: linear-gradient(145deg, #ffe0b2, #fff3e0); /* Màu cam nhạt */
+        border: 1px solid #ff9800;
+    }}
+    .card-quiz {{
+        background: linear-gradient(145deg, #e0f7fa, #f4feff); /* Màu xanh dương nhạt */
+        border: 1px solid #00bcd4;
+    }}
+    .card-image {{
+        background: linear-gradient(145deg, #fce4ec, #fffafa); /* Màu hồng nhạt */
+        border: 1px solid #e91e63;
+    }}
+    .card-media {{
+        background: linear-gradient(145deg, #dce775, #f1f8e9); /* Màu xanh lá nhạt */
+        border: 1px solid #cddc39;
+    }}
+    
     .icon-box {{ font-size: 3.5rem; margin-bottom: 10px; }}
     .card-title {{ color: #d84315; font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; }}
     .stButton>button {{
@@ -199,8 +220,6 @@ with st.sidebar:
 
 # --- 4. NỘI DUNG TRANG CHÍNH ---
 
-# KHÔNG CẦN CONTAINER #petal-container NỮA
-
 # CHÈN DÒNG CHỮ CHẠY
 st.markdown("""
 <div class="running-text-container">
@@ -229,30 +248,32 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- CARD CHỨC NĂNG ---
+# --- CARD CHỨC NĂNG (ĐÃ THAY ĐỔI LỚP CSS) ---
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.markdown('<div class="feature-card"><div class="icon-box">🏔️</div><div class="card-title">Gia Sư Toán AI</div><p>Học toán song ngữ.</p></div>', unsafe_allow_html=True)
+    # Thêm lớp card-math
+    st.markdown('<div class="feature-card **card-math**"><div class="icon-box">🏔️</div><div class="card-title">Gia Sư Toán AI</div><p>Học toán song ngữ.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_1):
         st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
 
 with col2:
-    st.markdown('<div class="feature-card"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tạo đề trắc nghiệm trong vài giây.</p></div>', unsafe_allow_html=True)
+    # Thêm lớp card-quiz
+    st.markdown('<div class="feature-card **card-quiz**"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tạo đề trắc nghiệm trong vài giây.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_2):
         st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
 
 with col3:
-    st.markdown('<div class="feature-card"><div class="icon-box">🧿</div><div class="card-title">Giải bài tập từ ảnh</div><p>Giải bài mọi môn học bằng AI.</p></div>', unsafe_allow_html=True)
+    # Thêm lớp card-image
+    st.markdown('<div class="feature-card **card-image**"><div class="icon-box">🧿</div><div class="card-title">Giải bài tập từ ảnh</div><p>Giải bài mọi môn học bằng AI.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_3):
         st.page_link(PAGE_3, label="Giải ngay ➜", icon="📸", use_container_width=True)
 
 with col4:
-    st.markdown('<div class="feature-card"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Học liệu văn hóa H\'Mông.</p></div>', unsafe_allow_html=True)
+    # Thêm lớp card-media
+    st.markdown('<div class="feature-card **card-media**"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Học liệu văn hóa H\'Mông.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_4):
         st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
-
-# KHÔNG CẦN KẾT THÚC CONTAINER #petal-container NỮA
 
 # --- 5. CHÂN TRANG (FOOTER) ---
 st.markdown("""
