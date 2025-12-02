@@ -3,6 +3,7 @@ import pandas as pd
 from docx import Document
 from io import BytesIO
 import docx
+import re
 
 st.set_page_config(page_title="Tạo đề tự động từ ma trận", page_icon="📝", layout="wide")
 st.title("📝 Tạo đề kiểm tra tự động từ ma trận (tự nhận diện cột)")
@@ -36,45 +37,66 @@ def normalize_columns(df):
 # -------------------- HÀM ĐỌC WORD --------------------
 def read_matrix_from_docx(file):
     doc = docx.Document(file)
-    if not doc.tables:
-        return pd.DataFrame()
-    table = doc.tables[0]
     data = []
-    keys = [cell.text.strip() for cell in table.rows[0].cells]
-    for row in table.rows[1:]:
-        item = {keys[i]: row.cells[i].text.strip() for i in range(len(keys))}
-        data.append(item)
+    table_found = False
+
+    for table in doc.tables:
+        if len(table.rows) < 2:
+            continue  # Bỏ qua bảng không có dữ liệu
+        keys = [cell.text.strip() for cell in table.rows[0].cells]
+        if all(not k for k in keys):
+            continue
+        for row in table.rows[1:]:
+            item = {}
+            for i, key in enumerate(keys):
+                try:
+                    item[key] = row.cells[i].text.strip()
+                except IndexError:
+                    item[key] = ""
+            data.append(item)
+        table_found = True
+        break  # Lấy bảng đầu tiên hợp lệ
+
+    if not table_found:
+        return pd.DataFrame()
     return pd.DataFrame(data)
 
-# -------------------- UPLOAD FILE --------------------
+# -------------------- TỰ ĐỘNG XỬ LÝ CỘT THIẾU --------------------
+def auto_fill_missing_columns(df):
+    # Cột quan trọng
+    required_cols = ["ChuDe", "NoiDung", "MucDo", "SoCau"]
+    missing_cols = [c for c in required_cols if c not in df.columns]
+
+    for col in missing_cols:
+        if col == "SoCau":
+            df[col] = 1
+        else:
+            df[col] = "Chưa xác định"
+    return df
+
+# -------------------- XỬ LÝ FILE UPLOAD --------------------
 uploaded_matrix = st.file_uploader("📤 Tải lên ma trận (Excel hoặc Word)", type=["xlsx", "docx"])
 
 if uploaded_matrix:
-    # Đọc dữ liệu
+    df = pd.DataFrame()
     if uploaded_matrix.name.endswith(".xlsx"):
-        df = pd.read_excel(uploaded_matrix)
+        try:
+            df = pd.read_excel(uploaded_matrix, sheet_name=0)
+        except:
+            st.error("❌ Không đọc được file Excel!")
     elif uploaded_matrix.name.endswith(".docx"):
-        df = read_matrix_from_docx(uploaded_matrix)
+        try:
+            df = read_matrix_from_docx(uploaded_matrix)
+        except:
+            st.error("❌ Không đọc được file Word!")
 
     if df.empty:
-        st.error("❌ File không chứa dữ liệu hoặc bảng không hợp lệ!")
+        st.error("❌ File không chứa dữ liệu hợp lệ!")
     else:
         df = normalize_columns(df)
-        st.write("📋 Bảng ma trận sau khi chuẩn hóa cột:")
+        df = auto_fill_missing_columns(df)
+        st.write("📋 Bảng ma trận sau khi chuẩn hóa và tự động điền cột:")
         st.dataframe(df)
-
-        # Các cột quan trọng
-        required_cols = ["ChuDe", "NoiDung", "MucDo", "SoCau"]
-        missing_cols = [c for c in required_cols if c not in df.columns]
-
-        if missing_cols:
-            st.warning(f"⚠ Một số cột quan trọng không tìm thấy: {missing_cols}. Hệ thống sẽ dùng giá trị mặc định nếu cần.")
-            # Thêm cột mặc định nếu thiếu
-            for col in missing_cols:
-                if col == "SoCau":
-                    df[col] = 1  # Mặc định 1 câu
-                else:
-                    df[col] = "Chưa xác định"
 
         if st.button("📘 Tạo đề tự động"):
             st.success("✅ Đã tạo đề!")
@@ -93,6 +115,7 @@ if uploaded_matrix:
                     questions.append(q_text)
                     q_number += 1
 
+            # Hiển thị đề
             st.subheader("📄 Đề kiểm tra:")
             for q in questions:
                 st.markdown(q)
