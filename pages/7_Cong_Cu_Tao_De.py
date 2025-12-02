@@ -12,7 +12,7 @@ st.set_page_config(
 # ======== HÀM ĐỌC BẢNG TRONG FILE WORD (.docx) ========
 def read_word_table(uploaded_file):
     doc = Document(uploaded_file)
-    table = doc.tables[0]  # Lấy bảng đầu tiên trong file
+    table = doc.tables[0]  # Lấy bảng đầu tiên
     
     data = []
     keys = None
@@ -21,19 +21,19 @@ def read_word_table(uploaded_file):
         text = [cell.text.strip() for cell in row.cells]
 
         if i == 0:
-            keys = text   # dòng đầu = tiêu đề
+            keys = text   # Dòng tiêu đề
         else:
             data.append(text)
 
     df = pd.DataFrame(data, columns=keys)
     return df
 
+
 # ==================== APP ====================
 def main():
 
     st.title("📝 HỆ THỐNG TẠO ĐỀ KIỂM TRA TỰ ĐỘNG DỰA TRÊN MA TRẬN")
     st.caption("Dùng file Word hoặc Excel chứa ma trận để AI tự tạo đề chuẩn TT22 – 7991.")
-
     st.divider()
 
     # ---------------- SIDEBAR ----------------
@@ -75,45 +75,58 @@ def main():
     st.write("### 📊 Ma trận đề (từ file):")
     st.dataframe(df, use_container_width=True)
 
+
     # ================== TẠO PROMPTS ===================
     matrix_prompt = f"""
 Bạn là chuyên gia xây dựng đề kiểm tra chuẩn 7991 & Thông tư 22.
 Tôi đang tạo đề môn **{subject}**, **{grade}**, thời gian **{time}**, tên đề: **{exam_name}**.
 
-Đây là ma trận đề kiểm tra (bảng đã được trích xuất từ file Word/Excel):
+Đây là ma trận đề kiểm tra (được trích ra từ file giáo viên tải lên):
 
-{df.to_markdown(index=False)}
+{df.to_string(index=False)}
 
 ➡️ Hãy phân tích ma trận trên và tóm tắt:
 - Mạch kiến thức
 - Mức độ (NB – TH – VD – VDC)
 - Số câu – điểm – tỉ lệ %
-"""
+""".strip()
+
 
     generate_prompt = f"""
-Dựa vào ma trận đề tôi đã gửi, hãy tạo đầy đủ đề kiểm tra môn {subject}, {grade}:
+Dựa vào ma trận đề tôi đã gửi, hãy tạo đầy đủ đề kiểm tra môn **{subject}**, **{grade}**, thời gian **{time}**, tên đề **{exam_name}**.
 
 Yêu cầu:
 - Số câu và mức độ phải theo đúng ma trận.
 - Có trắc nghiệm + tự luận (nếu ma trận có).
 - Ghi rõ mức độ nhận thức mỗi câu.
 - Viết đáp án chi tiết + thang điểm tự luận.
-"""
+""".strip()
+
 
     eval_prompt = """
-Hãy phân tích độ khó – độ phân hóa – năng lực đánh giá theo ma trận Bloom của đề vừa sinh.
-"""
+Hãy phân tích đề kiểm tra vừa tạo theo chuẩn đánh giá năng lực:
+1. Tỉ lệ câu hỏi theo 4 mức độ Bloom.
+2. Các năng lực được đánh giá: Biết – Hiểu – Vận dụng – Vận dụng cao.
+3. Mức độ phân hóa – sự phù hợp với Thông tư 22 – ưu điểm – hạn chế.
+""".strip()
+
 
     reversion_prompt = """
-Hãy tạo mã đề số 2 (Đề B):
+Hãy tạo MÃ ĐỀ SỐ 2 (ĐỀ B):
 - Giữ nguyên cấu trúc ma trận
-- Đổi dữ kiện + bối cảnh
-- Không trùng câu hoặc đáp án
-"""
+- Thay đổi số liệu + ngữ cảnh + dữ kiện
+- Không trùng câu hoặc đáp án với ĐỀ A
+- Giữ độ khó và phân bố mức độ tương đương
+""".strip()
+
 
     export_prompt = """
-Hãy trình bày đề và đáp án đẹp, chuẩn để tôi copy vào Word.
-"""
+Hãy xuất bản đề kiểm tra và đáp án theo định dạng rõ ràng để tôi copy vào Word, gồm:
+1. Đề kiểm tra đầy đủ.
+2. Phần đáp án riêng.
+3. Rubric chấm điểm tự luận theo 3 mức: Chưa đạt – Đạt – Tốt.
+4. Trình bày gọn, dễ in, đẹp mắt.
+""".strip()
 
     # ================== TABS ===================
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
@@ -125,22 +138,28 @@ Hãy trình bày đề và đáp án đẹp, chuẩn để tôi copy vào Word.
     ])
 
     with tab1:
+        st.markdown("### 🔍 **Bước 1: Phân tích ma trận**")
         st.code(matrix_prompt, language="markdown")
 
     with tab2:
+        st.markdown("### 📝 **Bước 2: Sinh nội dung đề**")
         st.code(generate_prompt, language="markdown")
 
     with tab3:
+        st.markdown("### 📊 **Bước 3: Đánh giá năng lực**")
         st.code(eval_prompt, language="markdown")
 
     with tab4:
+        st.markdown("### 🔄 **Bước 4: Tạo mã đề số 2**")
         st.code(reversion_prompt, language="markdown")
 
     with tab5:
+        st.markdown("### 📤 **Bước 5: Xuất bản – Copy sang Word**")
         st.code(export_prompt, language="markdown")
 
     st.divider()
     st.caption("© 2025 Hệ thống hỗ trợ giáo viên tạo đề – PTDTBT TH&THCS NA Ư")
+
 
 # RUN
 if __name__ == "__main__":
