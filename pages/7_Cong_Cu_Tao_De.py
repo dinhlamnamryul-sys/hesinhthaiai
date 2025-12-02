@@ -9,7 +9,7 @@ st.title("📝 Tạo đề kiểm tra môn Toán (Lớp 6-9) theo CV 7991")
 
 st.markdown("""
 Hệ thống sử dụng ma trận câu hỏi mẫu được **tổng hợp đầy đủ từ mục lục sách giáo khoa Toán 6, 7, 8, 9 (Tập 1 - Kết nối tri thức với cuộc sống)**.
-Bạn có thể chọn Môn, Chương, Bài, Chủ đề và cấu hình tỉ lệ phân bổ câu hỏi theo 4 mức độ nhận thức (CV 7991) để tạo đề.
+Bạn có thể chọn **nhiều Môn, Chương, Bài, Chủ đề** và cấu hình tỉ lệ phân bổ câu hỏi theo 4 mức độ nhận thức (CV 7991) để tạo đề.
 """)
 
 # -------------------- DỮ LIỆU MOCK THEO MỤC LỤC SGK TOÁN 6-9 KNTT TẬP 1 (Đầy đủ) --------------------
@@ -92,6 +92,7 @@ def create_ma_tran_cv7991(df_input, total_cau):
     
     df_temp = df_input.copy()
     
+    # Cột ma trận 9 ô (NL: Nhiều lựa chọn, DS: Đúng - Sai, TL: Tự luận)
     matrix_cols_9 = [
         'NL - Biết', 'NL - Hiểu', 'NL - Vận dụng',
         'DS - Biết', 'DS - Hiểu', 'DS - Vận dụng',
@@ -101,10 +102,37 @@ def create_ma_tran_cv7991(df_input, total_cau):
     for col in matrix_cols_9:
         df_temp[col] = 0
         
-    # Ánh xạ số câu N_to_Take vào 9 cột ma trận (Giả định NL: Nhận biết/Thông hiểu; TL: Vận dụng/Vận dụng cao)
-    df_temp.loc[df_temp['MucDo'] == 'Nhận biết', 'NL - Biết'] = df_temp['N_to_Take']
-    df_temp.loc[df_temp['MucDo'] == 'Thông hiểu', 'NL - Hiểu'] = df_temp['N_to_Take']
+    # Ánh xạ số câu N_to_Take vào 9 cột ma trận (Giả định phân bổ cho Toán: NL/DS chiếm Biết/Hiểu, TL chiếm Vận dụng/Vận dụng cao)
+    # Đây là mô hình giả lập, có thể cần điều chỉnh tỉ lệ dựa trên yêu cầu thực tế của từng trường
+    
+    # 60% Nhận biết -> NL - Biết (hoặc DS - Biết)
+    df_temp.loc[df_temp['MucDo'] == 'Nhận biết', 'NL - Biết'] = (df_temp['N_to_Take'] * 0.6).apply(lambda x: max(1, math.floor(x))) 
+    df_temp.loc[df_temp['MucDo'] == 'Nhận biết', 'DS - Biết'] = df_temp['N_to_Take'] - df_temp['NL - Biết']
+    df_temp.loc[df_temp['MucDo'] == 'Nhận biết', 'NL - Biết'] = df_temp['NL - Biết'].apply(lambda x: x if x > 0 else 0) # Làm tròn và đảm bảo không âm
+
+    # 60% Thông hiểu -> NL - Hiểu (hoặc DS - Hiểu)
+    df_temp.loc[df_temp['MucDo'] == 'Thông hiểu', 'NL - Hiểu'] = (df_temp['N_to_Take'] * 0.6).apply(lambda x: max(1, math.floor(x)))
+    df_temp.loc[df_temp['MucDo'] == 'Thông hiểu', 'DS - Hiểu'] = df_temp['N_to_Take'] - df_temp['NL - Hiểu']
+    df_temp.loc[df_temp['MucDo'] == 'Thông hiểu', 'NL - Hiểu'] = df_temp['NL - Hiểu'].apply(lambda x: x if x > 0 else 0)
+    
+    # Vận dụng & Vận dụng cao -> TL - Vận dụng (Đây là giả định thường thấy cho các bài toán tổng hợp)
     df_temp.loc[df_temp['MucDo'].isin(['Vận dụng', 'Vận dụng cao']), 'TL - Vận dụng'] = df_temp['N_to_Take']
+
+    # Nếu tổng N_to_Take của 1 hàng là 1, và được phân bổ thành 0.6 và 0.4, có thể bị làm tròn về 0. Cần đảm bảo tổng bằng N_to_Take
+    df_temp['Current_Sum'] = df_temp[matrix_cols_9].sum(axis=1)
+    df_temp['Diff'] = df_temp['N_to_Take'] - df_temp['Current_Sum']
+    
+    for index in df_temp.index:
+        diff = df_temp.loc[index, 'Diff']
+        if diff != 0:
+            # Chỉ điều chỉnh cột không phải TL - Vận dụng
+            if df_temp.loc[index, 'MucDo'] == 'Nhận biết':
+                col_to_adjust = 'NL - Biết' if diff > 0 else 'DS - Biết' 
+                df_temp.loc[index, col_to_adjust] += diff
+            elif df_temp.loc[index, 'MucDo'] == 'Thông hiểu':
+                col_to_adjust = 'NL - Hiểu' if diff > 0 else 'DS - Hiểu'
+                df_temp.loc[index, col_to_adjust] += diff
+                
     
     index_cols = ['ChuDe', 'NoiDung']
     
@@ -116,11 +144,11 @@ def create_ma_tran_cv7991(df_input, total_cau):
         fill_value=0
     )
     
+    # Phần tính tổng và điểm (Giữ nguyên logic cũ, đảm bảo tính đúng tỉ lệ % và điểm)
     pivot_table['Tổng số câu'] = pivot_table[matrix_cols_9].sum(axis=1)
     
     tong_so_cau_hang = pivot_table.sum().to_frame().T 
 
-    # Tính Tổng theo Mức độ (Biết, Hiểu, Vận dụng)
     tong_theo_muc_do = {}
     tong_theo_muc_do['Tổng Biết'] = tong_so_cau_hang[['NL - Biết', 'DS - Biết', 'TL - Biết']].sum(axis=1).iloc[0]
     tong_theo_muc_do['Tổng Hiểu'] = tong_so_cau_hang[['NL - Hiểu', 'DS - Hiểu', 'TL - Hiểu']].sum(axis=1).iloc[0]
@@ -134,7 +162,6 @@ def create_ma_tran_cv7991(df_input, total_cau):
     diem_muc_do = {k: round((v / 100) * tong_diem, 1) for k, v in ti_le_muc_do.items() if k != 'Tổng'}
     diem_muc_do['Tổng'] = round(sum(diem_muc_do.values()), 1)
     
-    # Điều chỉnh điểm tổng để đảm bảo tổng là 10.0 (nếu có sai số làm tròn nhỏ)
     if tong_diem > 0 and abs(diem_muc_do['Tổng'] - tong_diem) > 0.05:
         diff = tong_diem - diem_muc_do['Tổng']
         max_key = max(diem_muc_do, key=diem_muc_do.get)
@@ -200,7 +227,7 @@ ma_tran_df_final = pd.DataFrame()
 df_dac_ta_display = pd.DataFrame()
 
 
-# -------------------- CHỌN LỌC DỮ LIỆU ĐẦU VÀO --------------------
+# -------------------- CHỌN LỌC DỮ LIỆU ĐẦU VÀO (ĐÃ CẬP NHẬT MULTISELECT) --------------------
 
 col1, col2 = st.columns(2)
 with col1:
@@ -209,20 +236,25 @@ with col1:
     
     df_mon = df[df['Mon']==mon]
     chuong_list = sorted(df_mon['Chuong'].unique())
-    chuong = st.selectbox("2. Chọn chương:", chuong_list, index=0)
+    # CẬP NHẬT: Cho phép chọn nhiều Chương
+    chuong = st.multiselect("2. Chọn các chương (có thể nhiều):", chuong_list, default=chuong_list)
 
 with col2:
-    df_chuong = df_mon[df_mon['Chuong']==chuong]
+    # Lọc Bài theo các Chương đã chọn
+    df_chuong = df_mon[df_mon['Chuong'].isin(chuong)]
     bai_list = sorted(df_chuong['Bai'].unique())
-    bai = st.selectbox("3. Chọn bài:", bai_list, index=0)
+    # CẬP NHẬT: Cho phép chọn nhiều Bài
+    bai = st.multiselect("3. Chọn các bài (có thể nhiều):", bai_list, default=bai_list)
     
-    df_bai = df_chuong[df_chuong['Bai']==bai]
+    # Lọc Chủ đề theo các Bài đã chọn
+    df_bai = df_chuong[df_chuong['Bai'].isin(bai)]
     chu_de_list = sorted(df_bai['ChuDe'].unique())
     chu_de = st.multiselect("4. Chọn Chủ đề/Nội dung (có thể nhiều):", chu_de_list, default=chu_de_list)
 
+# Lọc DataFrame cuối cùng
 df_filtered = df[(df['Mon']==mon) & 
-                 (df['Chuong']==chuong) & 
-                 (df['Bai']==bai) & 
+                 (df['Chuong'].isin(chuong)) & 
+                 (df['Bai'].isin(bai)) & 
                  (df['ChuDe'].isin(chu_de))].copy()
 
 # -------------------- THIẾT LẬP CV 7991 --------------------
@@ -260,10 +292,10 @@ st.info(f"Tổng tỉ lệ đã nhập: {total_percent}%. Hệ thống sẽ tự
 if st.button("📘 Tạo đề tự động", use_container_width=True):
     
     if df_filtered.empty or total_percent == 0:
-        st.error("Lỗi: Không tìm thấy dữ liệu (Chủ đề, Bài) hoặc Tổng tỉ lệ mức độ bằng 0%.")
+        st.error("Lỗi: Không tìm thấy dữ liệu (Chương, Bài, Chủ đề) đã chọn hoặc Tổng tỉ lệ mức độ bằng 0%. Vui lòng kiểm tra lại các mục lựa chọn.")
         st.stop()
 
-    # 1. Chuẩn hóa tỉ lệ và tính N_to_Take
+    # 1. Chuẩn hóa tỉ lệ và tính N_to_Take (Giữ nguyên logic phân bổ)
     normalized_ti_le = {md: percent / total_percent for md, percent in st.session_state.ti_le_muc_do_math.items()}
     required_q_by_level = {}
     remaining_total_q = so_cau_total
@@ -341,7 +373,7 @@ if st.button("📘 Tạo đề tự động", use_container_width=True):
 
     if not df_with_n_take.empty and len(questions) == so_cau_total:
         ma_tran_df_final = create_ma_tran_cv7991(df_with_n_take, so_cau_total)
-        st.write(f"Ma trận cho môn: **{mon}**, Chương: **{chuong}**, Tổng số câu: **{so_cau_total}**")
+        st.write(f"Ma trận cho môn: **{mon}**, Tổng số câu: **{so_cau_total}**")
         st.dataframe(ma_tran_df_final, hide_index=True, use_container_width=True)
     else:
         st.error(f"Lỗi phân bổ: Số câu tạo được ({len(questions)}) **không khớp** với Tổng số câu yêu cầu ({so_cau_total}). Vui lòng thử lại với cấu hình khác, điều chỉnh tỉ lệ, hoặc chọn thêm Chủ đề.")
@@ -375,7 +407,7 @@ if st.button("📘 Tạo đề tự động", use_container_width=True):
 
     # 6. Xuất Word (Bao gồm Ma trận và Bản Đặc tả)
     doc = Document()
-    doc.add_heading(f"ĐỀ KIỂM TRA: {mon} - {chuong} - Bài {bai}", 0)
+    doc.add_heading(f"ĐỀ KIỂM TRA: {mon} - (Nhiều Chương/Bài)", 0)
     
     # --- Thêm Ma trận vào Word ---
     doc.add_heading("1. MA TRẬN ĐỀ KIỂM TRA ĐỊNH KÌ (Theo Phụ lục 1)", 2)
@@ -428,6 +460,6 @@ if st.button("📘 Tạo đề tự động", use_container_width=True):
     st.download_button(
         "📥 Tải xuống file Word (Bao gồm cấu trúc đề)",
         data=buffer,
-        file_name=f"De_Kiem_Tra_{mon}_{chuong}_{bai}_{so_cau_total}cau.docx",
+        file_name=f"De_Kiem_Tra_{mon}_TongHop_{so_cau_total}cau.docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
