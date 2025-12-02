@@ -51,17 +51,17 @@ st.set_page_config(
 if base64_image:
     header_css = f"""
     .main-header {{
-        background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("data:image/jpg;base64,{base64_image}");
+        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("data:image/jpg;base64,{base64_image}");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         color: white; 
-        padding: 40px; 
-        border-radius: 20px; 
+        padding: 50px; 
+        border-radius: 25px; 
         text-align: center;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); 
-        border-bottom: 6px solid #fdd835;
-        margin-bottom: 20px; 
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5); 
+        border-bottom: 8px solid #fdd835;
+        margin-bottom: 30px; 
         margin-top: -20px;
         position: relative;
         overflow: hidden;
@@ -69,145 +69,129 @@ if base64_image:
     .main-header h1, .main-header h3 {{
         z-index: 10; 
         position: relative;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.7); 
+        text-shadow: 2px 2px 6px rgba(0,0,0,0.9); 
     }}
     """
 else:
     header_css = """
     .main-header {
-        background: linear-gradient(135deg, #b71c1c 0%, #d32f2f 60%, #ff6f00 100%);
-        color: white; padding: 30px; border-radius: 20px; text-align: center;
-        box-shadow: 0 10px 30px rgba(183, 28, 28, 0.4); border-bottom: 6px solid #fdd835;
-        margin-bottom: 20px; margin-top: -20px;
+        background: linear-gradient(135deg, #b71c1c 0%, #ff6f00 100%);
+        color: white; padding: 50px; border-radius: 25px; text-align: center;
+        box-shadow: 0 15px 40px rgba(183, 28, 28, 0.5); border-bottom: 8px solid #fdd835;
+        margin-bottom: 30px; margin-top: -20px;
     }
     """
 
-# --- 2.1. CHÈN CSS GIAO DIỆN CHUNG & TÙY CHỈNH CARD 3D ---
+# --- 2.1. CHÈN CSS GIAO DIỆN CHUNG & TÙY CHỈNH CARD NEUMORPHISM ---
 st.markdown(f"""
 <style>
     {header_css}
-    [data-testid="stHeader"] {{ background-color: rgba(0,0,0,0); color: transparent; }}
-    [data-testid="stToolbar"] {{ visibility: hidden !important; display: none !important; }}
-    [data-testid="stDecoration"] {{ visibility: hidden !important; display: none !important; }}
+    
+    /* Thiết lập nền chung */
+    .stApp {{ background-color: #ecf0f3; /* Nền Neumorphism */ margin-bottom: 60px; }}
+    .main-header h1 {{ font-size: 3rem; font-weight: 900; margin: 0; }}
+
+    /* Ẩn các thanh mặc định của Streamlit */
+    [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stDecoration"] {{ 
+        background-color: transparent !important; color: transparent !important; 
+    }}
+    
+    /* Nút mở Sidebar */
     [data-testid="stSidebarCollapsedControl"] {{
-        visibility: visible !important; display: block !important;
-        color: #b71c1c !important; background-color: white; border-radius: 50%;
+        color: #b71c1c !important; background-color: #ecf0f3; border-radius: 50%;
+        box-shadow: 5px 5px 10px #bec3c7, -5px -5px 10px #ffffff;
         padding: 5px; z-index: 999999;
     }}
-    .stApp {{ background-color: #f8f9fa; margin-bottom: 60px; }}
-    .main-header h1 {{ font-size: 2.5rem; font-weight: 900; margin: 0; }}
     
     /* ------------------------------------- */
-    /* CSS CHO HIỆU ỨNG 3D VÀ MÀU SẮC RỰC RỠ */
+    /* CSS CHO HIỆU ỨNG NEUMORPHISM (WOW EFFECT) */
     /* ------------------------------------- */
     .feature-card {{
-        /* Cấu hình cơ bản */
-        padding: 30px; /* Tăng padding để rộng rãi hơn */
-        border-radius: 25px; /* Bo tròn hơn */
+        /* Cấu hình Neumorphism cơ bản */
+        background: #ecf0f3;
+        padding: 35px 20px; 
+        border-radius: 25px; 
         text-align: center;
-        height: 350px; 
+        height: 380px; /* Tăng chiều cao để thoáng hơn */
         display: flex; flex-direction: column; justify-content: space-between;
-        transition: all 0.4s ease-in-out;
-        position: relative; /* Quan trọng cho hiệu ứng 3D */
-        transform: translateY(0);
+        transition: all 0.5s ease-in-out;
+        position: relative; 
         
-        /* Hiệu ứng nổi lên nhẹ khi hover */
+        /* Hiệu ứng Neumorphism nổi nhẹ */
+        box-shadow: 8px 8px 15px #bec3c7, -8px -8px 15px #ffffff;
+        border: 1px solid rgba(255,255,255,0.8);
     }}
     .feature-card:hover {{ 
-        transform: translateY(-8px) rotateX(2deg); 
-        z-index: 10;
-        box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        /* Hiệu ứng Pressed/Inset khi hover */
+        transform: scale(1.02); 
+        cursor: pointer;
+        box-shadow: inset 5px 5px 10px #bec3c7, inset -5px -5px 10px #ffffff;
     }}
     
-    /* Thiết lập lại màu chữ cho nội dung p trong card */
-    .feature-card p {{ color: #444; font-size: 0.95rem; }}
+    .icon-box {{ font-size: 4rem; margin-bottom: 15px; text-shadow: 2px 2px 5px rgba(0,0,0,0.1); }}
+    .card-title {{ font-weight: 900; font-size: 1.6rem; margin-bottom: 5px; text-transform: uppercase; }}
+    .feature-card p {{ color: #666; font-size: 1rem; line-height: 1.5; }}
 
-    /* Màu sắc và hiệu ứng 3D chi tiết cho từng card */
+
+    /* Màu sắc Gradient cho từng card */
     
-    /* 1. Gia Sư Toán AI (Màu Vàng/Cam) */
-    .card-math {{
-        background: linear-gradient(145deg, #ffc107, #ff9800); 
-        border: 1px solid #ffb300;
-        box-shadow: 
-            0 10px 0 #ff6f00, /* Màu dưới cùng (3D bottom) */
-            0 10px 20px rgba(0,0,0,0.15); /* Bóng đổ chung */
+    /* 1. Gia Sư Toán AI (Golden Orange) */
+    .card-math .card-title {{ 
+        background: linear-gradient(45deg, #ffc107, #ff6f00); 
+        -webkit-background-clip: text; 
+        -webkit-text-fill-color: transparent; 
     }}
-    .card-math:hover {{
-        box-shadow: 
-            0 10px 0 #ff6f00, 
-            0 20px 40px rgba(0,0,0,0.3);
-    }}
-    .card-math .card-title {{ color: #e65100; font-weight: 900; }}
 
-    /* 2. Sinh Đề Tốc Độ (Màu Xanh Lá Cây) */
-    .card-quiz {{
-        background: linear-gradient(145deg, #8bc34a, #689f38); 
-        border: 1px solid #7cb342;
-        box-shadow: 
-            0 10px 0 #33691e, /* Màu dưới cùng (3D bottom) */
-            0 10px 20px rgba(0,0,0,0.15); 
+    /* 2. Sinh Đề Tốc Độ (Electric Blue) */
+    .card-quiz .card-title {{ 
+        background: linear-gradient(45deg, #00d4ff, #007bff); 
+        -webkit-background-clip: text; 
+        -webkit-text-fill-color: transparent; 
     }}
-    .card-quiz:hover {{
-        box-shadow: 
-            0 10px 0 #33691e, 
-            0 20px 40px rgba(0,0,0,0.3);
-    }}
-    .card-quiz .card-title {{ color: #1b5e20; font-weight: 900; }}
 
-    /* 3. Giải bài tập từ ảnh (Màu Xanh Dương) */
-    .card-image {{
-        background: linear-gradient(145deg, #4fc3f7, #29b6f6); 
-        border: 1px solid #03a9f4;
-        box-shadow: 
-            0 10px 0 #0277bd, /* Màu dưới cùng (3D bottom) */
-            0 10px 20px rgba(0,0,0,0.15); 
+    /* 3. Giải bài tập từ ảnh (Vibrant Green) */
+    .card-image .card-title {{ 
+        background: linear-gradient(45deg, #4ef91c, #1f9403); 
+        -webkit-background-clip: text; 
+        -webkit-text-fill-color: transparent; 
     }}
-    .card-image:hover {{
-        box-shadow: 
-            0 10px 0 #0277bd, 
-            0 20px 40px rgba(0,0,0,0.3);
-    }}
-    .card-image .card-title {{ color: #01579b; font-weight: 900; }}
     
-    /* 4. Đa Phương Tiện (Màu Đỏ/Hồng) */
-    .card-media {{
-        background: linear-gradient(145deg, #ff8a65, #ff5722); 
-        border: 1px solid #ff7043;
-        box-shadow: 
-            0 10px 0 #bf360c, /* Màu dưới cùng (3D bottom) */
-            0 10px 20px rgba(0,0,0,0.15); 
+    /* 4. Đa Phương Tiện (Crimson Red) */
+    .card-media .card-title {{ 
+        background: linear-gradient(45deg, #ff3d00, #b71c1c); 
+        -webkit-background-clip: text; 
+        -webkit-text-fill-color: transparent; 
     }}
-    .card-media:hover {{
-        box-shadow: 
-            0 10px 0 #bf360c, 
-            0 20px 40px rgba(0,0,0,0.3);
-    }}
-    .card-media .card-title {{ color: #880e4f; font-weight: 900; }}
 
     
-    /* Các thành phần chung khác */
-    .icon-box {{ font-size: 3.5rem; margin-bottom: 10px; }}
-    
+    /* Nút hành động nổi bật */
     .stButton>button {{
-        width: 100%; border-radius: 50px; background: linear-gradient(90deg, #ff6f00, #ffca28);
-        border: none; color: white; font-weight: bold; padding: 10px 0;
-        transform: translateY(0); transition: transform 0.2s;
+        width: 100%; border-radius: 50px; 
+        background: linear-gradient(90deg, #ff6f00, #ffca28);
+        border: none; color: white; font-weight: bold; padding: 12px 0;
+        box-shadow: 4px 4px 8px #d1d9e6, -4px -4px 8px #ffffff;
+        transform: translateY(0); transition: all 0.3s;
     }}
-    .stButton>button:hover {{ transform: scale(1.05); background: linear-gradient(90deg, #ff9800, #ffc107); }}
+    .stButton>button:hover {{ 
+        transform: translateY(-2px); 
+        box-shadow: 6px 6px 12px #d1d9e6, -6px -6px 12px #ffffff;
+        background: linear-gradient(90deg, #ff9800, #ffc107); 
+    }}
     
+    /* Chân trang và các thành phần khác */
     .footer {{
         position: fixed; left: 0; bottom: 0; width: 100%;
-        background-color: #fff; color: #555; text-align: center;
-        padding: 10px; font-size: 14px; border-top: 3px solid #b71c1c;
-        z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        background-color: #ecf0f3; color: #555; text-align: center;
+        padding: 15px; font-size: 14px; border-top: 3px solid #fdd835;
+        z-index: 999; box-shadow: 0 -2px 15px rgba(0,0,0,0.1);
     }}
     .footer p {{ margin: 0; font-family: sans-serif; line-height: 1.5; }}
     
     /* CSS cho trình phát nhạc */
     audio {{
         width: 60%;
-        border-radius: 30px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        border-radius: 15px;
+        box-shadow: 5px 5px 10px #bec3c7, -5px -5px 10px #ffffff;
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -218,19 +202,19 @@ st.markdown("""
     /* CSS MỚI: Chữ chạy ngang (Marquee effect) */
     .running-text-container {
         overflow: hidden; 
-        background-color: #ffffff; 
+        background-color: #fff; 
         color: #b71c1c; 
         font-weight: bold;
-        padding: 8px 0; 
-        margin-bottom: 10px; 
-        border-bottom: 2px solid #ff9800;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        padding: 10px 0; 
+        margin-bottom: 20px; 
+        border-bottom: 3px solid #ff9800;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     .running-text {
         display: inline-block;
         white-space: nowrap;
-        font-size: 1.2rem; 
-        animation: marquee 30s linear infinite; 
+        font-size: 1.3rem; 
+        animation: marquee 35s linear infinite; 
     }
     @keyframes marquee {
         0%   { transform: translate(100%, 0); }
@@ -253,11 +237,11 @@ with st.sidebar:
     with col_logo2:
         st.image(sidebar_logo, width=150)
     
-    st.markdown("<h3 style='text-align: center; color: #b71c1c; margin-top: 10px;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center; color: #b71c1c; margin-top: 10px; font-weight: 900;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
     st.markdown("---")
     st.markdown("### 🚀 Menu Chức Năng")
 
-    if st.button("🏠 Trang Chủ"):
+    if st.button("🏠 Trang Chủ", use_container_width=True):
         st.rerun()
     if os.path.exists(PAGE_1):
         st.page_link(PAGE_1, label="Gia Sư Toán AI", icon="🏔️")
@@ -287,7 +271,7 @@ with st.sidebar:
 st.markdown("""
 <div class="running-text-container">
     <div class="running-text">
-        📢 Xin chào quý thầy cô và các em học sinh, chào mừng đến với Cổng Giáo Dục Số Na Ư! Chúc mọi người một ngày học tập và làm việc hiệu quả! 
+        📢 CHÀO MỪNG ĐẾN VỚI CỔNG GIÁO DỤC SỐ NA Ư! SỬ DỤNG AI ĐỂ NÂNG CAO CHẤT LƯỢNG DẠY VÀ HỌC TẠI VÙNG CAO.
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -300,41 +284,41 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- THANH NHẠC H'MÔNG ---
+# --- THANH NHẠC H'MÔNG (Neumorphism style) ---
 st.markdown(f"""
-<div style="text-align:center; margin-bottom:30px;">
-<h4 style="color: #555;">🎵 Giai điệu bản Mông</h4>
-<audio controls autoplay>
+<div style="text-align:center; margin-bottom:40px;">
+<h4 style="color: #444; font-weight: 600;">🎧 Giai điệu bản Mông</h4>
+<audio controls autoplay style="box-shadow: 8px 8px 15px #bec3c7, -8px -8px 15px #ffffff; background: #ecf0f3;">
     {audio_source_html}
     Trình duyệt của bạn không hỗ trợ audio.
 </audio>
 </div>
 """, unsafe_allow_html=True)
 
-# --- CARD CHỨC NĂNG (ĐÃ CÓ HIỆU ỨNG 3D) ---
+# --- CARD CHỨC NĂNG (NEUMORPHISM) ---
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    # Card 1: Gia Sư Toán AI (Vàng/Cam)
-    st.markdown('<div class="feature-card card-math"><div class="icon-box">🏔️</div><div class="card-title">Gia Sư Toán AI</div><p>Học toán song ngữ.</p></div>', unsafe_allow_html=True)
+    # Card 1: Gia Sư Toán AI (Golden Orange Text)
+    st.markdown('<div class="feature-card card-math"><div class="icon-box">🏔️</div><div class="card-title">Gia Sư Toán AI</div><p>Sử dụng trí tuệ nhân tạo để học tập, giải bài và ôn tập môn Toán bằng hai ngôn ngữ.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_1):
         st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
 
 with col2:
-    # Card 2: Sinh Đề Tốc Độ (Xanh Lá)
-    st.markdown('<div class="feature-card card-quiz"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tạo đề trắc nghiệm trong vài giây.</p></div>', unsafe_allow_html=True)
+    # Card 2: Sinh Đề Tốc Độ (Electric Blue Text)
+    st.markdown('<div class="feature-card card-quiz"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tự động tạo các bộ đề thi trắc nghiệm theo chương trình, giúp tiết kiệm thời gian cho giáo viên.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_2):
         st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
 
 with col3:
-    # Card 3: Giải bài tập từ ảnh (Xanh Dương)
-    st.markdown('<div class="feature-card card-image"><div class="icon-box">🧿</div><div class="card-title">Giải bài tập từ ảnh</div><p>Giải bài mọi môn học bằng AI.</p></div>', unsafe_allow_html=True)
+    # Card 3: Giải bài tập từ ảnh (Vibrant Green Text)
+    st.markdown('<div class="feature-card card-image"><div class="icon-box">🧿</div><div class="card-title">Giải bài tập từ ảnh</div><p>Chụp ảnh bài tập bất kỳ và nhận lời giải chi tiết, giúp học sinh tự học hiệu quả hơn.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_3):
         st.page_link(PAGE_3, label="Giải ngay ➜", icon="📸", use_container_width=True)
 
 with col4:
-    # Card 4: Đa Phương Tiện (Đỏ)
-    st.markdown('<div class="feature-card card-media"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Học liệu văn hóa H\'Mông.</p></div>', unsafe_allow_html=True)
+    # Card 4: Đa Phương Tiện (Crimson Red Text)
+    st.markdown('<div class="feature-card card-media"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Khám phá kho học liệu phong phú về văn hóa, lịch sử và ngôn ngữ dân tộc H\'Mông.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_4):
         st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
 
@@ -342,6 +326,6 @@ with col4:
 st.markdown("""
 <div class="footer">
     <p>👨‍🏫 <b>Nhóm tác giả:</b> Trường PTDTBT TH&THCS Na Ư</p>
-    <p style="font-size: 12px; color: #888;">© 2025 Cổng Giáo Dục Số Na Ư</p>
+    <p style="font-size: 12px; color: #888;">© 2025 Cổng Giáo Dục Số Na Ư - Powered by AI & Streamlit</p>
 </div>
 """, unsafe_allow_html=True)
