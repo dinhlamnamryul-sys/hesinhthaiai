@@ -99,34 +99,60 @@ st.markdown(f"""
     .main-header h1 {{ font-size: 2.5rem; font-weight: 900; margin: 0; }}
     .feature-card {{
         padding: 20px; border-radius: 20px; text-align: center;
-        border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        /* Loại bỏ border và box-shadow chung để các card riêng tự định nghĩa */
+        /* border: 1px solid #eee; box-shadow: 0 4px 6px rgba(0,0,0,0.05); */
         height: 350px; display: flex; flex-direction: column; justify-content: space-between;
         transition: transform 0.3s;
     }}
-    .feature-card:hover {{ transform: translateY(-5px); border-color: #ff9800; }}
+    .feature-card:hover {{ transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.2); }}
     
     /* ------------------------------------- */
     /* CSS TÙY CHỈNH MÀU NỀN CHO TỪNG CARD */
+    /* Đã dùng màu đậm hơn và bóng hơn để dễ thấy */
     /* ------------------------------------- */
     .card-math {{
-        background: linear-gradient(145deg, #ffe0b2, #fff3e0); /* Màu cam nhạt */
-        border: 1px solid #ff9800;
+        /* Màu Vàng/Cam (Toán) */
+        background: linear-gradient(145deg, #ffb300, #ff8f00); 
+        border: 2px solid #ff6f00;
+        color: #5d4037; /* Màu chữ nâu */
+        box-shadow: 0 6px 15px rgba(255, 179, 0, 0.4);
     }}
+    .card-math .card-title {{ color: #a0522d; }}
+
     .card-quiz {{
-        background: linear-gradient(145deg, #e0f7fa, #f4feff); /* Màu xanh dương nhạt */
-        border: 1px solid #00bcd4;
+        /* Màu Xanh Lá Cây (Tạo đề) */
+        background: linear-gradient(145deg, #66bb6a, #388e3c); 
+        border: 2px solid #2e7d32;
+        color: #f1f8e9; /* Màu chữ trắng/nhạt */
+        box-shadow: 0 6px 15px rgba(102, 187, 106, 0.4);
     }}
+    .card-quiz .card-title {{ color: #e8f5e9; }}
+
     .card-image {{
-        background: linear-gradient(145deg, #fce4ec, #fffafa); /* Màu hồng nhạt */
-        border: 1px solid #e91e63;
+        /* Màu Xanh Dương/Tím (Giải bài tập) */
+        background: linear-gradient(145deg, #42a5f5, #1e88e5); 
+        border: 2px solid #1565c0;
+        color: #e3f2fd; /* Màu chữ trắng/nhạt */
+        box-shadow: 0 6px 15px rgba(66, 165, 245, 0.4);
     }}
-    .card-media {{
-        background: linear-gradient(145deg, #dce775, #f1f8e9); /* Màu xanh lá nhạt */
-        border: 1px solid #cddc39;
-    }}
+    .card-image .card-title {{ color: #bbdefb; }}
     
+    .card-media {{
+        /* Màu Đỏ/Hồng (Văn hóa/Phương tiện) */
+        background: linear-gradient(145deg, #ef5350, #d32f2f); 
+        border: 2px solid #c62828;
+        color: #ffebee; /* Màu chữ trắng/nhạt */
+        box-shadow: 0 6px 15px rgba(239, 83, 80, 0.4);
+    }}
+    .card-media .card-title {{ color: #ffcdd2; }}
+
+
     .icon-box {{ font-size: 3.5rem; margin-bottom: 10px; }}
-    .card-title {{ color: #d84315; font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; }}
+    .card-title {{ font-weight: 800; font-size: 1.3rem; margin-bottom: 5px; }}
+    
+    /* Thiết lập lại màu chữ mặc định cho nội dung thường (p) trong card */
+    .feature-card p {{ color: inherit; }}
+
     .stButton>button {{
         width: 100%; border-radius: 50px; background: linear-gradient(90deg, #ff6f00, #ffca28);
         border: none; color: white; font-weight: bold; padding: 10px 0;
@@ -248,30 +274,30 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# --- CARD CHỨC NĂNG (ĐÃ THAY ĐỔI LỚP CSS) ---
+# --- CARD CHỨC NĂNG (ĐÃ SỬ DỤNG MÀU ĐẬM HƠN) ---
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    # Thêm lớp card-math
-    st.markdown('<div class="feature-card **card-math**"><div class="icon-box">🏔️</div><div class="card-title">Gia Sư Toán AI</div><p>Học toán song ngữ.</p></div>', unsafe_allow_html=True)
+    # Card 1: Gia Sư Toán AI (Vàng/Cam)
+    st.markdown('<div class="feature-card card-math"><div class="icon-box">🏔️</div><div class="card-title">Gia Sư Toán AI</div><p>Học toán song ngữ.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_1):
         st.page_link(PAGE_1, label="Học ngay ➜", icon="📝", use_container_width=True)
 
 with col2:
-    # Thêm lớp card-quiz
-    st.markdown('<div class="feature-card **card-quiz**"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tạo đề trắc nghiệm trong vài giây.</p></div>', unsafe_allow_html=True)
+    # Card 2: Sinh Đề Tốc Độ (Xanh Lá)
+    st.markdown('<div class="feature-card card-quiz"><div class="icon-box">⚡</div><div class="card-title">Sinh Đề Tốc Độ</div><p>Tạo đề trắc nghiệm trong vài giây.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_2):
         st.page_link(PAGE_2, label="Tạo đề ➜", icon="🚀", use_container_width=True)
 
 with col3:
-    # Thêm lớp card-image
-    st.markdown('<div class="feature-card **card-image**"><div class="icon-box">🧿</div><div class="card-title">Giải bài tập từ ảnh</div><p>Giải bài mọi môn học bằng AI.</p></div>', unsafe_allow_html=True)
+    # Card 3: Giải bài tập từ ảnh (Xanh Dương)
+    st.markdown('<div class="feature-card card-image"><div class="icon-box">🧿</div><div class="card-title">Giải bài tập từ ảnh</div><p>Giải bài mọi môn học bằng AI.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_3):
         st.page_link(PAGE_3, label="Giải ngay ➜", icon="📸", use_container_width=True)
 
 with col4:
-    # Thêm lớp card-media
-    st.markdown('<div class="feature-card **card-media**"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Học liệu văn hóa H\'Mông.</p></div>', unsafe_allow_html=True)
+    # Card 4: Đa Phương Tiện (Đỏ)
+    st.markdown('<div class="feature-card card-media"><div class="icon-box">📽️</div><div class="card-title">Đa Phương Tiện</div><p>Học liệu văn hóa H\'Mông.</p></div>', unsafe_allow_html=True)
     if os.path.exists(PAGE_4):
         st.page_link(PAGE_4, label="Khám phá ➜", icon="🎧", use_container_width=True)
 
