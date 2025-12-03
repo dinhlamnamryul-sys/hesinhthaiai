@@ -1,4 +1,4 @@
-# file: sinh_de_kntc.py
+# file: sinh_de_kntc_lop6.py
 import re
 import io
 import requests
@@ -22,53 +22,60 @@ matplotlib.use("Agg")
 plt.rcParams['mathtext.fontset'] = 'cm'
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-st.set_page_config(page_title="Sinh Đề KNTC Tự Động", page_icon="📝", layout="wide")
-st.title("📝 Sinh Đề Tự Động – Theo Ma Trận Đặc Tả Tối Giản")
+st.set_page_config(page_title="Sinh Đề KNTC Lớp 6", page_icon="📝", layout="wide")
+st.title("📝 Sinh Đề Tự Động – Lớp 6 (Toàn bộ công thức LaTeX)")
 
 # --- API KEY ---
 api_key = st.secrets.get("GOOGLE_API_KEY", "")
 if not api_key:
     api_key = st.text_input("Nhập Google API Key:", type="password")
 
-# --- Dữ liệu mẫu ---
-lop_options = ["Lớp 1", "Lớp 2", "Lớp 3", "Lớp 4", "Lớp 5",
-               "Lớp 6", "Lớp 7", "Lớp 8", "Lớp 9"]
-
+# --- Dữ liệu lớp 6 ---
 chuong_options = {
-    "Lớp 6": ["Chương I: Tập hợp các số tự nhiên","Chương II: Tính chia hết trong tập hợp các số tự nhiên","Chương III: Số nguyên","Chương IV: Một số hình phẳng trong thực tiễn","Chương V: Tính đối xứng của hình phẳng trong tự nhiên","Chương VI: Phân số","Chương VII: Số thập phân","Chương VIII: Những hình hình học cơ bản","Chương IX: Dữ liệu và xác suất thực nghiệm","Hoạt động thực hành trải nghiệm"],
-    "Lớp 7": ["Chương I: Số hữu tỉ","Chương II: Số thực","Chương III: Góc và đường thẳng song song","Chương IV: Tam giác bằng nhau","Chương V: Thu thập và biểu diễn dữ liệu","Chương VI: Tỉ lệ thức và đại lượng tỉ lệ","Chương VII: Biểu thức đại số và đa thức một biến","Chương VIII: Làm quen với biến cố và xác suất của biến cố","Chương IX: Quan hệ giữa các yếu tố trong một tam giác","Chương X: Một số hình khối trong thực tiễn","Bài tập ôn tập cuối năm"],
-    "Lớp 8": ["Chương I: Đa thức","Chương II: Hằng đẳng thức đáng nhớ và ứng dụng","Chương III: Tứ giác","Chương IV: Định lí Thalès","Chương V: Dữ liệu và biểu đồ","Chương VI: Phân thức đại số","Chương VII: Phương trình bậc nhất và hàm số bậc nhất","Chương VIII: Mở đầu về tính xác suất của biến cố","Chương IX: Tam giác đồng dạng","Chương X: Một số hình khối trong thực tiễn","Bài tập ôn tập cuối năm"],
-    "Lớp 9": ["Chương I: Phương trình và hệ hai phương trình bậc nhất hai ẩn","Chương II: Phương trình và bất phương trình bậc nhất một ẩn","Chương III: Căn bậc hai và căn bậc ba","Chương IV: Hệ thức lượng trong tam giác vuông","Chương V: Đường tròn","Chương VI: Hàm số y = ax² (a ≠ 0). Phương trình bậc hai một ẩn","Chương VII: Tần số và tần số tương đối","Chương VIII: Xác suất của biến cố trong một số mô hình xác suất đơn giản","Chương IX: Đường tròn ngoại tiếp và đường tròn nội tiếp","Chương X: Một số hình khối trong thực tiễn","Hoạt động thực hành trải nghiệm"]
+    "Lớp 6": [
+        "Chương I: Tập hợp các số tự nhiên",
+        "Chương II: Tính chia hết trong tập hợp các số tự nhiên",
+        "Chương III: Số nguyên",
+        "Chương IV: Một số hình phẳng trong thực tiễn",
+        "Chương V: Tính đối xứng của hình phẳng trong tự nhiên",
+        "Chương VI: Phân số",
+        "Chương VII: Số thập phân",
+        "Chương VIII: Những hình hình học cơ bản",
+        "Chương IX: Dữ liệu và xác suất thực nghiệm",
+        "Hoạt động thực hành trải nghiệm"
+    ]
 }
 
 bai_options = {
     "Chương I: Tập hợp các số tự nhiên": ["Bài 1", "Bài 2", "Bài 3", "Bài 4", "Ôn tập"],
     "Chương II: Tính chia hết trong tập hợp các số tự nhiên": ["Bài 5", "Bài 6", "Ôn tập"],
-    "Chương I: Đa thức": ["Bài 1. Đa thức", "Bài 2. Cộng trừ đa thức", "Bài 3. Nhân đa thức", "Ôn tập"],
-    "Chương II: Hằng đẳng thức đáng nhớ và ứng dụng": ["Bài 4. Hằng đẳng thức", "Bài 5. Ứng dụng", "Ôn tập"],
-    "Chương I: Phương trình và hệ hai phương trình bậc nhất hai ẩn": ["Bài 1", "Bài 2", "Ôn tập"]
+    "Chương III: Số nguyên": ["Bài 7", "Bài 8", "Ôn tập"],
+    "Chương IV: Một số hình phẳng trong thực tiễn": ["Bài 9", "Bài 10", "Ôn tập"],
+    "Chương V: Tính đối xứng của hình phẳng trong tự nhiên": ["Bài 11", "Bài 12", "Ôn tập"],
+    "Chương VI: Phân số": ["Bài 13", "Bài 14", "Ôn tập"],
+    "Chương VII: Số thập phân": ["Bài 15", "Bài 16", "Ôn tập"],
+    "Chương VIII: Những hình hình học cơ bản": ["Bài 17", "Bài 18", "Ôn tập"],
+    "Chương IX: Dữ liệu và xác suất thực nghiệm": ["Bài 19", "Bài 20", "Ôn tập"],
+    "Hoạt động thực hành trải nghiệm": ["Bài 21", "Bài 22", "Ôn tập"]
 }
 
 # --- Sidebar ---
 with st.sidebar:
     st.header("Thông tin sinh đề")
-    lop = st.selectbox("Chọn lớp", lop_options, index=5)
+    
+    # Chỉ lớp 6
+    lop = "Lớp 6"
+    st.info(f"Chỉ sinh đề cho {lop}")
 
     # Chọn nhiều chương
-    chuong_list = chuong_options.get(lop, [])
-    if chuong_list:
-        chuong = st.multiselect("Chọn chủ đề/chương", chuong_list, default=chuong_list[0])
-    else:
-        chuong = st.text_input("Chưa có chủ đề cho lớp này", "")
+    chuong_list = chuong_options[lop]
+    chuong = st.multiselect("Chọn chủ đề/chương", chuong_list, default=chuong_list[0])
 
     # Chọn nhiều bài dựa trên chương đã chọn
     bai_list_all = []
     for c in chuong:
         bai_list_all.extend(bai_options.get(c, []))
-    if bai_list_all:
-        bai = st.multiselect("Chọn bài", bai_list_all, default=bai_list_all[0])
-    else:
-        bai = st.text_input("Chưa có bài cho chủ đề này", "")
+    bai = st.multiselect("Chọn bài", bai_list_all, default=bai_list_all[0])
 
     st.markdown("---")
     st.subheader("⚙️ Phân bổ theo Ma trận")
@@ -85,8 +92,8 @@ with st.sidebar:
     with col_th: so_cau_th = st.number_input("Thông hiểu", min_value=0, value=8)
     with col_vd: so_cau_vd = st.number_input("Vận dụng/VDC", min_value=0, value=7)
 
-    total_check = int(phan_bo_nl + phan_bo_ds + phan_bo_tl)
-    total_level = int(so_cau_nb + so_cau_th + so_cau_vd)
+    total_check = phan_bo_nl + phan_bo_ds + phan_bo_tl
+    total_level = so_cau_nb + so_cau_th + so_cau_vd
     if total_check != so_cau:
         st.error(f"Tổng số câu theo loại (NL+DS+TL) = {total_check} không khớp Tổng ({so_cau}).")
     if total_level != so_cau:
