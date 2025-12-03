@@ -138,6 +138,7 @@ with st.sidebar:
     else:
         bai = []
     st.markdown("---")
+
 so_cau = st.number_input("Tổng số câu hỏi", min_value=1, max_value=50, value=21)
 
 # Phân loại câu hỏi NL/DS/TL
@@ -159,13 +160,22 @@ with col_th:
 with col_vd:
     so_cau_vd = st.number_input("Vận dụng", min_value=0, value=7)
 
-# Có đáp án
-co_dap_an = st.checkbox("Có đáp án", value=True)
+# Chọn loại đề: Có đáp án / Không đáp án
+co_dap_an = st.radio(
+    "Chọn loại đề:",
+    ["Có đáp án", "Không đáp án"],
+    index=0
+)
+
 # --- Build prompt chuẩn ---
 def build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
                  so_cau_nb, so_cau_th, so_cau_vd, co_dap_an):
     
-    dan_ap = "Tạo đáp án chi tiết và lời giải sau mỗi câu hỏi, tất cả công thức bằng LaTeX. NL/DS/TL đáp án mỗi lựa chọn xuống dòng." if co_dap_an else "Không cần đáp án, nhưng tất cả công thức bắt buộc LaTeX, NL/DS/TL xuống dòng."
+    dan_ap = (
+        "Tạo đáp án chi tiết và lời giải sau mỗi câu hỏi, tất cả công thức bằng LaTeX. NL/DS/TL đáp án mỗi lựa chọn xuống dòng."
+        if co_dap_an == "Có đáp án"
+        else "Không cần đáp án, nhưng tất cả công thức bắt buộc LaTeX, NL/DS/TL xuống dòng."
+    )
     
     prompt = f"""
 Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
@@ -223,9 +233,6 @@ if st.button("Sinh đề chuẩn + đáp án cách dòng"):
                 
                 # --- Tải file markdown về máy ---
                 filename = f"De_{lop}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-                with open(filename, "w", encoding="utf-8") as f:
-                    f.write(result)
                 st.download_button("📥 Tải đề về máy (Markdown)", data=result, file_name=filename)
             else:
                 st.error(result)
-
