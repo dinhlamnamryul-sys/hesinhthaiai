@@ -173,14 +173,13 @@ def build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
     
     dan_ap = (
     "Tạo đáp án chi tiết và lời giải sau mỗi câu hỏi, tất cả công thức bằng LaTeX. "
-    "Với câu NL hoặc DS, mỗi lựa chọn A/B/C/D phải cách nhau 1 dòng, không gộp. "
-    "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng riêng."
+    "Với câu NL hoặc DS, mỗi lựa chọn A/B/C/D phải xuống dòng riêng, bắt đầu bằng '- '. "
+    "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng riêng, bắt đầu bằng '- '."
     if co_dap_an == "Có đáp án"
     else "Không cần đáp án, nhưng tất cả công thức bắt buộc LaTeX. "
-         "Với câu NL hoặc DS, mỗi lựa chọn A/B/C/D phải xuống dòng riêng. "
-         "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng."
+         "Với câu NL hoặc DS, mỗi lựa chọn A/B/C/D phải xuống dòng riêng, bắt đầu bằng '- '. "
+         "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng riêng, bắt đầu bằng '- '."
 )
-    
     prompt = f"""
 Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
 - Chương: {', '.join(chuong)}
