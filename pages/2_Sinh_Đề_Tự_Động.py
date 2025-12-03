@@ -4,8 +4,7 @@ import io
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import cm
-from google import genai
-from google.genai.types import Tool
+from google.genai import Client        # ← SỬA CHUẨN
 import random
 
 # -----------------------------------------------------------
@@ -61,9 +60,6 @@ CHUONG_TRINH = {
         }
     },
 
-    # ---------------------------------------------------------
-    # TOÁN 7
-    # ---------------------------------------------------------
     "Toán 7": {
         "Tập 1": {
             "Chương 1 – Số hữu tỉ – Số thực": [
@@ -97,9 +93,6 @@ CHUONG_TRINH = {
         }
     },
 
-    # ---------------------------------------------------------
-    # TOÁN 8
-    # ---------------------------------------------------------
     "Toán 8": {
         "Tập 1": {
             "Chương 1 – Phép nhân và phép chia đa thức": [
@@ -135,9 +128,6 @@ CHUONG_TRINH = {
         }
     },
 
-    # ---------------------------------------------------------
-    # TOÁN 9
-    # ---------------------------------------------------------
     "Toán 9": {
         "Tập 1": {
             "Chương 1 – Căn bậc hai – Căn bậc ba": [
@@ -168,20 +158,16 @@ CHUONG_TRINH = {
 }
 
 # -----------------------------------------------------------
-# 2. KHỞI TẠO GEMINI
+# 2. KHỞI TẠO GEMINI ĐÚNG CHUẨN
 # -----------------------------------------------------------
 
-client = genai.Client(api_key=st.secrets.get("GEMINI_API_KEY", ""))
+client = Client(api_key=st.secrets["GEMINI_API_KEY"])
 
-tool_markdown = Tool.from_yaml("""
-type: api
-api:
-  openapi: googleapis/googleapis/google/generativeai/v1/generative_models.yaml
-  operationId: google.ai.generativelanguage.v1.GenerativeModels.GenerateContent
-""")
+# Không dùng Tool (vì google-genai không hỗ trợ from_yaml)
+tool_markdown = None
 
 # -----------------------------------------------------------
-# 3. HÀM GỌI AI SINH CÂU HỎI
+# 3. GỌI AI SINH CÂU HỎI
 # -----------------------------------------------------------
 
 def goi_ai_sinh_cauhoi(noidung, so_cau, lop, tap, chuong, bai):
@@ -212,13 +198,12 @@ D. ...
 
     response = client.models.generate_content(
         model="gemini-2.0-flash",
-        contents=prompt,
-        tools=[tool_markdown]
+        contents=prompt
     )
     return response.text
 
 # -----------------------------------------------------------
-# 4. HÀM TẠO PDF
+# 4. TẠO FILE PDF
 # -----------------------------------------------------------
 
 def tao_file_pdf(text):
@@ -269,4 +254,3 @@ if st.button("✨ Sinh đề"):
         st.download_button("📥 Tải file PDF", pdf_file, "de_toan.pdf")
     except Exception as e:
         st.error(f"Lỗi: {e}")
-
