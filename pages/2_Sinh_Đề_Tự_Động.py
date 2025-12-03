@@ -67,7 +67,7 @@ chuong_options_lop = {
 }
 
 bai_options_lop = {
-    "Lớp 6": { # đã có sẵn, giữ nguyên
+    "Lớp 6": { # đã có sẵn
         "Chương I: Tập hợp các số tự nhiên": ["Bài 1","Bài 2","Bài 3","Bài 4","Ôn tập"],
         "Chương II: Tính chia hết trong tập hợp các số tự nhiên": ["Bài 5","Bài 6","Ôn tập"],
         "Chương III: Số nguyên": ["Bài 7","Bài 8","Ôn tập"],
@@ -79,8 +79,21 @@ bai_options_lop = {
         "Chương IX: Dữ liệu và xác suất thực nghiệm": ["Bài 19","Bài 20","Ôn tập"],
         "Hoạt động thực hành trải nghiệm": ["Bài 21","Bài 22","Ôn tập"]
     },
-    # Lớp 7,8,9 thêm tương tự
-    "Lớp 7": {}, "Lớp 8": {}, "Lớp 9": {}
+    "Lớp 7": {
+        "Chương I: Số hữu tỉ": ["Bài 1. Tập hợp các số hữu tỉ","Bài 2. Cộng, trừ, nhân, chia số hữu tỉ","Bài 3. Luỹ thừa với số mũ tự nhiên của một số hữu tỉ","Bài 4. Thứ tự thực hiện các phép tính. Quy tắc chuyển vế","Ôn tập chương I"],
+        "Chương II: Số thực": ["Bài 5. Làm quen với số thập phân vô hạn tuần hoàn","Bài 6. Số vô tỉ. Căn bậc hai số học","Bài 7. Tập hợp các số thực","Ôn tập chương II"],
+        "Chương III: Góc và đường thẳng song song": ["Bài 8. Góc ở vị trí đặc biệt. Tia phân giác của một góc","Bài 9. Hai đường thẳng song song và dấu hiệu nhận biết","Bài 10. Tiên đề Euclid. Tính chất của hai đường thẳng song song","Bài 11. Định lí và chứng minh định lí","Ôn tập chương III"],
+        "Chương IV: Tam giác bằng nhau": ["Bài 12. Tổng các góc trong một tam giác","Bài 13. Hai tam giác bằng nhau. Trường hợp bằng nhau thứ nhất của tam giác","Bài 14. Trường hợp bằng nhau thứ hai và thứ ba của tam giác","Bài 15. Các trường hợp bằng nhau của tam giác vuông","Bài 16. Tam giác cân. Đường trung trực của đoạn thẳng","Ôn tập chương IV"],
+        "Chương V: Thu thập và biểu diễn dữ liệu": ["Bài 17. Thu thập và phân loại dữ liệu","Bài 18. Biểu đồ hình quạt tròn","Bài 19. Biểu đồ đoạn thẳng","Ôn tập chương V"],
+        "Chương VI: Tỉ lệ thức và đại lượng tỉ lệ": ["Bài 20. Tỉ lệ thức","Bài 21. Tính chất của dãy tỉ số bằng nhau","Bài 22. Đại lượng tỉ lệ thuận","Bài 23. Đại lượng tỉ lệ nghịch","Ôn tập chương VI"],
+        "Chương VII: Biểu thức đại số và đa thức một biến": ["Bài 24. Biểu thức đại số","Bài 25. Đa thức một biến","Bài 26. Phép cộng và phép trừ đa thức một biến","Bài 27. Phép nhân đa thức một biến","Bài 28. Phép chia đa thức một biến","Ôn tập chương VII"],
+        "Chương VIII: Làm quen với biến cố và xác suất": ["Bài 29. Làm quen với biến cố","Bài 30. Làm quen với xác suất của biến cố","Ôn tập chương VIII"],
+        "Chương IX: Quan hệ giữa các yếu tố trong một tam giác": ["Bài 31. Quan hệ giữa góc và cạnh đối diện trong một tam giác","Bài 32. Quan hệ giữa đường vuông góc và đường xiên","Bài 33. Quan hệ giữa ba cạnh của một tam giác","Bài 34. Sự đồng quy của ba đường trung tuyến, ba đường phân giác trong một tam giác","Bài 35. Sự đồng quy của ba đường trung trực, ba đường cao trong một tam giác","Ôn tập chương IX"],
+        "Chương X: Một số hình khối trong thực tiễn": ["Bài 36. Hình hộp chữ nhật và hình lập phương","Bài 37. Hình lăng trụ đứng tam giác và hình lăng trụ đứng tứ giác","Ôn tập chương X"],
+        "Bài tập ôn tập cuối năm": []
+    },
+    "Lớp 8": {}, # tương tự có thể điền chi tiết từng bài
+    "Lớp 9": {}  # tương tự có thể điền chi tiết từng bài
 }
 
 # --- Sidebar ---
