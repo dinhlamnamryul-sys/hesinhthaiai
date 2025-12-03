@@ -332,6 +332,7 @@ st.caption("Phiên bản: nâng cấp - hỗ trợ tải lên nguồn dữ liệ
 
 # Chức năng tạo đề kiểm tra
 st.header("Tạo đề kiểm tra")
+
 test_title = st.text_input("Nhập tên đề kiểm tra")
 num_questions = st.number_input("Số câu hỏi", min_value=1, value=5)
 
@@ -340,3 +341,23 @@ if st.button("Tạo đề kiểm tra"):
 Số câu hỏi: {int(num_questions)}"
     st.success("Đã tạo đề kiểm tra!")
     st.code(exam)
+
+
+# ✨ Chức năng tạo đề kiểm tra từ tài liệu người dùng tải lên
+st.header("Tạo đề kiểm tra tự động từ tài liệu")
+
+st.subheader("1. Tải tài liệu đầu vào")
+syllabus_file = st.file_uploader("Tải sách giáo khoa hoặc nội dung bài học (PDF, DOCX, TXT)", type=["pdf","docx","txt"])
+policy_file = st.file_uploader("Tải công văn/khung ma trận đề", type=["pdf","docx","txt"])
+form_file = st.file_uploader("Tải mẫu form đề kiểm tra", type=["pdf","docx","txt"])
+
+st.subheader("2. Mô tả yêu cầu đề kiểm tra")
+user_requirements = st.text_area("Nhập yêu cầu: số câu hỏi, mức độ, nội dung trọng tâm…")
+
+if st.button("Sinh đề kiểm tra tự động"):
+    if not syllabus_file or not policy_file or not form_file:
+        st.error("⚠️ Vui lòng tải đủ 3 loại tài liệu!")
+    else:
+        st.success("✔️ Đã phân tích tài liệu và sinh đề kiểm tra!")
+        st.write("(Demo) Đây là đề kiểm tra sinh tự động từ các tài liệu bạn cung cấp:")
+        st.code("Câu 1: ...\nCâu 2: ...\nCâu 3: ...")
