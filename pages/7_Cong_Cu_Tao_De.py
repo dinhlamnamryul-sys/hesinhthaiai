@@ -11,40 +11,31 @@ from typing import Tuple, List
 # Phần này giúp báo lỗi rõ ràng trên giao diện nếu thiếu thư viện
 try:
     import pdfplumber
-    import openai
     from docx import Document
     from bs4 import BeautifulSoup
 except ImportError as e:
     st.error(f"Lỗi thiếu thư viện: {e}")
-    st.info("Vui lòng đảm bảo file 'requirements.txt' đã có đầy đủ: pdfplumber, openai, python-docx, beautifulsoup4")
+    st.info("Vui lòng đảm bảo file 'requirements.txt' đã có đầy đủ: pdfplumber, requests, python-docx, beautifulsoup4")
     st.stop()
 
 # ------------------------- CONFIG -------------------------
-st.set_page_config(page_title="Tạo đề & Ma trận (AI)", page_icon="📝", layout="wide")
-st.title("📝 Tạo ma trận & đề kiểm tra — upload sách, công văn, mẫu đề → AI trả về ma trận & đề")
+st.set_page_config(page_title="Tạo đề & Ma trận (Gemini AI)", page_icon="📝", layout="wide")
+st.title("📝 Tạo ma trận & đề kiểm tra (Gemini AI) — upload sách, công văn → AI trả về ma trận & đề")
 
 # Lấy API Key từ Secrets hoặc biến môi trường
-# Ưu tiên lấy từ st.secrets nếu chạy trên Streamlit Cloud
-if "OPENAI_API_KEY" in st.secrets:
-    OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+if "GOOGLE_API_KEY" in st.secrets:
+    GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 else:
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini") 
+# Nếu chưa có Key, cho nhập tay
+if not GOOGLE_API_KEY:
+    with st.expander("⚠️ Chưa cấu hình API Key", expanded=True):
+        GOOGLE_API_KEY = st.text_input("Nhập Google API Key của bạn:", type="password")
+        st.markdown("[Lấy API Key miễn phí tại đây](https://aistudio.google.com/app/apikey)")
 
-if not OPENAI_API_KEY:
-    st.warning("⚠️ Chưa tìm thấy API Key.")
-    st.markdown("""
-    **Cách khắc phục:**
-    1. Nếu chạy Local: Tạo biến môi trường `OPENAI_API_KEY`.
-    2. Nếu chạy Streamlit Cloud: Vào **Settings** > **Secrets** và thêm:
-    ```toml
-    OPENAI_API_KEY = "sk-..."
-    ```
-    """)
+if not GOOGLE_API_KEY:
     st.stop()
-else:
-    openai.api_key = OPENAI_API_KEY
 
 # ------------------------- HELPERS: TẬP TIN -> TEXT -------------------------
 def extract_text_from_pdf(file_bytes: bytes) -> str:
@@ -60,14 +51,11 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
     return "\n".join(text_parts)
 
 def extract_text_from_docx(file_bytes: bytes) -> str:
-    # python-docx cần file path hoặc file-like object
     try:
-        # Cách 1: Dùng BytesIO trực tiếp (nhanh hơn, không cần tempfile)
         doc = Document(io.BytesIO(file_bytes))
         paragraphs = [p.text for p in doc.paragraphs if p.text and p.text.strip()]
         return "\n".join(paragraphs)
     except Exception:
-        # Fallback: Dùng tempfile nếu cách trên lỗi
         with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
             tmp.write(file_bytes)
             tmp.flush()
@@ -79,119 +67,43 @@ def extract_text_from_docx(file_bytes: bytes) -> str:
                 os.unlink(tmp.name)
 
 def extract_text_from_file(uploaded) -> Tuple[str, str]:
-    """
-    Trả về (mime_hint, text)
-    uploaded: Streamlit UploadedFile
-    """
     if uploaded is None:
         return ("", "")
-        
     raw = uploaded.read()
+    uploaded.seek(0)
     name_lower = uploaded.name.lower()
     
-    # Reset pointer sau khi read (quan trọng nếu cần đọc lại)
-    uploaded.seek(0)
-    
-    # heuristics
     if name_lower.endswith(".pdf"):
         return ("application/pdf", extract_text_from_pdf(raw))
     if name_lower.endswith(".docx"):
         return ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", extract_text_from_docx(raw))
     if name_lower.endswith(".doc"):
-        # File .doc cũ rất khó đọc bằng python thuần, thử đọc như docx hoặc text
         try:
             return ("application/msword", extract_text_from_docx(raw))
         except Exception:
-            # Fallback sang text decode
             return ("application/msword", raw.decode(errors="ignore"))
-            
-    # otherwise try to decode as text
     try:
         return ("text/plain", raw.decode("utf-8"))
     except Exception:
         return ("application/octet-stream", raw.decode(errors="ignore"))
 
-# ------------------------- HELPERS: KHOẢNG CẮT/TÓM TẮT -------------------------
-def chunk_text(text: str, max_chars: int = 30000) -> List[str]:
-    """Chia text lớn thành các chunk <= max_chars theo khoảng xuống dòng."""
-    if not text:
-        return []
-    parts = []
-    cur = ""
-    for paragraph in text.split("\n\n"):
-        if len(cur) + len(paragraph) + 2 <= max_chars:
-            cur += paragraph + "\n\n"
-        else:
-            if cur:
-                parts.append(cur)
-            # nếu paragraph quá dài vẫn phải chia
-            while len(paragraph) > max_chars:
-                parts.append(paragraph[:max_chars])
-                paragraph = paragraph[max_chars:]
-            cur = paragraph + "\n\n"
-    if cur.strip():
-        parts.append(cur)
-    return parts
-
-def summarize_long_texts(chunks: List[str]) -> str:
+# ------------------------- HELPERS: GỌI GEMINI API -------------------------
+def call_gemini_generate_matrix_and_exam(api_key: str, textbook_text: str, official_doc_text: str, template_text: str, instruction: str) -> dict:
     """
-    Gọi OpenAI để tóm tắt từng chunk rồi ghép lại.
-    Trả về một bản tóm tắt hợp nhất.
+    Gọi Google Gemini API để sinh ma trận và đề thi dưới dạng JSON.
+    Sử dụng model gemini-2.5-flash cho tốc độ nhanh và context lớn.
     """
-    summaries = []
-    system = "Bạn là trợ lý tóm tắt văn bản giáo dục, giữ lại các ý chính, chủ đề, nội dung bài học."
+    # Gemini Flash có context window rất lớn (1M token), nên ta có thể gửi nhiều text hơn mà không cần cắt quá nhỏ.
+    # Tuy nhiên, vẫn nên giới hạn để tránh timeout hoặc lỗi quá tải nếu file quá khổng lồ.
+    MAX_CHARS = 200000 # Khoảng 50k token, dư sức cho hầu hết SGK chương/bài
     
-    progress_text = st.empty()
+    if len(textbook_text) > MAX_CHARS:
+        textbook_text = textbook_text[:MAX_CHARS] + "\n...(đã cắt bớt)..."
     
-    for i, c in enumerate(chunks):
-        progress_text.text(f"Đang tóm tắt phần {i+1}/{len(chunks)}...")
-        prompt = f"Tóm tắt nội dung sau thành các gạch đầu dòng chi tiết về kiến thức:\n\n{c[:50000]}"
-        try:
-            # Sử dụng cú pháp cũ (openai<1.0.0) như yêu cầu của user
-            resp = openai.ChatCompletion.create(
-                model=OPENAI_MODEL,
-                messages=[{"role": "system", "content": system},
-                          {"role": "user", "content": prompt}],
-                max_tokens=800,
-                temperature=0.2
-            )
-            text = resp.choices[0].message.content.strip()
-            summaries.append(text)
-        except Exception as e:
-            summaries.append(c[:2000])  # fallback: giữ đoạn đầu
-            
-    progress_text.empty()
-    
-    # Ghép các summary
-    joined = "\n\n".join(summaries)
-    if len(joined) > 30000:
-        return joined[:30000]
-    return joined
-
-# ------------------------- HELPERS: GỌI OPENAI -------------------------
-def call_openai_generate_matrix_and_exam(textbook_text: str, official_doc_text: str, template_text: str, instruction: str) -> dict:
-    # Bảo đảm không quá dài: nếu lớn, tóm tắt
-    combined_len = len(textbook_text or "") + len(official_doc_text or "") + len(template_text or "")
-    
-    # Ngưỡng token ước tính (1 char ~ 0.25 token, 90k chars ~ 22k tokens). 
-    # GPT-4o-mini context window là 128k, nhưng output bị giới hạn.
-    if combined_len > 80000:
-        st.info("Nội dung quá dài, hệ thống đang tự động tóm tắt bớt...")
-        tb_chunks = chunk_text(textbook_text, max_chars=30000)
-        textbook_text = summarize_long_texts(tb_chunks) if len(textbook_text) > 30000 else textbook_text
-        
-        # Chỉ tóm tắt SGK là chủ yếu, công văn và mẫu đề nên giữ nguyên nếu có thể
-        if len(official_doc_text) > 30000:
-             off_chunks = chunk_text(official_doc_text, max_chars=30000)
-             official_doc_text = summarize_long_texts(off_chunks)
-
     system_msg = (
         "Bạn là một chuyên gia giáo dục chuyên tạo MA TRẬN (dạng bảng HTML) và ĐỀ KIỂM TRA (HTML) "
         "theo đúng MẪU đề được cung cấp. "
-        "Output bắt buộc là JSON hợp lệ, có hai khoá: 'matrixHtml' và 'examHtml'.\n"
-        "- 'matrixHtml': HTML table ma trận đặc tả kỹ thuật.\n"
-        "- 'examHtml': HTML đề thi hoàn chỉnh (Trắc nghiệm + Tự luận).\n"
-        "Tuyệt đối không trả về markdown block (```json), chỉ trả về raw JSON string."
+        "Nhiệm vụ của bạn là trả về kết quả dưới dạng JSON hợp lệ."
     )
 
     user_msg = (
@@ -203,55 +115,64 @@ def call_openai_generate_matrix_and_exam(textbook_text: str, official_doc_text: 
         "Hãy thực hiện:\n"
         "1. Xây dựng MA TRẬN đề thi (matrixHtml) phù hợp với công văn và yêu cầu.\n"
         "2. Soạn ĐỀ THI (examHtml) dựa trên ma trận vừa tạo. Nội dung câu hỏi lấy từ SGK. Hình thức trình bày giống Mẫu Đề.\n"
-        "Output format: JSON { \"matrixHtml\": \"...\", \"examHtml\": \"...\" }"
+        "Output JSON schema: { \"matrixHtml\": \"string (html code)\", \"examHtml\": \"string (html code)\" }"
     )
 
+    # Cấu hình gọi API Gemini
+    model = "gemini-2.5-flash" 
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "contents": [{
+            "parts": [{"text": user_msg}]
+        }],
+        "systemInstruction": {
+            "parts": [{"text": system_msg}]
+        },
+        "generationConfig": {
+            "responseMimeType": "application/json", # Bắt buộc trả về JSON
+            "temperature": 0.3
+        }
+    }
+
     try:
-        resp = openai.ChatCompletion.create(
-            model=OPENAI_MODEL,
-            messages=[
-                {"role": "system", "content": system_msg},
-                {"role": "user", "content": user_msg}
-            ],
-            # Tăng max_tokens để đảm bảo JSON không bị cắt giữa chừng
-            max_tokens=10000 if "gpt-4" in OPENAI_MODEL else 4000, 
-            temperature=0.3
-        )
-        raw = resp.choices[0].message.content.strip()
+        response = requests.post(url, headers=headers, json=data, timeout=120)
+        
+        if response.status_code != 200:
+            raise RuntimeError(f"Lỗi API ({response.status_code}): {response.text}")
+            
+        result_json = response.json()
+        
+        # Parse kết quả
+        try:
+            candidates = result_json.get("candidates", [])
+            if not candidates:
+                 raise RuntimeError("AI không trả về kết quả (No candidates).")
+            
+            content_text = candidates[0].get("content", {}).get("parts", [])[0].get("text", "")
+            parsed = json.loads(content_text)
+            return parsed
+            
+        except (KeyError, IndexError, json.JSONDecodeError) as e:
+            raise RuntimeError(f"Lỗi xử lý dữ liệu trả về từ AI: {e}\nRaw: {result_json}")
+
+    except requests.exceptions.Timeout:
+        raise RuntimeError("Yêu cầu hết thời gian chờ (Timeout). Vui lòng thử lại.")
     except Exception as e:
-        raise RuntimeError(f"Lỗi gọi OpenAI: {e}")
-
-    # Xử lý làm sạch chuỗi JSON nếu model lỡ thêm markdown block
-    cleaned_raw = raw.replace("```json", "").replace("```", "").strip()
-
-    try:
-        parsed = json.loads(cleaned_raw)
-        return parsed
-    except json.JSONDecodeError:
-        # Fallback: Cố gắng tìm chuỗi JSON trong text hỗn tạp
-        start = raw.find("{")
-        end = raw.rfind("}")
-        if start != -1 and end != -1 and end > start:
-            try:
-                parsed = json.loads(raw[start:end+1])
-                return parsed
-            except Exception:
-                pass
-        raise RuntimeError(f"OpenAI trả về không phải JSON hợp lệ.\nRaw: {raw[:500]}...")
+        raise RuntimeError(f"Lỗi kết nối: {e}")
 
 # ------------------------- HELPERS: HTML -> DOCX -------------------------
 def html_to_plain_text(html: str) -> str:
     if not html:
         return ""
     soup = BeautifulSoup(html, "html.parser")
-    # Thay thế br bằng xuống dòng
     for br in soup.find_all("br"):
         br.replace_with("\n")
-    
-    # Lấy text
     text = soup.get_text(separator="\n")
-    
-    # Xử lý các dòng trống quá nhiều
     lines = [line.strip() for line in text.split("\n") if line.strip()]
     return "\n".join(lines)
 
@@ -261,9 +182,6 @@ def make_docx_from_htmls(matrix_html: str, exam_html: str) -> bytes:
     
     doc.add_heading("I. MA TRẬN ĐỀ THI", level=1)
     if matrix_html:
-        # Đây là cách chuyển đổi đơn giản (text only). 
-        # Để giữ bảng HTML trong Docx cần thư viện phức tạp hơn (như htmldocx)
-        # Ở đây ta dùng beautifulsoup để lấy text và giữ cấu trúc cơ bản
         matrix_text = html_to_plain_text(matrix_html)
         doc.add_paragraph(matrix_text)
     else:
@@ -284,7 +202,7 @@ def make_docx_from_htmls(matrix_html: str, exam_html: str) -> bytes:
     return bio.read()
 
 # ------------------------- STREAMLIT UI -------------------------
-st.info("💡 Mẹo: Nhập API Key trong Settings nếu chạy trên Cloud để không phải setup biến môi trường.")
+st.info("💡 Ứng dụng sử dụng **Google Gemini 2.5 Flash**. Vui lòng nhập API Key để bắt đầu.")
 
 col1, col2 = st.columns(2)
 with col1:
@@ -298,10 +216,12 @@ with col2:
                                height=120)
 
 if st.button("🚀 TẠO MA TRẬN & ĐỀ", type="primary"):
-    if not uploaded_textbook or not uploaded_official or not uploaded_template:
+    if not GOOGLE_API_KEY:
+         st.error("⚠️ Vui lòng nhập Google API Key.")
+    elif not uploaded_textbook or not uploaded_official or not uploaded_template:
         st.error("⚠️ Vui lòng tải lên đủ 3 file: SGK, Công văn, Mẫu đề.")
     else:
-        with st.status("Đang xử lý...", expanded=True) as status:
+        with st.status("Đang xử lý với Gemini AI...", expanded=True) as status:
             st.write("📖 Đang đọc nội dung file...")
             tb_mime, tb_text = extract_text_from_file(uploaded_textbook)
             cv_mime, cv_text = extract_text_from_file(uploaded_official)
@@ -309,9 +229,9 @@ if st.button("🚀 TẠO MA TRẬN & ĐỀ", type="primary"):
             
             st.write(f"✅ Đã đọc xong: SGK ({len(tb_text)} ký tự), Công văn ({len(cv_text)} ký tự).")
             
-            st.write("🤖 Đang gửi dữ liệu cho AI phân tích và sinh đề...")
+            st.write("🤖 Đang gửi dữ liệu cho Gemini phân tích...")
             try:
-                result = call_openai_generate_matrix_and_exam(tb_text, cv_text, tpl_text, instruction)
+                result = call_gemini_generate_matrix_and_exam(GOOGLE_API_KEY, tb_text, cv_text, tpl_text, instruction)
                 status.update(label="Hoàn tất!", state="complete", expanded=False)
             except Exception as e:
                 status.update(label="Gặp lỗi!", state="error")
@@ -345,7 +265,7 @@ if st.button("🚀 TẠO MA TRẬN & ĐỀ", type="primary"):
         st.download_button(
             label="📥 TẢI VỀ FILE WORD (.DOCX)",
             data=docx_bytes,
-            file_name="De_Kiem_Tra_AI_Generated.docx",
+            file_name="De_Kiem_Tra_Gemini_Generated.docx",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             type="primary"
         )
