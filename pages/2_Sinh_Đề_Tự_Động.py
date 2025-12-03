@@ -1,9 +1,9 @@
-# file: sinh_de_kntc_lop6_latex.py
+# file: sinh_de_kntc_lop6_latex_render.py
 import requests
 import streamlit as st
 
-st.set_page_config(page_title="Sinh Đề Lớp 6 - Toàn công thức LaTeX", page_icon="📝", layout="wide")
-st.title("📝 Sinh Đề Tự Động Lớp 6 – Tất cả công thức LaTeX")
+st.set_page_config(page_title="Sinh Đề Lớp 6 - LaTeX", page_icon="📝", layout="wide")
+st.title("📝 Sinh Đề Tự Động Lớp 6 – Render LaTeX")
 
 # --- API Key ---
 api_key = st.secrets.get("GOOGLE_API_KEY", "")
@@ -84,9 +84,11 @@ Yêu cầu:
    - Nhận biết: {so_cau_nb}
    - Thông hiểu: {so_cau_th}
    - Vận dụng: {so_cau_vd}
-3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$**.
+3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$.**
 4. Mỗi câu phải gắn nhãn Mức độ và Loại câu hỏi.
 5. {dan_ap}
+
+Trả về kết quả theo định dạng Markdown, có thể dùng trực tiếp với st.markdown().
 """
     return prompt
 
@@ -120,6 +122,7 @@ if st.button("Sinh đề"):
             success, result = generate_questions(api_key, prompt)
             if success:
                 st.success("✅ Sinh đề thành công!")
-                st.text_area("Đề kiểm tra", value=result, height=600)
+                # Hiển thị trực tiếp Markdown (công thức render được)
+                st.markdown(result, unsafe_allow_html=True)
             else:
                 st.error(result)
