@@ -1,50 +1,28 @@
-# file: sinh_de_kntc_lop6.py
-import re
-import io
+# file: sinh_de_kntc_lop6_latex.py
 import requests
 import streamlit as st
-from docx import Document
-from docx.shared import Inches
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.utils import ImageReader
-from PIL import Image, ImageFile
-import matplotlib
-import matplotlib.pyplot as plt
-import logging
 
-# --- Cấu hình logging ---
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+st.set_page_config(page_title="Sinh Đề Lớp 6 - Toàn công thức LaTeX", page_icon="📝", layout="wide")
+st.title("📝 Sinh Đề Tự Động Lớp 6 – Tất cả công thức LaTeX")
 
-# --- Matplotlib backend ---
-matplotlib.use("Agg")
-plt.rcParams['mathtext.fontset'] = 'cm'
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-
-st.set_page_config(page_title="Sinh Đề KNTC Lớp 6", page_icon="📝", layout="wide")
-st.title("📝 Sinh Đề Tự Động – Lớp 6 (Toàn bộ công thức LaTeX)")
-
-# --- API KEY ---
+# --- API Key ---
 api_key = st.secrets.get("GOOGLE_API_KEY", "")
 if not api_key:
     api_key = st.text_input("Nhập Google API Key:", type="password")
 
-# --- Dữ liệu lớp 6 ---
-chuong_options = {
-    "Lớp 6": [
-        "Chương I: Tập hợp các số tự nhiên",
-        "Chương II: Tính chia hết trong tập hợp các số tự nhiên",
-        "Chương III: Số nguyên",
-        "Chương IV: Một số hình phẳng trong thực tiễn",
-        "Chương V: Tính đối xứng của hình phẳng trong tự nhiên",
-        "Chương VI: Phân số",
-        "Chương VII: Số thập phân",
-        "Chương VIII: Những hình hình học cơ bản",
-        "Chương IX: Dữ liệu và xác suất thực nghiệm",
-        "Hoạt động thực hành trải nghiệm"
-    ]
-}
+# --- Chương và bài lớp 6 ---
+chuong_options = [
+    "Chương I: Tập hợp các số tự nhiên",
+    "Chương II: Tính chia hết trong tập hợp các số tự nhiên",
+    "Chương III: Số nguyên",
+    "Chương IV: Một số hình phẳng trong thực tiễn",
+    "Chương V: Tính đối xứng của hình phẳng trong tự nhiên",
+    "Chương VI: Phân số",
+    "Chương VII: Số thập phân",
+    "Chương VIII: Những hình hình học cơ bản",
+    "Chương IX: Dữ liệu và xác suất thực nghiệm",
+    "Hoạt động thực hành trải nghiệm"
+]
 
 bai_options = {
     "Chương I: Tập hợp các số tự nhiên": ["Bài 1", "Bài 2", "Bài 3", "Bài 4", "Ôn tập"],
@@ -62,127 +40,86 @@ bai_options = {
 # --- Sidebar ---
 with st.sidebar:
     st.header("Thông tin sinh đề")
-    
-    # Chỉ lớp 6
     lop = "Lớp 6"
     st.info(f"Chỉ sinh đề cho {lop}")
-
-    # Chọn nhiều chương
-    chuong_list = chuong_options[lop]
-    chuong = st.multiselect("Chọn chủ đề/chương", chuong_list, default=chuong_list[0])
-
-    # Chọn nhiều bài dựa trên chương đã chọn
+    
+    chuong = st.multiselect("Chọn chương", chuong_options, default=chuong_options[0])
     bai_list_all = []
     for c in chuong:
         bai_list_all.extend(bai_options.get(c, []))
     bai = st.multiselect("Chọn bài", bai_list_all, default=bai_list_all[0])
 
     st.markdown("---")
-    st.subheader("⚙️ Phân bổ theo Ma trận")
     so_cau = st.number_input("Tổng số câu hỏi", min_value=1, max_value=50, value=21)
     col_nl, col_ds, col_tl = st.columns(3)
-    with col_nl: phan_bo_nl = st.number_input("NL (Nhiều Lựa chọn)", min_value=0, value=12)
-    with col_ds: phan_bo_ds = st.number_input("DS (Đúng - Sai)", min_value=0, value=2)
-    with col_tl: phan_bo_tl = st.number_input("TL (Tự luận/Trả lời ngắn)", min_value=0, value=7)
+    with col_nl: phan_bo_nl = st.number_input("NL (4 lựa chọn)", min_value=0, value=12)
+    with col_ds: phan_bo_ds = st.number_input("DS (Đúng/Sai)", min_value=0, value=2)
+    with col_tl: phan_bo_tl = st.number_input("TL (Tự luận)", min_value=0, value=7)
 
     st.markdown("---")
-    st.subheader("Độ khó (Cognitive Level)")
     col_nb, col_th, col_vd = st.columns(3)
     with col_nb: so_cau_nb = st.number_input("Nhận biết", min_value=0, value=6)
     with col_th: so_cau_th = st.number_input("Thông hiểu", min_value=0, value=8)
-    with col_vd: so_cau_vd = st.number_input("Vận dụng/VDC", min_value=0, value=7)
-
-    total_check = phan_bo_nl + phan_bo_ds + phan_bo_tl
-    total_level = so_cau_nb + so_cau_th + so_cau_vd
-    if total_check != so_cau:
-        st.error(f"Tổng số câu theo loại (NL+DS+TL) = {total_check} không khớp Tổng ({so_cau}).")
-    if total_level != so_cau:
-        st.error(f"Tổng cấp độ (NB+TH+VĐ) = {total_level} không khớp Tổng ({so_cau}).")
+    with col_vd: so_cau_vd = st.number_input("Vận dụng", min_value=0, value=7)
 
     co_dap_an = st.checkbox("Có đáp án", value=True)
 
-# --- Build Prompt ---
-def build_prompt(lop, chuong, bai, so_cau,
-                 phan_bo_nl, phan_bo_ds, phan_bo_tl,
+# --- Build prompt ---
+def build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
                  so_cau_nb, so_cau_th, so_cau_vd, co_dap_an):
-    dan_ap = "Tạo Đáp án và Lời giải chi tiết sau mỗi câu hỏi, tất cả công thức bằng LaTeX." if co_dap_an else "Không cần Đáp án, nhưng tất cả công thức phải ở dạng LaTeX."
-    prompt_ma_tran = f"""
-Cấu trúc ĐỀ VÀ MA TRẬN ĐẶC TẢ TỐI GIẢN (Tổng {so_cau} câu):
-1. PHẦN TRẮC NGHIỆM KHÁCH QUAN (NL/DS)
-    - Số câu Nhiều Lựa chọn (NL): {phan_bo_nl} câu.
-    - Số câu Đúng - Sai (DS): {phan_bo_ds} câu.
-2. PHẦN TỰ LUẬN (TL) / TRẢ LỜI NGẮN
-    - Số câu Tự luận/Trả lời ngắn (TL): {phan_bo_tl} câu.
+    
+    dan_ap = "Tạo đáp án chi tiết và lời giải sau mỗi câu hỏi, tất cả công thức bằng LaTeX." if co_dap_an else "Không cần đáp án, nhưng tất cả công thức bắt buộc LaTeX."
+    
+    prompt = f"""
+Bạn là giáo viên Toán lớp 6, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
+- Chương: {', '.join(chuong)}
+- Bài: {', '.join(bai)}
 
-PHÂN BỔ MỨC ĐỘ NHẬN THỨC:
-    - Nhận biết: {so_cau_nb} câu
-    - Thông hiểu: {so_cau_th} câu
-    - Vận dụng/VDC: {so_cau_vd} câu
-
-YÊU CẦU ĐỀ BÀI:
-1. Tạo {so_cau} câu hỏi, trong đó:
-    - {phan_bo_nl} câu Trắc nghiệm 4 lựa chọn (A, B, C, D) có công thức LaTeX.
-    - {phan_bo_ds} câu Trắc nghiệm Đúng - Sai (mỗi câu có 4 ý a, b, c, d) có công thức LaTeX.
-    - {phan_bo_tl} câu Tự luận hoặc Trả lời ngắn, tất cả công thức LaTeX.
-2. Đảm bảo tổng số câu theo từng mức độ nhận thức (NB/TH/VĐ) khớp với phân bổ trên.
-3. Đặt Tiêu đề rõ ràng cho từng phần.
-4. Mỗi câu hỏi phải được gắn nhãn Mức độ và Loại câu hỏi.
-5. Toàn bộ công thức toán phải được viết bằng LaTeX và **phải** đặt trong delimiters $$...$$.
-6. {dan_ap}
+Yêu cầu:
+1. Tổng {so_cau} câu, gồm:
+   - NL (4 lựa chọn): {phan_bo_nl} câu
+   - DS (Đúng/Sai): {phan_bo_ds} câu
+   - TL: {phan_bo_tl} câu
+2. Phân bố nhận thức:
+   - Nhận biết: {so_cau_nb}
+   - Thông hiểu: {so_cau_th}
+   - Vận dụng: {so_cau_vd}
+3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$**.
+4. Mỗi câu phải gắn nhãn Mức độ và Loại câu hỏi.
+5. {dan_ap}
 """
-    chuong_text = ", ".join(chuong) if isinstance(chuong, list) else chuong
-    bai_text = ", ".join(bai) if isinstance(bai, list) else bai
-    prompt_context = f"""
-Bạn là giáo viên Toán, hãy sinh đề kiểm tra cho {lop} theo sách "Kết nối tri thức với cuộc sống".
-- Chủ đề/Chương: {chuong_text}
-- Bài: {bai_text}
-{prompt_ma_tran}
-"""
-    return prompt_context
+    return prompt
 
-# --- Gọi API Google Generative Language ---
-def generate_questions(api_key, lop, chuong, bai, so_cau,
-                       phan_bo_nl, phan_bo_ds, phan_bo_tl,
-                       so_cau_nb, so_cau_th, so_cau_vd, co_dap_an):
+# --- Gọi API ---
+def generate_questions(api_key, prompt):
     MODEL = "models/gemini-2.5-flash"
     url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
-    prompt = build_prompt(lop, chuong, bai, so_cau,
-                          phan_bo_nl, phan_bo_ds, phan_bo_tl,
-                          so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
-    payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}]}
+    payload = {"contents":[{"role":"user","parts":[{"text":prompt}]}]}
     headers = {"Content-Type": "application/json"}
+    
     try:
-        r = requests.post(url, json=payload, headers=headers, timeout=60)
+        r = requests.post(url, json=payload, headers=headers, timeout=300)
         if r.status_code != 200:
-            try:
-                j_error = r.json()
-                error_message = j_error.get("error", {}).get("message", r.text)
-            except Exception:
-                error_message = r.text
-            return False, f"❌ Lỗi API {r.status_code}: {error_message}"
+            return False, f"Lỗi API {r.status_code}: {r.text}"
         j = r.json()
-        if j.get("candidates") and len(j["candidates"]) > 0:
-            cand = j["candidates"][0]
-            content = cand.get("content", {})
-            parts = content.get("parts", [])
-            if parts and len(parts) > 0:
-                text = parts[0].get("text", "")
-                return True, text
-        return False, "❌ Lỗi: AI không trả về nội dung hợp lệ."
+        if j.get("candidates") and len(j["candidates"])>0:
+            text = j["candidates"][0]["content"]["parts"][0]["text"]
+            return True, text
+        return False, "AI không trả về nội dung hợp lệ."
     except requests.exceptions.Timeout:
-        return False, "❌ Lỗi kết nối: Yêu cầu hết thời gian."
+        return False, "Lỗi kết nối: Yêu cầu hết thời gian."
 
-# --- Streamlit: nút sinh đề ---
+# --- Streamlit button ---
 if st.button("Sinh đề"):
     if not api_key:
         st.warning("Nhập API Key trước khi sinh đề!")
     else:
-        with st.spinner("Đang sinh đề..."):
-            success, result = generate_questions(api_key, lop, chuong, bai, so_cau,
-                                                 phan_bo_nl, phan_bo_ds, phan_bo_tl,
-                                                 so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
+        prompt = build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
+                              so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
+        with st.spinner("Đang sinh đề (có LaTeX)..."):
+            success, result = generate_questions(api_key, prompt)
             if success:
-                st.success("✅ Đã sinh đề thành công!")
+                st.success("✅ Sinh đề thành công!")
                 st.text_area("Đề kiểm tra", value=result, height=600)
             else:
                 st.error(result)
