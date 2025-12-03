@@ -314,4 +314,20 @@ def generate_questions(api_key, lop, chuong, bai, so_cau,
                 return True, text
         return False, "❌ Lỗi: AI không trả về nội dung hợp lệ."
     except requests.exceptions.Timeout:
-        return False, "❌ Lỗi kết nối: Yêu cầu hết
+        return False, "❌ Lỗi kết nối: Yêu cầu hết thời gian."
+
+# --- Streamlit: nút sinh đề ---
+if st.button("Sinh đề"):
+    if not api_key:
+        st.warning("Nhập API Key trước khi sinh đề!")
+    else:
+        with st.spinner("Đang sinh đề..."):
+            success, result = generate_questions(api_key, lop, chuong, bai, so_cau,
+                                                 phan_bo_nl, phan_bo_ds, phan_bo_tl,
+                                                 so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
+            if success:
+                st.success("✅ Đã sinh đề thành công!")
+                st.text_area("Đề kiểm tra", value=result, height=600)
+            else:
+                st.error(result)
+
