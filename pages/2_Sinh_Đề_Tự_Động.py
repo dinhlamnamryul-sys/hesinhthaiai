@@ -1,9 +1,9 @@
-# file: sinh_de_kntc_lop6_chuan.py
+# file: sinh_de_kntc_lop6_dapan_xuongdong.py
 import requests
 import streamlit as st
 
 st.set_page_config(page_title="Sinh Đề Lớp 6 Chuẩn LaTeX", page_icon="📝", layout="wide")
-st.title("📝 Sinh Đề Tự Động Lớp 6 – Chuẩn LaTeX, Đáp án A/B/C/D rõ ràng")
+st.title("📝 Sinh Đề Tự Động Lớp 6 – LaTeX + Đáp án cách dòng")
 
 # --- API Key ---
 api_key = st.secrets.get("GOOGLE_API_KEY", "")
@@ -86,7 +86,7 @@ Yêu cầu:
    - Vận dụng: {so_cau_vd}
 3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$.**
 4. Mỗi câu phải gắn nhãn Mức độ và Loại câu hỏi.
-5. **Mỗi câu NL/DS phải có đáp án A/B/C/D rõ ràng. TL đánh số 1,2,3...**
+5. **NL/DS: mỗi đáp án A/B/C/D cách xuống 1 dòng**. TL đánh số 1,2,3… mỗi công thức LaTeX.
 6. {dan_ap}
 7. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp `st.markdown()` trong Streamlit.
 """
@@ -112,13 +112,13 @@ def generate_questions(api_key, prompt):
         return False, "Lỗi kết nối: Yêu cầu hết thời gian."
 
 # --- Streamlit button ---
-if st.button("Sinh đề chuẩn"):
+if st.button("Sinh đề chuẩn + đáp án cách dòng"):
     if not api_key:
         st.warning("Nhập API Key trước khi sinh đề!")
     else:
         prompt = build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
                               so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
-        with st.spinner("Đang sinh đề (Markdown + LaTeX)..."):
+        with st.spinner("Đang sinh đề (Markdown + LaTeX + đáp án cách dòng)..."):
             success, result = generate_questions(api_key, prompt)
             if success:
                 st.success("✅ Sinh đề thành công!")
