@@ -161,4 +161,71 @@ with col_vd:
 
 # Có đáp án
 co_dap_an = st.checkbox("Có đáp án", value=True)
+# --- Build prompt chuẩn ---
+def build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
+                 so_cau_nb, so_cau_th, so_cau_vd, co_dap_an):
+    
+    dan_ap = "Tạo đáp án chi tiết và lời giải sau mỗi câu hỏi, tất cả công thức bằng LaTeX. NL/DS/TL đáp án mỗi lựa chọn xuống dòng." if co_dap_an else "Không cần đáp án, nhưng tất cả công thức bắt buộc LaTeX, NL/DS/TL xuống dòng."
+    
+    prompt = f"""
+Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
+- Chương: {', '.join(chuong)}
+- Bài: {', '.join(bai)}
+
+Yêu cầu:
+1. Tổng {so_cau} câu, gồm:
+   - NL (4 lựa chọn): {phan_bo_nl} câu
+   - DS (Đúng/Sai): {phan_bo_ds} câu
+   - TL: {phan_bo_tl} câu
+2. Phân bố nhận thức:
+   - Nhận biết: {so_cau_nb}
+   - Thông hiểu: {so_cau_th}
+   - Vận dụng: {so_cau_vd}
+3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$.**
+4. Mỗi câu phải gắn nhãn Mức độ và Loại câu hỏi.
+5. NL/DS: mỗi đáp án A/B/C/D cách xuống 1 dòng. TL đánh số 1,2,3… mỗi công thức LaTeX.
+6. {dan_ap}
+7. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp `st.markdown()`.
+"""
+    return prompt
+
+# --- Gọi API ---
+def generate_questions(api_key, prompt):
+    MODEL = "models/gemini-2.5-flash"
+    url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
+    payload = {"contents":[{"role":"user","parts":[{"text":prompt}]}]}
+    headers = {"Content-Type": "application/json"}
+    
+    try:
+        r = requests.post(url, json=payload, headers=headers, timeout=300)
+        if r.status_code != 200:
+            return False, f"Lỗi API {r.status_code}: {r.text}"
+        j = r.json()
+        if j.get("candidates") and len(j["candidates"])>0:
+            text = j["candidates"][0]["content"]["parts"][0]["text"]
+            return True, text
+        return False, "AI không trả về nội dung hợp lệ."
+    except requests.exceptions.Timeout:
+        return False, "Lỗi kết nối: Yêu cầu hết thời gian."
+
+# --- Nút bấm sinh đề ---
+if st.button("Sinh đề chuẩn + đáp án cách dòng"):
+    if not api_key:
+        st.warning("Nhập API Key trước khi sinh đề!")
+    else:
+        prompt = build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
+                              so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
+        with st.spinner("Đang sinh đề (Markdown + LaTeX + đáp án cách dòng)..."):
+            success, result = generate_questions(api_key, prompt)
+            if success:
+                st.success("✅ Sinh đề thành công!")
+                st.markdown(result, unsafe_allow_html=True)
+                
+                # --- Tải file markdown về máy ---
+                filename = f"De_{lop}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+                with open(filename, "w", encoding="utf-8") as f:
+                    f.write(result)
+                st.download_button("📥 Tải đề về máy (Markdown)", data=result, file_name=filename)
+            else:
+                st.error(result)
 
