@@ -1,271 +1,532 @@
-import os
-import io
-import math
-import json
-import tempfile
 import streamlit as st
-import requests
-from typing import Tuple, List
+import pandas as pd
+from docx import Document
+from io import BytesIO
+import math
 
-# --- Xử lý Import Error ---
-# Phần này giúp báo lỗi rõ ràng trên giao diện nếu thiếu thư viện
-try:
-    import pdfplumber
-    from docx import Document
-    from bs4 import BeautifulSoup
-except ImportError as e:
-    st.error(f"Lỗi thiếu thư viện: {e}")
-    st.info("Vui lòng đảm bảo file 'requirements.txt' đã có đầy đủ: pdfplumber, requests, python-docx, beautifulsoup4")
-    st.stop()
+st.set_page_config(page_title="Tạo đề Toán 6-9 (Tối giản & Chuẩn Output)", page_icon="📝", layout="wide")
+st.title("📝 Tạo đề kiểm tra môn Toán (Tối giản - Theo CV 7991 & Format Mẫu)")
 
-# ------------------------- CONFIG -------------------------
-st.set_page_config(page_title="Tạo đề & Ma trận (Gemini AI)", page_icon="📝", layout="wide")
-st.title("📝 Tạo ma trận & đề kiểm tra (Gemini AI) — upload sách, công văn → AI trả về ma trận & đề")
+st.markdown("""
+Hệ thống sử dụng dữ liệu mục lục SGK Toán 6-9 KNTT.
+**🔥 Yêu cầu của bạn: Thao tác tối thiểu!**
+Bạn chỉ cần chọn **Lớp** và **Chương**; hệ thống sẽ tự động phân bổ **21 câu hỏi** (10 điểm, tỉ lệ điểm 25/25/50) vào các nội dung đã chọn và tạo Ma trận/Đặc tả/Đề thi & Đáp án theo format chuẩn.
+""")
 
-# Lấy API Key từ Secrets hoặc biến môi trường
-if "GOOGLE_API_KEY" in st.secrets:
-    GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
-else:
-    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+# -------------------- DỮ LIỆU MOCK (Đã sửa lỗi cú pháp) --------------------
+full_data = {
+    'Mon': [], 'Chuong': [], 'Bai': [], 'ChuDe': [], 'NoiDung': [], 'MucDo': [], 'SoCau': []
+}
 
-# Nếu chưa có Key, cho nhập tay
-if not GOOGLE_API_KEY:
-    with st.expander("⚠️ Chưa cấu hình API Key", expanded=True):
-        GOOGLE_API_KEY = st.text_input("Nhập Google API Key của bạn:", type="password")
-        st.markdown("[Lấy API Key miễn phí tại đây](https://aistudio.google.com/app/apikey)")
+def add_lesson(mon, chuong, bai, chude, noidung, mucdo, socau):
+    """Hàm thêm dữ liệu với 7 tham số: Môn, Chương, Bài, Chủ đề, Nội dung, Mức độ, Số câu."""
+    full_data['Mon'].append(mon)
+    full_data['Chuong'].append(chuong)
+    full_data['Bai'].append(bai)
+    full_data['ChuDe'].append(chude)
+    full_data['NoiDung'].append(noidung)
+    full_data['MucDo'].append(mucdo)
+    full_data['SoCau'].append(socau)
 
-if not GOOGLE_API_KEY:
-    st.stop()
+# --- TOÁN 6 - TẬP 1 (Chương I - IV) ---
+mon = 'Toán 6'
+add_lesson(mon, 'Chương I: Tập hợp các số tự nhiên', 'Bài 1. Tập hợp', 'Khái niệm tập hợp', 'Nhận biết tập hợp và các phần tử', 'Nhận biết', 3)
+add_lesson(mon, 'Chương I: Tập hợp các số tự nhiên', 'Bài 4. Phép cộng và phép trừ', 'Phép toán số tự nhiên', 'Thực hiện phép cộng/trừ số tự nhiên', 'Thông hiểu', 4)
+add_lesson(mon, 'Chương I: Tập hợp các số tự nhiên', 'Bài 6. Luỹ thừa với số mũ tự nhiên', 'Lũy thừa', 'Tính giá trị biểu thức lũy thừa', 'Vận dụng', 2)
+add_lesson(mon, 'Chương II: Tính chia hết', 'Bài 9. Dấu hiệu chia hết', 'Dấu hiệu chia hết', 'Vận dụng dấu hiệu chia hết', 'Vận dụng', 3)
+add_lesson(mon, 'Chương II: Tính chia hết', 'Bài 12. Ước chung lớn nhất. Bội chung nhỏ nhất', 'ƯCLN và BCNN', 'Giải bài toán thực tế dùng ƯCLN/BCNN', 'Vận dụng cao', 2)
+add_lesson(mon, 'Chương III: Số nguyên', 'Bài 14. Phép cộng và phép trừ số nguyên', 'Cộng/Trừ số nguyên', 'Thực hiện phép tính cộng, trừ số nguyên', 'Thông hiểu', 3)
+add_lesson(mon, 'Chương IV: Hình học thực tiễn', 'Bài 20. Chu vi và diện tích', 'Tính diện tích', 'Tính chu vi/diện tích các hình đã học', 'Vận dụng', 2)
 
-# ------------------------- HELPERS: TẬP TIN -> TEXT -------------------------
-def extract_text_from_pdf(file_bytes: bytes) -> str:
-    text_parts = []
-    try:
-        with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
-            for page in pdf.pages:
-                page_text = page.extract_text()
-                if page_text:
-                    text_parts.append(page_text)
-    except Exception as e:
-        st.warning(f"Không thể đọc PDF bình thường: {e}.")
-    return "\n".join(text_parts)
+# --- TOÁN 7 - TẬP 1 (Chương I - V) ---
+mon = 'Toán 7'
+add_lesson(mon, 'Chương I: Số hữu tỉ', 'Bài 2. Cộng, trừ, nhân, chia số hữu tỉ', 'Phép toán số hữu tỉ', 'Thực hiện các phép toán với số hữu tỉ', 'Thông hiểu', 4)
+add_lesson(mon, 'Chương III: Góc và đường thẳng song song', 'Bài 9. Hai đường thẳng song song', 'Đường thẳng song song', 'Sử dụng dấu hiệu nhận biết hai đường thẳng song song', 'Vận dụng', 3)
+add_lesson(mon, 'Chương IV: Tam giác bằng nhau', 'Bài 13. Hai tam giác bằng nhau', 'Tam giác bằng nhau', 'Chứng minh hai tam giác bằng nhau theo c.c.c', 'Vận dụng', 3)
 
-def extract_text_from_docx(file_bytes: bytes) -> str:
-    try:
-        doc = Document(io.BytesIO(file_bytes))
-        paragraphs = [p.text for p in doc.paragraphs if p.text and p.text.strip()]
-        return "\n".join(paragraphs)
-    except Exception:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
-            tmp.write(file_bytes)
-            tmp.flush()
-            try:
-                doc = Document(tmp.name)
-                paragraphs = [p.text for p in doc.paragraphs if p.text and p.text.strip()]
-                return "\n".join(paragraphs)
-            finally:
-                os.unlink(tmp.name)
+# --- TOÁN 8 - TẬP 1 (Chương I - IV) ---
+mon = 'Toán 8'
+add_lesson(mon, 'Chương I: Đa thức', 'Bài 3. Phép cộng và phép trừ đa thức', 'Cộng/Trừ đa thức', 'Thực hiện phép tính cộng, trừ đa thức', 'Thông hiểu', 3)
+add_lesson(mon, 'Chương II: Hằng đẳng thức', 'Bài 9. Phân tích đa thức thành nhân tử', 'Phân tích nhân tử', 'Phân tích đa thức thành nhân tử (dùng HĐT, đặt nhân tử chung)', 'Vận dụng', 4)
+add_lesson(mon, 'Chương III: Tứ giác', 'Bài 14. Hình thoi và hình vuông', 'Hình đặc biệt', 'Chứng minh một tứ giác là hình thoi/hình vuông', 'Vận dụng', 3)
 
-def extract_text_from_file(uploaded) -> Tuple[str, str]:
-    if uploaded is None:
-        return ("", "")
-    raw = uploaded.read()
-    uploaded.seek(0)
-    name_lower = uploaded.name.lower()
+# --- TOÁN 9 - TẬP 1 (Chương I - IV) ---
+mon = 'Toán 9'
+add_lesson(mon, 'Chương I: Phương trình và Hệ phương trình', 'Bài 2. Giải hệ hai phương trình bậc nhất hai ẩn', 'Giải hệ PT', 'Giải hệ phương trình bằng phương pháp thế/cộng đại số', 'Thông hiểu', 4)
+add_lesson(mon, 'Chương II: Căn bậc hai và Căn bậc ba', 'Bài 7. Các phép biến đổi căn thức bậc hai', 'Rút gọn biểu thức', 'Thực hiện phép biến đổi và rút gọn biểu thức', 'Vận dụng', 4)
+add_lesson(mon, 'Chương III: Hệ thức lượng trong tam giác vuông', 'Bài 10. Hệ thức về cạnh và đường cao', 'Hệ thức lượng', 'Áp dụng các hệ thức lượng trong tam giác vuông', 'Thông hiểu', 3)
+
+df = pd.DataFrame(full_data)
+# -------------------- END: DỮ LIỆU MOCK --------------------
+
+# -------------------- HÀM TẠO MA TRẬN VÀ PHÂN BỔ --------------------
+
+def create_ma_tran_cv7991_fixed_auto(df_input):
+    """Tạo Ma trận và phân bổ cố định 21 câu: 6 NB, 8 TH, 7 VĐ/VDC. (Logic giữ nguyên)"""
     
-    if name_lower.endswith(".pdf"):
-        return ("application/pdf", extract_text_from_pdf(raw))
-    if name_lower.endswith(".docx"):
-        return ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", extract_text_from_docx(raw))
-    if name_lower.endswith(".doc"):
-        try:
-            return ("application/msword", extract_text_from_docx(raw))
-        except Exception:
-            return ("application/msword", raw.decode(errors="ignore"))
-    try:
-        return ("text/plain", raw.decode("utf-8"))
-    except Exception:
-        return ("application/octet-stream", raw.decode(errors="ignore"))
-
-# ------------------------- HELPERS: GỌI GEMINI API -------------------------
-def call_gemini_generate_matrix_and_exam(api_key: str, textbook_text: str, official_doc_text: str, template_text: str, instruction: str) -> dict:
-    """
-    Gọi Google Gemini API để sinh ma trận và đề thi dưới dạng JSON.
-    Sử dụng model gemini-2.5-flash cho tốc độ nhanh và context lớn.
-    """
-    # Gemini Flash có context window rất lớn (1M token), nên ta có thể gửi nhiều text hơn mà không cần cắt quá nhỏ.
-    # Tuy nhiên, vẫn nên giới hạn để tránh timeout hoặc lỗi quá tải nếu file quá khổng lồ.
-    MAX_CHARS = 200000 # Khoảng 50k token, dư sức cho hầu hết SGK chương/bài
+    df_temp = df_input.copy()
     
-    if len(textbook_text) > MAX_CHARS:
-        textbook_text = textbook_text[:MAX_CHARS] + "\n...(đã cắt bớt)..."
-    
-    system_msg = (
-        "Bạn là một chuyên gia giáo dục chuyên tạo MA TRẬN (dạng bảng HTML) và ĐỀ KIỂM TRA (HTML) "
-        "theo đúng MẪU đề được cung cấp. "
-        "Nhiệm vụ của bạn là trả về kết quả dưới dạng JSON hợp lệ."
-    )
-
-    user_msg = (
-        "Dưới đây là tài liệu nguồn:\n\n"
-        f"=== NỘI DUNG SGK (Kiến thức nguồn) ===\n{textbook_text}\n\n"
-        f"=== CÔNG VĂN / KHUNG CHƯƠNG TRÌNH ===\n{official_doc_text}\n\n"
-        f"=== MẪU ĐỀ (Template Format) ===\n{template_text}\n\n"
-        f"=== YÊU CẦU CỦA GIÁO VIÊN ===\n{instruction}\n\n"
-        "Hãy thực hiện:\n"
-        "1. Xây dựng MA TRẬN đề thi (matrixHtml) phù hợp với công văn và yêu cầu.\n"
-        "2. Soạn ĐỀ THI (examHtml) dựa trên ma trận vừa tạo. Nội dung câu hỏi lấy từ SGK. Hình thức trình bày giống Mẫu Đề.\n"
-        "Output JSON schema: { \"matrixHtml\": \"string (html code)\", \"examHtml\": \"string (html code)\" }"
-    )
-
-    # Cấu hình gọi API Gemini
-    model = "gemini-2.5-flash" 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-    
-    headers = {
-        "Content-Type": "application/json"
+    required_q_by_level = {
+        'Nhận biết': 6, 'Thông hiểu': 8, 'Vận dụng': 4, 'Vận dụng cao': 3
     }
+    TOTAL_NL = 12; TOTAL_DS = 2 
+    matrix_cols_9 = [
+        'NL - Biết', 'NL - Hiểu', 'NL - Vận dụng',
+        'DS - Biết', 'DS - Hiểu', 'DS - Vận dụng',
+        'TL - Biết', 'TL - Hiểu', 'TL - Vận dụng'
+    ]
     
-    data = {
-        "contents": [{
-            "parts": [{"text": user_msg}]
-        }],
-        "systemInstruction": {
-            "parts": [{"text": system_msg}]
-        },
-        "generationConfig": {
-            "responseMimeType": "application/json", # Bắt buộc trả về JSON
-            "temperature": 0.3
-        }
-    }
-
-    try:
-        response = requests.post(url, headers=headers, json=data, timeout=120)
-        
-        if response.status_code != 200:
-            raise RuntimeError(f"Lỗi API ({response.status_code}): {response.text}")
-            
-        result_json = response.json()
-        
-        # Parse kết quả
-        try:
-            candidates = result_json.get("candidates", [])
-            if not candidates:
-                 raise RuntimeError("AI không trả về kết quả (No candidates).")
-            
-            content_text = candidates[0].get("content", {}).get("parts", [])[0].get("text", "")
-            parsed = json.loads(content_text)
-            return parsed
-            
-        except (KeyError, IndexError, json.JSONDecodeError) as e:
-            raise RuntimeError(f"Lỗi xử lý dữ liệu trả về từ AI: {e}\nRaw: {result_json}")
-
-    except requests.exceptions.Timeout:
-        raise RuntimeError("Yêu cầu hết thời gian chờ (Timeout). Vui lòng thử lại.")
-    except Exception as e:
-        raise RuntimeError(f"Lỗi kết nối: {e}")
-
-# ------------------------- HELPERS: HTML -> DOCX -------------------------
-def html_to_plain_text(html: str) -> str:
-    if not html:
-        return ""
-    soup = BeautifulSoup(html, "html.parser")
-    for br in soup.find_all("br"):
-        br.replace_with("\n")
-    text = soup.get_text(separator="\n")
-    lines = [line.strip() for line in text.split("\n") if line.strip()]
-    return "\n".join(lines)
-
-def make_docx_from_htmls(matrix_html: str, exam_html: str) -> bytes:
-    doc = Document()
-    doc.add_heading("KẾT QUẢ TẠO ĐỀ TỰ ĐỘNG", level=0)
+    # 1. Phân bổ N_to_Take
+    df_temp['N_to_Take'] = 0
+    levels = ["Nhận biết", "Thông hiểu", "Vận dụng", "Vận dụng cao"]
     
-    doc.add_heading("I. MA TRẬN ĐỀ THI", level=1)
-    if matrix_html:
-        matrix_text = html_to_plain_text(matrix_html)
-        doc.add_paragraph(matrix_text)
-    else:
-        doc.add_paragraph("[Không có nội dung ma trận]")
+    for md in levels:
+        n_cau_level = required_q_by_level.get(md, 0)
+        if n_cau_level <= 0: continue
 
-    doc.add_page_break()
-    
-    doc.add_heading("II. ĐỀ KIỂM TRA", level=1)
-    if exam_html:
-        exam_text = html_to_plain_text(exam_html)
-        doc.add_paragraph(exam_text)
-    else:
-        doc.add_paragraph("[Không có nội dung đề]")
+        df_md_index = df_temp[df_temp['MucDo'].str.contains(md.split()[0], case=False)].index
+        if df_md_index.empty: continue
+
+        total_available_points = df_temp.loc[df_md_index, 'SoCau'].sum()
+        if total_available_points == 0: continue
         
-    bio = io.BytesIO()
-    doc.save(bio)
-    bio.seek(0)
-    return bio.read()
+        n_cau_level = min(n_cau_level, total_available_points)
+        
+        df_temp.loc[df_md_index, 'N_Needed'] = (df_temp.loc[df_md_index, 'SoCau'] / total_available_points) * n_cau_level
+        df_temp.loc[df_md_index, 'N_to_Take'] = df_temp.loc[df_md_index, 'N_Needed'].apply(lambda x: round(x))
+        
+        current_total_take = df_temp.loc[df_md_index, 'N_to_Take'].sum()
+        while current_total_take != n_cau_level:
+            if current_total_take > n_cau_level:
+                rows_to_adjust = df_temp.loc[df_md_index].sort_values(by='N_to_Take', ascending=False).index.tolist()
+                idx = next((i for i in rows_to_adjust if df_temp.loc[i, 'N_to_Take'] > 0), None)
+                if idx is None: break
+                df_temp.loc[idx, 'N_to_Take'] -= 1
+            else: # current_total_take < n_cau_level
+                rows_to_adjust = df_temp.loc[df_md_index].sort_values(by='N_Needed', ascending=False).index.tolist()
+                idx = next((i for i in rows_to_adjust if df_temp.loc[i, 'N_to_Take'] < df_temp.loc[i, 'SoCau']), None)
+                if idx is None: break
+                df_temp.loc[idx, 'N_to_Take'] += 1
+                
+            current_total_take = df_temp.loc[df_md_index, 'N_to_Take'].sum()
+            if not df_md_index.any(): break
+            
+    df_with_n_take = df_temp[df_temp['N_to_Take'] > 0].copy()
+    
+    # 2. Phân bổ 9 ô Ma trận
+    for col in matrix_cols_9:
+        df_with_n_take[col] = 0
+        
+    df_vd_index = df_with_n_take[df_with_n_take['MucDo'].isin(['Vận dụng', 'Vận dụng cao'])].index
+    df_with_n_take.loc[df_vd_index, 'TL - Vận dụng'] = df_with_n_take.loc[df_vd_index, 'N_to_Take'] 
 
-# ------------------------- STREAMLIT UI -------------------------
-st.info("💡 Ứng dụng sử dụng **Google Gemini 2.5 Flash**. Vui lòng nhập API Key để bắt đầu.")
+    df_nb_index = df_with_n_take[df_with_n_take['MucDo'] == 'Nhận biết'].index
+    n_nb_total = df_with_n_take.loc[df_nb_index, 'N_to_Take'].sum() 
+    
+    if n_nb_total > 0:
+        ratio_to_total_nb = df_with_n_take.loc[df_nb_index, 'N_to_Take'] / n_nb_total
+        n_nb_nl = round(n_nb_total * (12/14)) 
+        n_nb_ds = n_nb_total - n_nb_nl
+        
+        n_nb_nl = min(n_nb_nl, 12); n_nb_ds = min(n_nb_ds, 2)
+        
+        df_with_n_take.loc[df_nb_index, 'NL - Biết'] = (ratio_to_total_nb * n_nb_nl).apply(lambda x: math.floor(x))
+        df_with_n_take.loc[df_nb_index, 'DS - Biết'] = (ratio_to_total_nb * n_nb_ds).apply(lambda x: math.floor(x))
+        for index in df_nb_index:
+            diff = df_with_n_take.loc[index, 'N_to_Take'] - (df_with_n_take.loc[index, 'NL - Biết'] + df_with_n_take.loc[index, 'DS - Biết'])
+            df_with_n_take.loc[index, 'NL - Biết'] += diff 
+            df_with_n_take.loc[index, 'NL - Biết'] = max(0, df_with_n_take.loc[index, 'NL - Biết'])
+            df_with_n_take.loc[index, 'DS - Biết'] = max(0, df_with_n_take.loc[index, 'DS - Biết'])
+                
+    df_th_index = df_with_n_take[df_with_n_take['MucDo'] == 'Thông hiểu'].index
+    n_th_total = df_with_n_take.loc[df_th_index, 'N_to_Take'].sum()
+    
+    n_th_nl = TOTAL_NL - df_with_n_take['NL - Biết'].sum()
+    n_th_ds = TOTAL_DS - df_with_n_take['DS - Biết'].sum()
+    
+    if n_th_total > 0:
+        ratio_to_total_th = df_with_n_take.loc[df_th_index, 'N_to_Take'] / n_th_total
+        
+        df_with_n_take.loc[df_th_index, 'NL - Hiểu'] = (ratio_to_total_th * n_th_nl).apply(lambda x: math.floor(x))
+        df_with_n_take.loc[df_th_index, 'DS - Hiểu'] = (ratio_to_total_th * n_th_ds).apply(lambda x: math.floor(x))
+        for index in df_th_index:
+            diff = df_with_n_take.loc[index, 'N_to_Take'] - (df_with_n_take.loc[index, 'NL - Hiểu'] + df_with_n_take.loc[index, 'DS - Hiểu'])
+            df_with_n_take.loc[index, 'NL - Hiểu'] += diff 
+            df_with_n_take.loc[index, 'NL - Hiểu'] = max(0, df_with_n_take.loc[index, 'NL - Hiểu'])
+            df_with_n_take.loc[index, 'DS - Hiểu'] = max(0, df_with_n_take.loc[index, 'DS - Hiểu'])
 
-col1, col2 = st.columns(2)
+    # 3. Tạo Ma trận hiển thị và Tính tổng/điểm
+    index_cols = ['ChuDe', 'NoiDung']
+    pivot_table = pd.pivot_table(
+        df_with_n_take, 
+        values=matrix_cols_9, 
+        index=index_cols, 
+        aggfunc='sum', 
+        fill_value=0
+    )
+    
+    pivot_table['Tổng số câu'] = pivot_table[matrix_cols_9].sum(axis=1)
+    tong_so_cau_hang = pivot_table.sum().to_frame().T 
+
+    ti_le_muc_do = {'Tổng Biết': 25.0, 'Tổng Hiểu': 25.0, 'Tổng Vận dụng': 50.0, 'Tổng': 100.0}
+    diem_muc_do = {'Tổng Biết': 2.5, 'Tổng Hiểu': 2.5, 'Tổng Vận dụng': 5.0, 'Tổng': 10.0}
+
+    final_ma_tran = pivot_table.reset_index() 
+    new_cols = ['Chủ đề', 'Nội dung'] + list(pivot_table.columns) 
+    final_ma_tran.columns = new_cols 
+
+    summary_data = [
+        {'Chủ đề': 'Tổng số câu', 'Nội dung': '', **{col: tong_so_cau_hang[col].iloc[0] for col in pivot_table.columns}},
+        {'Chủ đề': 'Tỉ lệ %', 'Nội dung': '', **{col: '' for col in pivot_table.columns}},
+        {'Chủ đề': 'Điểm (10đ)', 'Nội dung': '', **{col: '' for col in pivot_table.columns}},
+    ]
+    summary_df = pd.DataFrame(summary_data, columns=final_ma_tran.columns)
+    final_ma_tran = pd.concat([final_ma_tran, summary_df], ignore_index=True)
+    
+    idx_ti_le = final_ma_tran[final_ma_tran['Chủ đề'] == 'Tỉ lệ %'].index[0]
+    idx_diem = final_ma_tran[final_ma_tran['Chủ đề'] == 'Điểm (10đ)'].index[0]
+    tong_cau_final = tong_so_cau_hang['Tổng số câu'].iloc[0]
+    
+    final_ma_tran.loc[final_ma_tran['Chủ đề'] == 'Tổng số câu', 'Nội dung'] = str(tong_cau_final) 
+    final_ma_tran.loc[idx_ti_le, 'Nội dung'] = f"{ti_le_muc_do['Tổng']}%"
+    final_ma_tran.loc[idx_diem, 'Nội dung'] = str(diem_muc_do['Tổng'])
+    
+    for level in ['Biết', 'Hiểu', 'Vận dụng']:
+        col_list = [f'NL - {level}', f'DS - {level}', f'TL - {level}']
+        percent_value = ti_le_muc_do[f'Tổng {level}']
+        point_value = diem_muc_do[f'Tổng {level}']
+        for col in col_list:
+            final_ma_tran.loc[idx_ti_le, col] = f"{percent_value}%"
+            final_ma_tran.loc[idx_diem, col] = point_value
+    
+    final_ma_tran = final_ma_tran.rename(columns={'Tổng số câu': 'Tổng'}) 
+
+    display_cols = ['Chủ đề', 'Nội dung'] + matrix_cols_9 + ['Tổng']
+    final_ma_tran = final_ma_tran[display_cols]
+    
+    header_1_data = ['Nội dung/Đơn vị kiến thức', 'Nội dung/Đơn vị kiến thức'] + ['Nhiều lựa chọn'] * 3 + ['Đúng - Sai'] * 3 + ['Tự luận'] * 3 + ['Tổng']
+    header_2_data = ['Chủ đề', 'Nội dung'] + ['Biết', 'Hiểu', 'VĐ'] * 3 + ['Số câu/điểm']
+    final_ma_tran.columns = pd.MultiIndex.from_arrays([header_1_data, header_2_data])
+    
+    # Sử dụng chuỗi rỗng '' cho giá trị 0 (như yêu cầu trước), việc xử lý int() sẽ được thực hiện sau.
+    return final_ma_tran.astype(str).replace('0', '').replace('nan', ''), df_with_n_take
+
+# -------------------- GIAO DIỆN TỐI GIẢN --------------------
+
+col1, col2 = st.columns([1, 2])
 with col1:
-    uploaded_textbook = st.file_uploader("1. Sách giáo khoa (Nguồn kiến thức)", type=['pdf','docx','doc'], key='tb')
-    uploaded_official = st.file_uploader("2. Công văn / Khung chương trình", type=['pdf','docx','doc'], key='cv')
+    lop = st.selectbox("1️⃣ Chọn lớp:", ["6", "7", "8", "9"], index=0)
+    mon = f"Toán {lop}"
+    df_mon = df[df['Mon']==mon]
+    chuong_list = sorted(df_mon['Chuong'].unique())
+    chuong = st.multiselect("2️⃣ Chọn các chương:", chuong_list, default=chuong_list)
 
 with col2:
-    uploaded_template = st.file_uploader("3. Mẫu đề kiểm tra (Format)", type=['pdf','docx','doc'], key='tpl')
-    instruction = st.text_area("Yêu cầu cụ thể (Số câu, tỉ lệ, mức độ...)", 
-                               value="Tạo ma trận 21 câu (Trắc nghiệm 5đ, Tự luận 5đ). Tỉ lệ NB/TH/VD: 40/30/30.", 
-                               height=120)
+    st.markdown("""
+    ### ⚙️ Cấu hình Tự động (CV 7991)
+    Hệ thống sẽ tạo **21 câu hỏi** (Tổng 10 điểm) với phân bổ cố định:
+    * **Phần I (NL):** 12 câu.
+    * **Phần II (DS):** 2 câu (4 ý).
+    * **Phần III (Trả lời ngắn):** 4 câu.
+    * **Phần B (Tự luận):** 3 câu.
+    """)
 
-if st.button("🚀 TẠO MA TRẬN & ĐỀ", type="primary"):
-    if not GOOGLE_API_KEY:
-         st.error("⚠️ Vui lòng nhập Google API Key.")
-    elif not uploaded_textbook or not uploaded_official or not uploaded_template:
-        st.error("⚠️ Vui lòng tải lên đủ 3 file: SGK, Công văn, Mẫu đề.")
-    else:
-        with st.status("Đang xử lý với Gemini AI...", expanded=True) as status:
-            st.write("📖 Đang đọc nội dung file...")
-            tb_mime, tb_text = extract_text_from_file(uploaded_textbook)
-            cv_mime, cv_text = extract_text_from_file(uploaded_official)
-            tpl_mime, tpl_text = extract_text_from_file(uploaded_template)
-            
-            st.write(f"✅ Đã đọc xong: SGK ({len(tb_text)} ký tự), Công văn ({len(cv_text)} ký tự).")
-            
-            st.write("🤖 Đang gửi dữ liệu cho Gemini phân tích...")
-            try:
-                result = call_gemini_generate_matrix_and_exam(GOOGLE_API_KEY, tb_text, cv_text, tpl_text, instruction)
-                status.update(label="Hoàn tất!", state="complete", expanded=False)
-            except Exception as e:
-                status.update(label="Gặp lỗi!", state="error")
-                st.error(f"Lỗi trong quá trình xử lý: {e}")
-                st.stop()
+# Lọc DataFrame cuối cùng
+df_filtered = df[(df['Mon']==mon) & 
+                 (df['Chuong'].isin(chuong))].copy()
 
-        # Validate result
-        matrix_html = result.get("matrixHtml") or result.get("matrix") or ""
-        exam_html = result.get("examHtml") or result.get("exam") or ""
-
-        if not matrix_html and not exam_html:
-            st.error("AI không trả về kết quả đúng định dạng.")
-            with st.expander("Xem dữ liệu trả về từ AI"):
-                st.write(result)
-            st.stop()
-
-        # Hiển thị kết quả
-        tab1, tab2 = st.tabs(["📊 Ma trận", "📝 Đề kiểm tra"])
+st.markdown("---")
+if st.button("🚀 3️⃣ Bấm TẠO ĐỀ KIỂM TRA TỰ ĐỘNG", use_container_width=True, type="primary"):
+    
+    if df_filtered.empty:
+        st.error("Lỗi: Không tìm thấy dữ liệu trong Chương đã chọn. Vui lòng kiểm tra lại mục lựa chọn.")
+        st.stop()
         
-        with tab1:
-            st.markdown(matrix_html, unsafe_allow_html=True)
-            st.download_button("📥 Tải HTML Ma trận", matrix_html, "matran.html", "text/html")
-            
-        with tab2:
-            st.markdown(exam_html, unsafe_allow_html=True)
-            st.download_button("📥 Tải HTML Đề", exam_html, "de_kiem_tra.html", "text/html")
+    ma_tran_df_final, df_with_n_take = create_ma_tran_cv7991_fixed_auto(df_filtered)
+    
+    # -------------------- KHẮC PHỤC LỖI VALUEERROR --------------------
+    def safe_int(s):
+        """Chuyển đổi chuỗi thành số nguyên, an toàn với chuỗi rỗng."""
+        return int(s) if s and s.strip() else 0
+        
+    # Lấy hàng tổng số câu (hàng thứ 3 từ dưới lên)
+    ma_tran_summary = ma_tran_df_final.iloc[-3]
+    
+    # SỬ DỤNG safe_int ĐỂ TÍNH TỔNG CÁC PHẦN
+    NL_count = safe_int(ma_tran_summary[('Nhiều lựa chọn', 'Biết')]) + safe_int(ma_tran_summary[('Nhiều lựa chọn', 'Hiểu')]) + safe_int(ma_tran_summary[('Nhiều lựa chọn', 'VĐ')])
+    DS_count = safe_int(ma_tran_summary[('Đúng - Sai', 'Biết')]) + safe_int(ma_tran_summary[('Đúng - Sai', 'Hiểu')]) + safe_int(ma_tran_summary[('Đúng - Sai', 'VĐ')])
+    TL_count = safe_int(ma_tran_summary[('Tự luận', 'Biết')]) + safe_int(ma_tran_summary[('Tự luận', 'Hiểu')]) + safe_int(ma_tran_summary[('Tự luận', 'VĐ')])
+    # Lấy tổng số câu thực tế đã tạo
+    final_total_questions = safe_int(ma_tran_df_final[('Tổng', 'Số câu/điểm')].iloc[-3])
+    # ------------------------------------------------------------------
 
-        # Tải DOCX chung
-        docx_bytes = make_docx_from_htmls(matrix_html, exam_html)
-        st.markdown("---")
-        st.download_button(
-            label="📥 TẢI VỀ FILE WORD (.DOCX)",
-            data=docx_bytes,
-            file_name="De_Kiem_Tra_Gemini_Generated.docx",
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            type="primary"
-        )
+    if final_total_questions < 21:
+        st.warning(f"Cảnh báo: Chỉ tạo được **{final_total_questions}** câu (thiếu {21-final_total_questions} câu) do nguồn câu hỏi tiềm năng bị giới hạn. Vui lòng chọn thêm Chương/Bài.")
+
+    if final_total_questions == 0:
+        st.error("Lỗi phân bổ: Không thể tạo được câu hỏi nào từ nội dung đã chọn.")
+        st.stop()
+        
+    st.success(f"Đã tạo thành công {final_total_questions} câu hỏi theo cấu trúc CV 7991 tối giản!")
+
+    
+    # 1. HIỂN THỊ MA TRẬN
+    st.markdown("---")
+    st.subheader("📊 1. MA TRẬN ĐỀ KIỂM TRA ĐỊNH KÌ")
+    st.dataframe(ma_tran_df_final, hide_index=True, use_container_width=True)
+    
+    # 2. HIỂN THỊ BẢN ĐẶC TẢ 
+    st.markdown("---")
+    st.subheader("📑 2. BẢN ĐẶC TẢ ĐỀ KIỂM TRA ĐỊNH KÌ (Rút gọn)")
+    df_dac_ta_display = df_with_n_take[['Mon', 'Chuong', 'Bai', 'ChuDe', 'NoiDung', 'MucDo', 'N_to_Take']].rename(columns={
+        'Mon': 'Môn', 'Chuong': 'Chương', 'Bai': 'Bài', 'ChuDe': 'Chủ đề', 'NoiDung': 'Yêu cầu cần đạt', 'MucDo': 'Mức độ', 'N_to_Take': 'Số câu hỏi thực tế'
+    })
+    st.dataframe(df_dac_ta_display.astype(str), hide_index=True, use_container_width=True)
+
+    # 3. PHÂN LOẠI CÂU HỎI VÀ TẠO CHUỖI ĐỀ & ĐÁP ÁN
+    
+    # Tách 7 câu TL thành 4 TLN và 3 TL Essay (nếu đủ câu)
+    TLN_count = min(TL_count, 4) 
+    TL_Essay_count = max(0, TL_count - TLN_count)
+
+    questions_list = [] # Danh sách tổng hợp
+    q_number_global = 1
+    
+    # Phân loại câu hỏi theo 9 ô ma trận đã nhập
+    cols_to_check = [col for col in df_with_n_take.columns if any(s in col for s in ['NL -', 'DS -', 'TL -'])]
+    
+    for index, row in df_with_n_take.iterrows():
+        for col in cols_to_check:
+            n_q_in_cell = int(row[col])
+            if n_q_in_cell > 0:
+                muc_do = col.split(' - ')[1].replace('Biết', 'Nhận biết').replace('Hiểu', 'Thông hiểu').replace('Vận dụng', 'Vận dụng/Vận dụng cao')
+                loai_cau_hoi = col.split(' - ')[0]
+                
+                for i in range(n_q_in_cell):
+                    questions_list.append({
+                        'Q_ID': 0, 
+                        'Type': loai_cau_hoi,
+                        'MucDo': muc_do,
+                        'ChuDe': row.get('ChuDe'),
+                        'NoiDung': row.get('NoiDung')
+                    })
+
+    # Sắp xếp và đánh số lại theo thứ tự ưu tiên NL -> DS -> TL
+    
+    NL_questions = [q for q in questions_list if q['Type'] == 'NL'][:NL_count]
+    DS_questions_raw = [q for q in questions_list if q['Type'] == 'DS'][:DS_count]
+    TL_questions_raw = [q for q in questions_list if q['Type'] == 'TL'][:TL_count]
+    
+    # Tách VĐ/VDC thành TLN và TL Essay
+    TLN_questions = TL_questions_raw[:TLN_count]
+    TL_Essay_questions = TL_questions_raw[TLN_count:TLN_count + TL_Essay_count]
+    
+    # Danh sách tổng hợp cuối cùng để đánh số
+    final_q_list_sorted = NL_questions + DS_questions_raw + TLN_questions + TL_Essay_questions
+    
+    for i, q in enumerate(final_q_list_sorted):
+        q['Q_ID'] = i + 1
+
+    # --- Bắt đầu tạo nội dung Đề và Đáp án ---
+    
+    de_parts = []
+    ans_parts = []
+    
+    # Phần I: Trắc nghiệm khách quan nhiều lựa chọn (NL)
+    if NL_questions:
+        diem_nl = 3.0 / 12 * len(NL_questions) 
+        de_parts.append(f"\n**Phần I: Trắc nghiệm khách quan nhiều lựa chọn ({diem_nl:0.2f} điểm)**\n")
+        de_parts.append("Thí sinh trả lời câu hỏi từ câu 1 đến câu 12 (hoặc đến hết), mỗi câu chỉ chọn một đáp án điền vào bảng sau.\n")
+        
+        # Bảng đáp án
+        table_mc = "Câu," + ",".join([str(q['Q_ID']) for q in NL_questions]) + "\r\nĐáp án," + ",".join(['...'] * len(NL_questions))
+        de_parts.append(table_mc + "\n")
+
+        ans_parts.append(f"\n**Phần I: Trắc nghiệm khách quan nhiều lựa chọn ({diem_nl:0.2f} điểm)**\n")
+        ans_parts.append(f"Mỗi câu trả lời đúng được {3.0/12:0.2f} điểm.\n")
+        ans_parts.append("Gợi ý đáp án: (Giả định đáp án A cho câu lẻ, B cho câu chẵn)\n")
+        ans_table_mc = "Câu," + ",".join([str(q['Q_ID']) for q in NL_questions]) + "\r\nĐáp án," + ",".join(['A' if q['Q_ID'] % 2 != 0 else 'B' for q in NL_questions])
+        ans_parts.append(ans_table_mc + "\n")
+        
+        for q in NL_questions:
+            q_text = (f"**Câu {q['Q_ID']}.** (Mức độ: {q['MucDo']})\n"
+                        f"Chủ đề: {q['ChuDe']}. Yêu cầu: {q['NoiDung']}\n"
+                        f"A. Đáp án A. B. Đáp án B. C. Đáp án C. D. Đáp án D.\n"
+                        f"→ (Lưu ý: Bạn cần thay thế Nội dung này bằng câu hỏi trắc nghiệm thực tế.)\n")
+            de_parts.append(q_text)
+            
+    # Phần II: Trắc nghiệm đúng sai (DS)
+    if DS_questions_raw:
+        ds_q_count = len(DS_questions_raw)
+        diem_ds = 2.0 / 2 * ds_q_count if ds_q_count > 0 else 0.0 
+        de_parts.append(f"\n**Phần II: Trắc nghiệm đúng sai ({diem_ds:0.2f} điểm)**\n")
+        de_parts.append("Thí sinh trả lời từ câu {NL_count + 1} đến hết. Trong mỗi ý (a, b, c, d) ở mỗi câu, thí sinh chọn Đúng hoặc Sai.\n")
+
+        ans_parts.append(f"\n**Phần II: Trắc nghiệm đúng sai ({diem_ds:0.2f} điểm)**\n")
+        ans_parts.append(f"Mỗi ý trả lời đúng được {2.0/(ds_q_count*4):0.2f} điểm (giả sử mỗi câu có 4 ý).\n")
+
+        for i, q in enumerate(DS_questions_raw):
+            q_id = q['Q_ID']
+            de_parts.append(f"\n**Câu {q_id}.** (Mức độ: {q['MucDo']})\n")
+            de_parts.append(f"Chủ đề: {q['ChuDe']}. Yêu cầu: {q['NoiDung']}. Cho các phát biểu sau:\n")
+            table_ds = ",Đúng,Sai\r\na) Phát biểu liên quan đến Chủ đề {q['ChuDe']}.,,\r\nb) Phát biểu khác liên quan.,,\r\nc) Phát biểu sai.,,\r\nd) Phát biểu sai khác.,,\n"
+            de_parts.append(table_ds)
+            
+            ans_parts.append(f"\n**Câu {q_id}.**\n")
+            ans_parts.append("a) Đúng. (Dựa trên yêu cầu: {q['NoiDung']})\n")
+            ans_parts.append("b) Sai. (Hệ số sai, Bậc sai, hoặc tính chất sai.)\n")
+            ans_parts.append("c) Đúng. (Cần kiểm tra kỹ phát biểu.)\n")
+            ans_parts.append("d) Sai. (Phần biến hoặc điều kiện sai.)\n")
+            
+    # Phần III: Trắc nghiệm trả lời ngắn (TLN)
+    if TLN_questions:
+        diem_tln = 2.0 / 4 * len(TLN_questions)
+        de_parts.append(f"\n**Phần III: Trắc nghiệm trả lời ngắn ({diem_tln:0.2f} điểm)**\n")
+        de_parts.append(f"Thí sinh trả lời từ câu {TLN_questions[0]['Q_ID']} đến hết.\n")
+        
+        ans_parts.append(f"\n**Phần III: Trắc nghiệm trả lời ngắn ({diem_tln:0.2f} điểm)**\n")
+        ans_parts.append(f"Mỗi câu trả lời đúng được {2.0/4:0.2f} điểm.\n")
+        table_tln = "Câu," + ",".join([str(q['Q_ID']) for q in TLN_questions]) + "\r\nKết quả," + ",".join(['...'] * len(TLN_questions))
+        ans_parts.append(table_tln + "\n")
+        
+        for q in TLN_questions:
+            q_text = (f"**Câu {q['Q_ID']}.** (Mức độ: {q['MucDo']})\n"
+                        f"Chủ đề: {q['ChuDe']}. Yêu cầu: {q['NoiDung']}\n"
+                        f"→ (Lưu ý: Bạn cần thay thế Nội dung này bằng câu hỏi trả lời ngắn thực tế.)\n")
+            de_parts.append(q_text)
+
+    # Phần B: Tự luận (TL Essay)
+    if TL_Essay_questions:
+        diem_tl_essay = 3.0 / 3 * len(TL_Essay_questions) 
+        de_parts.append(f"\n**B. Tự luận ({diem_tl_essay:0.2f} điểm)**\n")
+        ans_parts.append(f"\n**B. Tự luận ({diem_tl_essay:0.2f} điểm)**\n")
+        
+        for q in TL_Essay_questions:
+            q_id = q['Q_ID']
+            diem_q = 3.0 / 3 / len(TL_Essay_questions) 
+            de_parts.append(f"\n**Câu {q_id} ({diem_q:0.2f} điểm).** (Mức độ: {q['MucDo']})\n")
+            de_parts.append(f"Chủ đề: {q['ChuDe']}. Yêu cầu: {q['NoiDung']}\n")
+            de_parts.append(f"a) Giải quyết phần cơ bản của yêu cầu. (0,5 điểm)\n")
+            de_parts.append(f"b) Giải quyết phần nâng cao hơn của yêu cầu. (0,5 điểm)\n")
+            de_parts.append(f"→ (Lưu ý: Bạn cần thay thế Nội dung này bằng câu hỏi tự luận thực tế.)\n")
+
+            ans_parts.append(f"\n**Câu {q_id} ({diem_q:0.2f} điểm).**\n")
+            ans_parts.append(f"a) Nội dung đáp án cho phần cơ bản (0,5 điểm).\n")
+            ans_parts.append(f"b) Nội dung đáp án cho phần nâng cao (0,5 điểm).\n")
+            
+    # 4. TẠO FILE WORD
+    doc = Document()
+    doc.add_heading(f"ĐỀ KIỂM TRA GIỮA HỌC KÌ II - Môn: {mon} - Lớp {lop}", 0)
+    doc.add_paragraph("Thời gian 90 phút (Không kể thời gian giao đề)")
+    doc.add_paragraph(f"Họ và tên: ......................................................... Lớp: ............ Điểm: ..............")
+
+    # --- Phần MA TRẬN & ĐẶC TẢ ---
+    doc.add_heading("I. MA TRẬN VÀ BẢN ĐẶC TẢ", 1)
+    
+    doc.add_heading("1. MA TRẬN ĐỀ KIỂM TRA ĐỊNH KÌ", 2)
+    
+    num_rows = ma_tran_df_final.shape[0] + 2 
+    num_cols = ma_tran_df_final.shape[1]
+    table_ma_tran_word = doc.add_table(rows=num_rows, cols=num_cols)
+    table_ma_tran_word.style = 'Table Grid'
+    for j, (h1, h2) in enumerate(ma_tran_df_final.columns):
+        table_ma_tran_word.cell(0, j).text = h1
+        table_ma_tran_word.cell(1, j).text = h2
+    try:
+        table_ma_tran_word.cell(0, 0).merge(table_ma_tran_word.cell(0, 1)) 
+        table_ma_tran_word.cell(0, 2).merge(table_ma_tran_word.cell(0, 4)) 
+        table_ma_tran_word.cell(0, 5).merge(table_ma_tran_word.cell(0, 7)) 
+        table_ma_tran_word.cell(0, 8).merge(table_ma_tran_word.cell(0, 10)) 
+    except Exception: pass
+    for i in range(ma_tran_df_final.shape[0]):
+        for j in range(ma_tran_df_final.shape[1]):
+            table_ma_tran_word.cell(i + 2, j).text = str(ma_tran_df_final.iloc[i, j])
+
+    doc.add_heading("2. BẢN ĐẶC TẢ ĐỀ KIỂM TRA ĐỊNH KÌ", 2)
+    
+    table_dac_ta_word = doc.add_table(rows=df_dac_ta_display.shape[0] + 1, cols=df_dac_ta_display.shape[1])
+    table_dac_ta_word.style = 'Table Grid'
+    for j, col_name in enumerate(df_dac_ta_display.columns):
+        table_dac_ta_word.cell(0, j).text = col_name
+    for i in range(df_dac_ta_display.shape[0]):
+        for j in range(df_dac_ta_display.shape[1]):
+            table_dac_ta_word.cell(i + 1, j).text = str(df_dac_ta_display.iloc[i, j])
+
+
+    # --- Phần ĐỀ KIỂM TRA ---
+    doc.add_page_break()
+    doc.add_heading("II. ĐỀ KIỂM TRA", 1)
+    doc.add_heading(f"A. Trắc nghiệm ({7.0:0.1f} điểm)", 2)
+    for part in de_parts:
+        if part.startswith("Câu,1,"): 
+            header, data = part.split('\r\n')
+            h_cells = header.split(',')
+            d_cells = data.split(',')
+            table = doc.add_table(rows=2, cols=len(h_cells))
+            table.style = 'Table Grid'
+            for j in range(len(h_cells)):
+                table.cell(0, j).text = h_cells[j]
+                table.cell(1, j).text = d_cells[j]
+        elif part.startswith(",Đúng,Sai"): 
+            lines = part.split('\r\n')
+            num_rows = len(lines)
+            table = doc.add_table(rows=num_rows, cols=3)
+            table.style = 'Table Grid'
+            for i, line in enumerate(lines):
+                cells = line.split(',')
+                for j, cell_text in enumerate(cells):
+                    table.cell(i, j).text = cell_text
+        elif part.startswith("Câu,Câu"): 
+            header, data = part.split('\r\n')
+            h_cells = header.split(',')
+            d_cells = data.split(',')
+            table = doc.add_table(rows=2, cols=len(h_cells))
+            table.style = 'Table Grid'
+            for j in range(len(h_cells)):
+                table.cell(0, j).text = h_cells[j]
+                table.cell(1, j).text = d_cells[j]
+        elif part.startswith("\n**B. Tự luận"):
+             doc.add_heading(part.strip().replace('**', ''), 2)
+        else:
+            doc.add_paragraph(part.replace('\n', ''))
+        
+    # --- Phần ĐÁP ÁN VÀ HƯỚNG DẪN CHẤM ---
+    doc.add_page_break()
+    doc.add_heading("III. ĐÁP ÁN VÀ HƯỚNG DẪN CHẤM", 1)
+    doc.add_heading(f"Môn: {mon} - Lớp {lop}", 2)
+
+    doc.add_heading(f"A. Trắc nghiệm ({7.0:0.1f} điểm)", 2)
+    for part in ans_parts:
+        if part.startswith("Câu,1,"): 
+            header, data = part.split('\r\n')
+            h_cells = header.split(',')
+            d_cells = data.split(',')
+            table = doc.add_table(rows=2, cols=len(h_cells))
+            table.style = 'Table Grid'
+            for j in range(len(h_cells)):
+                table.cell(0, j).text = h_cells[j]
+                table.cell(1, j).text = d_cells[j]
+        elif part.startswith("Câu,Câu"): 
+            header, data = part.split('\r\n')
+            h_cells = header.split(',')
+            d_cells = data.split(',')
+            table = doc.add_table(rows=2, cols=len(h_cells))
+            table.style = 'Table Grid'
+            for j in range(len(h_cells)):
+                table.cell(0, j).text = h_cells[j]
+                table.cell(1, j).text = d_cells[j]
+        elif part.startswith("\n**B. Tự luận"):
+            doc.add_heading(part.strip().replace('**', ''), 2)
+        else:
+            doc.add_paragraph(part.replace('\n', ''))
+            
+    buffer = BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    
+    st.download_button(
+        "📥 Tải xuống file Word (ĐỀ + ĐÁP ÁN + MA TRẬN)",
+        data=buffer,
+        file_name=f"De_Kiem_Tra_Chuan_CV7991_{mon}_Lop{lop}.docx",
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
