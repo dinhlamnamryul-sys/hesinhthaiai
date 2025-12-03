@@ -329,3 +329,14 @@ if st.sidebar.button("Tải mẫu file nguồn (.csv)"):
 # Kết thúc
 st.markdown("---")
 st.caption("Phiên bản: nâng cấp - hỗ trợ tải lên nguồn dữ liệu để sinh đề. Giữ nguyên logic phân bổ CV7991.")
+
+# Chức năng tạo đề kiểm tra
+st.header("Tạo đề kiểm tra")
+test_title = st.text_input("Nhập tên đề kiểm tra")
+num_questions = st.number_input("Số câu hỏi", min_value=1, value=5)
+
+if st.button("Tạo đề kiểm tra"):
+    exam = f"Đề kiểm tra: {test_title}
+Số câu hỏi: {int(num_questions)}"
+    st.success("Đã tạo đề kiểm tra!")
+    st.code(exam)
