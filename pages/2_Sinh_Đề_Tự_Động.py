@@ -66,8 +66,9 @@ chuong_options_lop = {
     ]
 }
 
+# --- Từng bài chi tiết ---
 bai_options_lop = {
-    "Lớp 6": { # đã có sẵn
+    "Lớp 6": { # giữ nguyên như cũ
         "Chương I: Tập hợp các số tự nhiên": ["Bài 1","Bài 2","Bài 3","Bài 4","Ôn tập"],
         "Chương II: Tính chia hết trong tập hợp các số tự nhiên": ["Bài 5","Bài 6","Ôn tập"],
         "Chương III: Số nguyên": ["Bài 7","Bài 8","Ôn tập"],
@@ -79,7 +80,7 @@ bai_options_lop = {
         "Chương IX: Dữ liệu và xác suất thực nghiệm": ["Bài 19","Bài 20","Ôn tập"],
         "Hoạt động thực hành trải nghiệm": ["Bài 21","Bài 22","Ôn tập"]
     },
-    "Lớp 7": {
+    "Lớp 7": { # đã hoàn thiện ở bước trước
         "Chương I: Số hữu tỉ": ["Bài 1. Tập hợp các số hữu tỉ","Bài 2. Cộng, trừ, nhân, chia số hữu tỉ","Bài 3. Luỹ thừa với số mũ tự nhiên của một số hữu tỉ","Bài 4. Thứ tự thực hiện các phép tính. Quy tắc chuyển vế","Ôn tập chương I"],
         "Chương II: Số thực": ["Bài 5. Làm quen với số thập phân vô hạn tuần hoàn","Bài 6. Số vô tỉ. Căn bậc hai số học","Bài 7. Tập hợp các số thực","Ôn tập chương II"],
         "Chương III: Góc và đường thẳng song song": ["Bài 8. Góc ở vị trí đặc biệt. Tia phân giác của một góc","Bài 9. Hai đường thẳng song song và dấu hiệu nhận biết","Bài 10. Tiên đề Euclid. Tính chất của hai đường thẳng song song","Bài 11. Định lí và chứng minh định lí","Ôn tập chương III"],
@@ -92,8 +93,32 @@ bai_options_lop = {
         "Chương X: Một số hình khối trong thực tiễn": ["Bài 36. Hình hộp chữ nhật và hình lập phương","Bài 37. Hình lăng trụ đứng tam giác và hình lăng trụ đứng tứ giác","Ôn tập chương X"],
         "Bài tập ôn tập cuối năm": []
     },
-    "Lớp 8": {}, # tương tự có thể điền chi tiết từng bài
-    "Lớp 9": {}  # tương tự có thể điền chi tiết từng bài
+    "Lớp 8": {
+        "Chương I: Đa thức": ["Bài 1. Đơn thức","Bài 2. Đa thức","Bài 3. Phép cộng và phép trừ đa thức","Bài 4. Phép nhân đa thức","Bài 5. Phép chia đa thức cho đơn thức","Ôn tập chương I"],
+        "Chương II: Hằng đẳng thức đáng nhớ và ứng dụng": ["Bài 6. Hiệu hai bình phương. Bình phương của một tổng hay một hiệu","Bài 7. Lập phương của một tổng. Lập phương của một hiệu","Bài 8. Tổng và hiệu hai lập phương","Bài 9. Phân tích đa thức thành nhân tử","Ôn tập chương II"],
+        "Chương III: Tứ giác": ["Bài 10. Tứ giác","Bài 11. Hình thang cân","Bài 12. Hình bình hành","Bài 13. Hình chữ nhật","Bài 14. Hình thoi và hình vuông","Ôn tập chương III"],
+        "Chương IV: Định lí Thalès": ["Bài 15. Định lí Thalès trong tam giác","Bài 16. Đường trung bình của tam giác","Bài 17. Tính chất đường phân giác của tam giác","Ôn tập chương IV"],
+        "Chương V: Dữ liệu và biểu đồ": ["Bài 18. Thu thập và phân loại dữ liệu","Bài 19. Biểu diễn dữ liệu bằng bảng, biểu đồ","Bài 20. Phân tích số liệu thống kê dựa vào biểu đồ","Ôn tập chương V"],
+        "Chương VI: Phân thức đại số": ["Bài 21. Phân thức đại số","Bài 22. Tính chất cơ bản của phân thức đại số","Bài 23. Phép cộng và phép trừ phân thức đại số","Bài 24. Phép nhân và phép chia phân thức đại số","Ôn tập chương VI"],
+        "Chương VII: Phương trình bậc nhất và hàm số bậc nhất": ["Bài 25. Phương trình bậc nhất một ẩn","Bài 26. Giải bài toán bằng cách lập phương trình","Bài 27. Khái niệm hàm số và đồ thị của hàm số","Bài 28. Hàm số bậc nhất và đồ thị của hàm số bậc nhất","Bài 29. Hệ số góc của đường thẳng","Ôn tập chương VII"],
+        "Chương VIII: Mở đầu về tính xác suất của biến cố": ["Bài 30. Kết quả có thể và kết quả thuận lợi","Bài 31. Cách tính xác suất của biến cố bằng tỉ số","Bài 32. Mối liên hệ giữa xác suất thực nghiệm với xác suất và ứng dụng","Ôn tập chương VIII"],
+        "Chương IX: Tam giác đồng dạng": ["Bài 33. Hai tam giác đồng dạng","Bài 34. Ba trường hợp đồng dạng của hai tam giác","Bài 35. Định lí Pythagore và ứng dụng","Bài 36. Các trường hợp đồng dạng của hai tam giác vuông","Bài 37. Hình đồng dạng","Ôn tập chương IX"],
+        "Chương X: Một số hình khối trong thực tiễn": ["Bài 38. Hình chóp tam giác đều","Bài 39. Hình chóp tứ giác đều","Ôn tập chương X"],
+        "Bài tập ôn tập cuối năm": []
+    },
+    "Lớp 9": {
+        "Chương I: Phương trình và hệ hai phương trình bậc nhất hai ẩn": ["Bài 1. Khái niệm phương trình và hệ hai phương trình bậc nhất hai ẩn","Bài 2. Giải hệ hai phương trình bậc nhất hai ẩn","Luyện tập chung","Bài 3. Giải bài toán bằng cách lập hệ phương trình","Bài tập cuối chương I"],
+        "Chương II: Phương trình và bất phương trình bậc nhất một ẩn": ["Bài 4. Phương trình quy về phương trình bậc nhất một ẩn","Bài 5. Bất đẳng thức và tính chất","Luyện tập chung","Bài 6. Bất phương trình bậc nhất một ẩn","Bài tập cuối chương II"],
+        "Chương III: Căn bậc hai và căn bậc ba": ["Bài 7. Căn bậc hai và căn thức bậc hai","Bài 8. Khai căn bậc hai với phép nhân và phép chia","Luyện tập chung","Bài 9. Biến đổi đơn giản và rút gọn biểu thức chứa căn thức bậc hai","Bài 10. Căn bậc ba và căn thức bậc ba","Luyện tập chung","Bài tập cuối chương III"],
+        "Chương IV: Hệ thức lượng trong tam giác vuông": ["Bài 11. Tỉ số lượng giác của góc nhọn","Bài 12. Một số hệ thức giữa cạnh, góc trong tam giác vuông và ứng dụng","Luyện tập chung","Bài tập cuối chương IV"],
+        "Chương V: Đường tròn": ["Bài 13. Mở đầu về đường tròn","Bài 14. Cung và dây của một đường tròn","Bài 15. Độ dài của cung tròn. Diện tích hình quạt tròn và hình vành khuyên","Luyện tập chung","Bài 16. Vị trí tương đối của đường thẳng và đường tròn","Bài 17. Vị trí tương đối của hai đường tròn","Luyện tập chung","Bài tập cuối chương V"],
+        "Hoạt động thực hành trải nghiệm": ["Pha chế dung dịch theo nồng độ yêu cầu","Tính chiều cao và xác định khoảng cách"],
+        "Chương VI: Hàm số y = ax^2 (a khác 0). Phương trình bậc hai một ẩn": ["Bài 18. Hàm số y = ax2 (a ≠ 0)","Bài 19. Phương trình bậc hai một ẩn","Luyện tập chung","Bài 20. Định lí Viète và ứng dụng","Bài 21. Giải bài toán bằng cách lập phương trình","Luyện tập chung","Bài tập cuối chương VI"],
+        "Chương VII: Tần số và tần số tương đối": ["Bài 22. Bảng tần số và biểu đồ tần số","Bài 23. Bảng tần số tương đối và biểu đồ tần số tương đối","Luyện tập chung","Bài 24. Bảng tần số, tần số tương đối ghép nhóm và biểu đồ","Bài tập cuối chương VII"],
+        "Chương VIII: Xác suất của biến cố trong một số mô hình xác suất đơn giản": ["Bài 25. Phép thử ngẫu nhiên và không gian mẫu","Bài 26. Xác suất của biến cố liên quan tới phép thử","Luyện tập chung","Bài tập cuối chương VIII"],
+        "Chương IX: Đường tròn ngoại tiếp và đường tròn nội tiếp": ["Bài 27. Góc nội tiếp","Bài 28. Đường tròn ngoại tiếp và đường tròn nội tiếp của một tam giác","Luyện tập chung","Bài 29. Tứ giác nội tiếp","Bài 30. Đa giác đều","Luyện tập chung","Bài tập cuối chương IX"],
+        "Chương X: Một số hình khối trong thực tiễn": ["Bài 31. Hình trụ và hình nón","Bài 32. Hình cầu","Luyện tập chung","Bài tập cuối chương X"]
+    }
 }
 
 # --- Sidebar ---
@@ -115,85 +140,4 @@ with st.sidebar:
 
     st.markdown("---")
     so_cau = st.number_input("Tổng số câu hỏi", min_value=1, max_value=50, value=21)
-    col_nl, col_ds, col_tl = st.columns(3)
-    with col_nl: phan_bo_nl = st.number_input("NL (4 lựa chọn)", min_value=0, value=12)
-    with col_ds: phan_bo_ds = st.number_input("DS (Đúng/Sai)", min_value=0, value=2)
-    with col_tl: phan_bo_tl = st.number_input("TL (Tự luận)", min_value=0, value=7)
-
-    st.markdown("---")
-    col_nb, col_th, col_vd = st.columns(3)
-    with col_nb: so_cau_nb = st.number_input("Nhận biết", min_value=0, value=6)
-    with col_th: so_cau_th = st.number_input("Thông hiểu", min_value=0, value=8)
-    with col_vd: so_cau_vd = st.number_input("Vận dụng", min_value=0, value=7)
-
-    co_dap_an = st.checkbox("Có đáp án", value=True)
-
-# --- Build prompt chuẩn ---
-def build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
-                 so_cau_nb, so_cau_th, so_cau_vd, co_dap_an):
-    
-    dan_ap = "Tạo đáp án chi tiết và lời giải sau mỗi câu hỏi, tất cả công thức bằng LaTeX." if co_dap_an else "Không cần đáp án, nhưng tất cả công thức bắt buộc LaTeX."
-    
-    prompt = f"""
-Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
-- Chương: {', '.join(chuong)}
-- Bài: {', '.join(bai)}
-
-Yêu cầu:
-1. Tổng {so_cau} câu, gồm:
-   - NL (4 lựa chọn): {phan_bo_nl} câu
-   - DS (Đúng/Sai): {phan_bo_ds} câu
-   - TL: {phan_bo_tl} câu
-2. Phân bố nhận thức:
-   - Nhận biết: {so_cau_nb}
-   - Thông hiểu: {so_cau_th}
-   - Vận dụng: {so_cau_vd}
-3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$.**
-4. Mỗi câu phải gắn nhãn Mức độ và Loại câu hỏi.
-5. **NL/DS: mỗi đáp án A/B/C/D cách xuống 1 dòng**. TL đánh số 1,2,3… mỗi công thức LaTeX.
-6. {dan_ap}
-7. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp `st.markdown()` trong Streamlit.
-"""
-    return prompt
-
-# --- Gọi API ---
-def generate_questions(api_key, prompt):
-    MODEL = "models/gemini-2.5-flash"
-    url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
-    payload = {"contents":[{"role":"user","parts":[{"text":prompt}]}]}
-    headers = {"Content-Type": "application/json"}
-    
-    try:
-        r = requests.post(url, json=payload, headers=headers, timeout=300)
-        if r.status_code != 200:
-            return False, f"Lỗi API {r.status_code}: {r.text}"
-        j = r.json()
-        if j.get("candidates") and len(j["candidates"])>0:
-            text = j["candidates"][0]["content"]["parts"][0]["text"]
-            return True, text
-        return False, "AI không trả về nội dung hợp lệ."
-    except requests.exceptions.Timeout:
-        return False, "Lỗi kết nối: Yêu cầu hết thời gian."
-
-# --- Streamlit button ---
-if st.button("Sinh đề chuẩn + đáp án cách dòng"):
-    if not api_key:
-        st.warning("Nhập API Key trước khi sinh đề!")
-    else:
-        prompt = build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
-                              so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
-        with st.spinner("Đang sinh đề (Markdown + LaTeX + đáp án cách dòng)..."):
-            success, result = generate_questions(api_key, prompt)
-            if success:
-                st.success("✅ Sinh đề thành công!")
-                st.markdown(result, unsafe_allow_html=True)
-                
-                # --- Tải file ---
-                now = datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename_md = f"sinh_de_{lop}_{now}.md"
-                st.download_button("⬇ Tải file Markdown về máy",
-                                   data=result,
-                                   file_name=filename_md,
-                                   mime="text/markdown")
-            else:
-                st.error(result)
+    col_nl
