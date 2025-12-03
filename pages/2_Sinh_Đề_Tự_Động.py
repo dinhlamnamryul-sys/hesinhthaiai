@@ -137,7 +137,28 @@ with st.sidebar:
         bai = st.multiselect("Chọn bài", bai_list_all, default=bai_list_all[0])
     else:
         bai = []
-
     st.markdown("---")
-    so_cau = st.number_input("Tổng số câu hỏi", min_value=1, max_value=50, value=21)
-    col_nl
+so_cau = st.number_input("Tổng số câu hỏi", min_value=1, max_value=50, value=21)
+
+# Phân loại câu hỏi NL/DS/TL
+col_nl, col_ds, col_tl = st.columns(3)
+with col_nl:
+    phan_bo_nl = st.number_input("NL (4 lựa chọn)", min_value=0, value=12)
+with col_ds:
+    phan_bo_ds = st.number_input("DS (Đúng/Sai)", min_value=0, value=2)
+with col_tl:
+    phan_bo_tl = st.number_input("TL (Tự luận)", min_value=0, value=7)
+
+st.markdown("---")
+# Phân bố theo mức độ nhận thức
+col_nb, col_th, col_vd = st.columns(3)
+with col_nb:
+    so_cau_nb = st.number_input("Nhận biết", min_value=0, value=6)
+with col_th:
+    so_cau_th = st.number_input("Thông hiểu", min_value=0, value=8)
+with col_vd:
+    so_cau_vd = st.number_input("Vận dụng", min_value=0, value=7)
+
+# Có đáp án
+co_dap_an = st.checkbox("Có đáp án", value=True)
+
