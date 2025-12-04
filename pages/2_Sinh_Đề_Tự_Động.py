@@ -222,13 +222,13 @@ def generate_questions(api_key, prompt):
         return False, "Lỗi kết nối: Yêu cầu hết thời gian."
 
 # --- Nút bấm sinh đề ---
-if st.button("Sinh đề chuẩn + đáp án cách dòng"):
+if st.button("tạo đề chuẩn"):
     if not api_key:
         st.warning("Nhập API Key trước khi sinh đề!")
     else:
         prompt = build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
                               so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
-        with st.spinner("Đang sinh đề (Markdown + LaTeX + đáp án cách dòng)..."):
+        with st.spinner("Đang tạo đề (Markdown + LaTeX + đáp án cách dòng)..."):
             success, result = generate_questions(api_key, prompt)
             if success:
                 st.success("✅ Sinh đề thành công!")
