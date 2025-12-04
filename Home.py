@@ -302,7 +302,7 @@ st.markdown("""
 st.markdown("""
 <div class="main-header">
     <h1> CỔNG GIÁO DỤC SỐ NA Ư</h1>
-    <h3>"Tri thức vùng cao - Vươn xa thế giới"</h3>
+    <h3>"Tri thức - Vươn xa thế giới"</h3>
 </div>
 """, unsafe_allow_html=True)
 
