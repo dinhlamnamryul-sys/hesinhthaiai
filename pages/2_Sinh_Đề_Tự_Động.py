@@ -4,7 +4,7 @@ import streamlit as st
 from datetime import datetime
 
 st.set_page_config(page_title="Sinh Đề Chuẩn LaTeX", page_icon="📝", layout="wide")
-st.title("📝 Sinh Đề Tự Động – LaTeX + Đáp án cách dòng")
+st.title("📝 Tạo Đề Tự Động ")
 
 # --- API Key ---
 api_key = st.secrets.get("GOOGLE_API_KEY", "")
