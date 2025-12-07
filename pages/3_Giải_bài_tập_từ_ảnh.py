@@ -1,50 +1,155 @@
 import streamlit as st
-import google.generativeai as genai
+import requests
+import base64
 from PIL import Image
-import io
+from io import BytesIO
 
-# ---------------------
-# CẤU HÌNH GEMINI API
-# ---------------------
-API_KEY = "YOUR_GEMINI_API_KEY"
-genai.configure(api_key=API_KEY)
+# =========================
+#   CẤU HÌNH TRANG
+# =========================
+st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸", layout="wide")
 
-model = genai.GenerativeModel("gemini-2.0-flash")
 
-# ---------------------
-# HÀM GIẢI BÀI TẬP TỪ ẢNH
-# ---------------------
-def solve_image(image_data):
-    response = model.generate_content(
-        [
-            "Hãy giải chi tiết bài toán trong ảnh sau:",
-            image_data
+# =========================
+#   LẤY DANH SÁCH MODEL KHẢ DỤNG
+# =========================
+def list_available_models(api_key):
+    """Chỉ trả về những model Google hiện còn hoạt động & miễn phí."""
+    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+    try:
+        r = requests.get(url)
+        if r.status_code != 200:
+            return []
+        data = r.json()
+
+        all_models = [m["name"] for m in data.get("models", [])]
+
+        # Danh sách model Google hiện CHẮC CHẮN dùng được (không cần billing)
+        allow_list = [
+            "models/gemini-2.0-flash",
+            "models/gemini-2.0-flash-lite",
+            "models/gemini-1.5-flash-8b",
         ]
-    )
-    return response.text
+
+        return [m for m in all_models if m in allow_list]
+
+    except:
+        return []
 
 
-# ---------------------
-# GIAO DIỆN STREAMLIT
-# ---------------------
-st.title("🧮 Giải bài tập từ ảnh – Gemini 2.0 Free")
+# =========================
+#   HÀM PHÂN TÍCH ẢNH
+# =========================
+def analyze_real_image(api_key, model, image, prompt):
+    if image.mode == "RGBA":
+        image = image.convert("RGB")
 
-uploaded = st.file_uploader("Tải ảnh bài tập lên:", type=["png", "jpg", "jpeg"])
+    buffered = BytesIO()
+    image.save(buffered, format="JPEG")
+    img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-if uploaded:
-    image = Image.open(uploaded)
-    st.image(image, caption="Ảnh bạn đã tải lên", use_column_width=True)
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
 
-    # Chuyển ảnh sang dạng Bytes để gửi cho API
-    img_bytes = io.BytesIO()
-    image.save(img_bytes, format="PNG")
-    img_bytes = img_bytes.getvalue()
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt},
+                    {
+                        "inline_data": {
+                            "mime_type": "image/jpeg",
+                            "data": img_base64
+                        }
+                    }
+                ]
+            }
+        ]
+    }
 
-    if st.button("Giải bài tập"):
-        with st.spinner("Đang giải bằng Gemini 2.0..."):
-            try:
-                result = solve_image(img_bytes)
-                st.success("🎉 Đã giải xong!")
+    try:
+        response = requests.post(url, json=payload)
+        data = response.json()
+
+        if response.status_code == 404:
+            return "❌ Model không tồn tại hoặc API Key không có quyền."
+
+        if response.status_code != 200:
+            msg = data.get("error", {}).get("message", response.text)
+            return f"❌ Lỗi {response.status_code}: {msg}"
+
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+
+    except Exception as e:
+        return f"❌ Lỗi kết nối: {str(e)}"
+
+
+# =========================
+#   SIDEBAR
+# =========================
+with st.sidebar:
+    st.title("⚙️ Cài đặt")
+
+    api_key = st.text_input("Dán Google API Key:", type="password")
+
+    if api_key:
+        models = list_available_models(api_key)
+
+        if len(models) == 0:
+            st.error("❌ API Key không có quyền dùng bất kỳ model nào.\n👉 Bạn cần bật Billing hoặc đổi API Key.")
+            model = None
+        else:
+            model = st.selectbox("Chọn model (đã kiểm duyệt quyền truy cập):", models)
+            st.success(f"Model hợp lệ: {model}")
+
+    else:
+        model = None
+        st.warning("⚠️ Vui lòng nhập API Key!")
+
+
+# =========================
+#   GIAO DIỆN CHÍNH
+# =========================
+st.title("📸 Chấm Bài & Giải Toán Việt – H’Mông")
+
+col_in, col_out = st.columns([1, 1.2])
+
+with col_in:
+    st.subheader("📥 Đầu vào ảnh")
+    mode = st.radio("Chọn nguồn ảnh:", ["Máy ảnh", "Tải tệp lên"])
+
+    image = None
+    if mode == "Máy ảnh":
+        cam_file = st.camera_input("Chụp bài làm")
+        if cam_file:
+            image = Image.open(cam_file)
+    else:
+        up_file = st.file_uploader("Chọn ảnh bài làm", type=["png", "jpg", "jpeg"])
+        if up_file:
+            image = Image.open(up_file)
+
+    if image:
+        st.image(image, caption="Ảnh đã tải", use_container_width=True)
+
+
+with col_out:
+    st.subheader("🔍 Kết quả AI")
+
+    if st.button("🚀 Bắt đầu chấm bài", type="primary"):
+        if not api_key:
+            st.error("❌ Chưa nhập API Key!")
+        elif not model:
+            st.error("❌ Không có model hợp lệ.")
+        elif not image:
+            st.warning("⚠️ Hãy tải ảnh bài làm!")
+        else:
+            with st.spinner("⏳ Đang phân tích ảnh..."):
+                prompt = """
+                Phân tích ảnh bài làm toán:
+                1. Chép lại đề bằng LaTeX (song ngữ Việt - H'Mông).
+                2. Chấm Đúng/Sai từng bước (song ngữ).
+                3. Giải lại bài đúng nhất bằng LaTeX (song ngữ).
+                Dùng 🇻🇳 cho tiếng Việt và 🟦 cho tiếng H'Mông.
+                """
+
+                result = analyze_real_image(api_key, model, image, prompt)
                 st.markdown(result)
-            except Exception as e:
-                st.error(f"Lỗi: {e}")
