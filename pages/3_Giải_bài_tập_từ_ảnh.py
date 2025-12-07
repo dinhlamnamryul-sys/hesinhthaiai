@@ -4,74 +4,103 @@ import base64
 from PIL import Image
 from io import BytesIO
 
-# --- CẤU HÌNH ---
-st.set_page_config(page_title="Chấm Bài AI Song Ngữ", layout="wide")
+# --- CẤU HÌNH TRANG ---
+st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸", layout="wide")
 
-# --- SIDEBAR CÀI ĐẶT ---
+# --- SIDEBAR: CÀI ĐẶT & HƯỚNG DẪN ---
 with st.sidebar:
     st.title("⚙️ Cài đặt")
-    api_key = st.text_input("Nhập Google API Key:", type="password")
-    st.info("Hướng dẫn: Lấy key tại [Google AI Studio](https://aistudio.google.com/)")
+    
+    with st.expander("🔑 Cách lấy API Key"):
+        st.markdown("[Lấy Key tại đây](https://aistudio.google.com/)")
+    
+    # Cho phép người dùng nhập key vào đây
+    api_key = st.text_input("Dán Google API Key của bạn:", type="password")
+    
+    if not api_key:
+        st.warning("⚠️ Vui lòng nhập API Key!")
+    else:
+        st.success("✅ Đã sẵn sàng")
 
-# --- HÀM XỬ LÝ API ---
+# --- HÀM PHÂN TÍCH ẢNH (ĐÃ SỬA URL CHUẨN) ---
 def analyze_real_image(api_key, image, prompt):
     if image.mode == "RGBA":
         image = image.convert("RGB")
 
+    # Encode ảnh sang base64
     buffered = BytesIO()
     image.save(buffered, format="JPEG")
     img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-    # --- URL CHUẨN ĐÃ SỬA LỖI 404 ---
+    # --- ĐỊA CHỈ URL CHUẨN ĐỂ TRÁNH LỖI 404 ---
+    # Lưu ý: Cấu trúc là v1beta/models/{model}:generateContent
+    # Không được thiếu chữ 'models' ở giữa
     MODEL = "gemini-1.5-flash"
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={api_key}"
 
     payload = {
-        "contents": [{
-            "parts": [
-                {"text": prompt},
-                {"inline_data": {"mime_type": "image/jpeg", "data": img_base64}}
-            ]
-        }]
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt},
+                    {"inline_data": {"mime_type": "image/jpeg", "data": img_base64}}
+                ]
+            }
+        ]
     }
 
     try:
         response = requests.post(url, json=payload)
         data = response.json()
         
-        # Kiểm tra lỗi phản hồi
         if response.status_code == 404:
-            return "❌ Lỗi 404: Sai URL hoặc Model không tồn tại. Vui lòng kiểm tra lại cấu trúc URL."
+            return "❌ Lỗi 404: Google không tìm thấy Model. Hãy kiểm tra lại version API trong URL."
         elif response.status_code == 429:
-            return "❌ Lỗi 429: Hết hạn mức (Quota). Vui lòng đợi 1 phút."
+            return "❌ Lỗi 429: Hạn mức đã hết. Vui lòng nghỉ 60 giây rồi thử lại."
         elif response.status_code != 200:
-            return f"❌ Lỗi {response.status_code}: {data.get('error', {}).get('message', 'Unknown error')}"
+            msg = data.get("error", {}).get("message", "Lỗi không xác định")
+            return f"❌ Lỗi {response.status_code}: {msg}"
             
         return data["candidates"][0]["content"]["parts"][0]["text"]
     except Exception as e:
         return f"❌ Lỗi kết nối: {str(e)}"
 
 # --- GIAO DIỆN CHÍNH ---
-st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông)")
+st.title("📸 Chấm Bài & Giải Toán Việt – H’Mông")
 
-# Chụp ảnh / Tải ảnh
-camera_photo = st.camera_input("Chụp bài làm")
-uploaded_file = st.file_uploader("Hoặc tải ảnh lên", type=["png", "jpg", "jpeg"])
+# Chia cột cho giao diện chuyên nghiệp
+col_in, col_out = st.columns([1, 1.2])
 
-image = None
-if camera_photo: image = Image.open(camera_photo)
-elif uploaded_file: image = Image.open(uploaded_file)
+with col_in:
+    st.subheader("📥 Đầu vào")
+    mode = st.radio("Chọn nguồn ảnh:", ["Máy ảnh", "Tải tệp lên"])
+    
+    image = None
+    if mode == "Máy ảnh":
+        cam_file = st.camera_input("Chụp bài làm")
+        if cam_file: image = Image.open(cam_file)
+    else:
+        up_file = st.file_uploader("Chọn ảnh bài làm", type=["png", "jpg", "jpeg"])
+        if up_file: image = Image.open(up_file)
 
-if image:
-    col1, col2 = st.columns(2)
-    with col1:
-        st.image(image, caption="Bài làm của học sinh", use_container_width=True)
-    with col2:
-        if st.button("🚀 Phân tích ngay", type="primary"):
-            if not api_key:
-                st.error("Vui lòng nhập API Key ở sidebar!")
-            else:
-                with st.spinner("Đang chấm bài..."):
-                    prompt = "Dịch đề bài sang tiếng Việt và H'Mông, chấm điểm và giải chi tiết bằng LaTeX."
-                    result = analyze_real_image(api_key, image, prompt)
-                    st.markdown(result)
+    if image:
+        st.image(image, caption="Ảnh đã nạp", use_container_width=True)
+
+with col_out:
+    st.subheader("🔍 Kết quả AI")
+    if st.button("🚀 Bắt đầu chấm bài", type="primary"):
+        if not api_key:
+            st.error("Bạn chưa nhập mã Key ở sidebar!")
+        elif not image:
+            st.warning("Hãy cung cấp ảnh trước.")
+        else:
+            with st.spinner("Đang đọc và giải bài..."):
+                prompt = """
+                Phân tích ảnh bài làm toán:
+                1. Chép đề bằng LaTeX (Việt - H'Mông).
+                2. Chấm Đúng/Sai chi tiết (Việt - H'Mông).
+                3. Giải lại đúng bằng LaTeX (Việt - H'Mông).
+                Sử dụng ký hiệu 🇻🇳 và 🟦.
+                """
+                result = analyze_real_image(api_key, image, prompt)
+                st.markdown(result)
