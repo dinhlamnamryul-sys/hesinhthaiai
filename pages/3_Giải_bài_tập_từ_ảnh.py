@@ -21,8 +21,9 @@ with st.sidebar:
         """)
     
     # 2. Nhập Key
-    saved_key = st.secrets.get("GOOGLE_API_KEY", "")
-    api_key = st.text_input("Dán Google API Key của bạn:", value=saved_key, type="password")
+    # Lấy key mặc định từ secrets (nếu có), nếu không để trống
+    default_key = st.secrets.get("GOOGLE_API_KEY", "")
+    api_key = st.text_input("Dán Google API Key của bạn:", value=default_key, type="password")
     
     if not api_key:
         st.warning("⚠️ Vui lòng nhập API Key để bắt đầu.")
@@ -32,39 +33,42 @@ with st.sidebar:
     st.divider()
     st.info("Sản phẩm dự thi Sáng tạo AI\nHỗ trợ học tập song ngữ Việt - H'Mông")
 
-# --- HÀM PHÂN TÍCH ẢNH ---
+# --- HÀM PHÂN TÍCH ẢNH (ĐÃ SỬA LỖI URL 404) ---
 def analyze_real_image(api_key, image, prompt):
     if image.mode == "RGBA":
         image = image.convert("RGB")
 
+    # Chuẩn bị ảnh
     buffered = BytesIO()
     image.save(buffered, format="JPEG")
     img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-    # Cấu trúc URL chuẩn để tránh lỗi 404
+    # URL CHUẨN: Phải có 'models/' trước tên model
+    # Dùng v1beta hoặc v1 đều được nếu cấu trúc đúng
     MODEL = "gemini-1.5-flash"
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={api_key}"
 
     payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt},
-                    {"inline_data": {"mime_type": "image/jpeg", "data": img_base64}}
-                ]
-            }
-        ]
+        "contents": [{
+            "parts": [
+                {"text": prompt},
+                {"inline_data": {"mime_type": "image/jpeg", "data": img_base64}}
+            ]
+        }]
     }
 
     try:
         response = requests.post(url, json=payload)
         data = response.json()
         
+        # Xử lý các lỗi phổ biến
         if response.status_code == 429:
-            return "❌ Lỗi 429: Key của bạn đã hết hạn mức yêu cầu. Vui lòng đợi 1 phút rồi thử lại."
+            return "❌ Lỗi 429: Bạn đã hết hạn mức (Quota). Vui lòng đợi 1 phút hoặc đổi Key mới."
+        elif response.status_code == 404:
+            return f"❌ Lỗi 404: Không tìm thấy Model. Kiểm tra lại URL API."
         elif response.status_code != 200:
             error_msg = data.get("error", {}).get("message", "Lỗi không xác định")
-            return f"❌ Lỗi API {response.status_code}: {error_msg}"
+            return f"❌ Lỗi {response.status_code}: {error_msg}"
             
         return data["candidates"][0]["content"]["parts"][0]["text"]
     except Exception as e:
@@ -72,7 +76,7 @@ def analyze_real_image(api_key, image, prompt):
 
 # --- GIAO DIỆN CHÍNH ---
 st.title("📸 Chấm Bài & Giải Toán Qua Ảnh")
-st.write("Dành cho học sinh vùng cao hỗ trợ song ngữ **Việt – H’Mông**")
+st.write("Giải pháp hỗ trợ học sinh vùng cao song ngữ **Việt – H’Mông**")
 
 col_input, col_output = st.columns([1, 1.2])
 
@@ -88,25 +92,24 @@ with col_input:
         image = Image.open(uploaded_file)
 
     if image:
-        st.image(image, caption="Ảnh bài làm đã chọn", use_container_width=True)
+        st.image(image, caption="Ảnh bài làm", use_container_width=True)
 
 with col_output:
     st.subheader("🔍 Kết quả chấm bài")
     
-    if st.button("🚀 Bắt đầu phân tích", type="primary"):
+    if st.button("🚀 Chấm bài ngay", type="primary"):
         if not api_key:
-            st.error("Bạn chưa nhập API Key ở thanh bên (Sidebar)!")
+            st.error("Lỗi: Bạn chưa cung cấp API Key ở Sidebar!")
         elif not image:
-            st.warning("Vui lòng chụp ảnh hoặc tải ảnh lên trước.")
+            st.warning("Vui lòng cung cấp ảnh bài làm.")
         else:
-            with st.spinner("⏳ AI đang chấm bài (Việt - H'Mông)..."):
-                # PROMPT TỐI ƯU
+            with st.spinner("⏳ AI đang phân tích dữ liệu..."):
                 prompt_text = """
-Bạn là giáo viên Toán giỏi hỗ trợ học sinh vùng cao. Đọc ảnh bài làm và thực hiện:
-1. Chép lại đề bằng LaTeX. Hiển thị song song Việt - H'Mông.
-2. Chấm điểm chi tiết: Đúng/Sai ở đâu. Nhận xét bằng cả 2 ngôn ngữ.
-3. Giải lại đúng hoàn toàn bằng LaTeX, trình bày từng bước song ngữ.
-Ký hiệu: 🇻🇳 Tiếng Việt | 🟦 Tiếng H'Mông.
+                Bạn là giáo viên Toán giỏi. Hãy chấm bài trong ảnh:
+                1. Chép lại đề bằng LaTeX (Song ngữ Việt - H'Mông).
+                2. Kiểm tra các bước giải, chỉ ra chỗ sai (Song ngữ Việt - H'Mông).
+                3. Trình bày lời giải đúng bằng LaTeX (Song ngữ Việt - H'Mông).
+                Sử dụng ký hiệu: 🇻🇳 (Việt) và 🟦 (H'Mông).
                 """
                 
                 result = analyze_real_image(api_key, image, prompt_text)
@@ -114,9 +117,9 @@ Ký hiệu: 🇻🇳 Tiếng Việt | 🟦 Tiếng H'Mông.
                 if "❌" in result:
                     st.error(result)
                 else:
-                    st.success("Hoàn thành!")
+                    st.success("Phân tích hoàn tất!")
                     st.markdown(result)
 
-# --- CHÂN TRANG ---
+# --- FOOTER ---
 st.divider()
-st.caption("Ghi chú: Kết quả do AI tạo ra có thể cần kiểm tra lại bởi giáo viên.")
+st.caption("Ứng dụng sử dụng công nghệ Gemini 1.5 Flash cho tốc độ xử lý nhanh.")
