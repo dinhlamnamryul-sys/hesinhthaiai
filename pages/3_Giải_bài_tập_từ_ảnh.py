@@ -4,6 +4,7 @@ import base64
 from PIL import Image
 from io import BytesIO
 
+# --- CẤU HÌNH TRANG ---
 st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸", layout="wide")
 
 # --- PHẦN SIDEBAR: CẤU HÌNH & HƯỚNG DẪN ---
@@ -14,28 +15,24 @@ with st.sidebar:
     with st.expander("🔑 Cách lấy Google API Key miễn phí"):
         st.write("""
         1. Truy cập [Google AI Studio](https://aistudio.google.com/).
-        2. Đăng nhập bằng tài khoản Google.
+        2. Đăng nhập tài khoản Google.
         3. Nhấn **'Create API key'**.
-        4. Copy mã key và dán vào ô bên dưới.
+        4. Copy mã và dán vào ô bên dưới.
         """)
     
-    # 2. Ô nhập Key
-    # Ưu tiên lấy từ secrets (nếu có), nếu không để trống cho người dùng nhập
+    # 2. Nhập Key
     saved_key = st.secrets.get("GOOGLE_API_KEY", "")
     api_key = st.text_input("Dán Google API Key của bạn:", value=saved_key, type="password")
     
     if not api_key:
-        st.warning("⚠️ Vui lòng nhập API Key để ứng dụng có thể hoạt động.")
+        st.warning("⚠️ Vui lòng nhập API Key để bắt đầu.")
     else:
         st.success("✅ Đã nhận API Key")
 
     st.divider()
-    st.info("Sản phẩm dự thi Sáng tạo AI - Phiên bản hỗ trợ song ngữ Việt - H'Mông")
+    st.info("Sản phẩm dự thi Sáng tạo AI\nHỗ trợ học tập song ngữ Việt - H'Mông")
 
-# --- NỘI DUNG CHÍNH ---
-st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông)")
-
-# --- HÀM PHÂN TÍCH ẢNH (Giữ nguyên logic của bạn nhưng thêm xử lý lỗi 429 cụ thể) ---
+# --- HÀM PHÂN TÍCH ẢNH ---
 def analyze_real_image(api_key, image, prompt):
     if image.mode == "RGBA":
         image = image.convert("RGB")
@@ -44,17 +41,19 @@ def analyze_real_image(api_key, image, prompt):
     image.save(buffered, format="JPEG")
     img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-    # Sử dụng Gemini 1.5 Flash cho tốc độ nhanh, Gemini 2.0 Flash nếu cần công nghệ mới nhất
-    MODEL = "gemini-1.5-flash" # Hoặc "gemini-2.0-flash-exp"
+    # Cấu trúc URL chuẩn để tránh lỗi 404
+    MODEL = "gemini-1.5-flash"
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={api_key}"
 
     payload = {
-        "contents": [{
-            "parts": [
-                {"text": prompt},
-                {"inline_data": {"mime_type": "image/jpeg", "data": img_base64}}
-            ]
-        }]
+        "contents": [
+            {
+                "parts": [
+                    {"text": prompt},
+                    {"inline_data": {"mime_type": "image/jpeg", "data": img_base64}}
+                ]
+            }
+        ]
     }
 
     try:
@@ -62,7 +61,7 @@ def analyze_real_image(api_key, image, prompt):
         data = response.json()
         
         if response.status_code == 429:
-            return "❌ Lỗi 429: Key này đã hết hạn mức (Quota). Vui lòng đợi 1 phút hoặc đổi Key mới."
+            return "❌ Lỗi 429: Key của bạn đã hết hạn mức yêu cầu. Vui lòng đợi 1 phút rồi thử lại."
         elif response.status_code != 200:
             error_msg = data.get("error", {}).get("message", "Lỗi không xác định")
             return f"❌ Lỗi API {response.status_code}: {error_msg}"
@@ -71,38 +70,53 @@ def analyze_real_image(api_key, image, prompt):
     except Exception as e:
         return f"❌ Lỗi kết nối: {str(e)}"
 
-# --- PHẦN CAMERA & TẢI ẢNH (Giữ nguyên) ---
-st.subheader("📷 Chụp ảnh bài làm")
-camera_photo = st.camera_input("Chụp ảnh trực tiếp")
+# --- GIAO DIỆN CHÍNH ---
+st.title("📸 Chấm Bài & Giải Toán Qua Ảnh")
+st.write("Dành cho học sinh vùng cao hỗ trợ song ngữ **Việt – H’Mông**")
 
-st.subheader("📤 Hoặc tải ảnh lên")
-uploaded_file = st.file_uploader("Chọn tệp ảnh:", type=["png", "jpg", "jpeg"])
+col_input, col_output = st.columns([1, 1.2])
 
-# --- XỬ LÝ ẢNH ---
-image = None
-if camera_photo:
-    image = Image.open(camera_photo)
-elif uploaded_file:
-    image = Image.open(uploaded_file)
+with col_input:
+    st.subheader("📷 Nguồn ảnh")
+    camera_photo = st.camera_input("Chụp bài làm")
+    uploaded_file = st.file_uploader("Hoặc tải ảnh lên", type=["png", "jpg", "jpeg"])
 
-if image:
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        st.image(image, caption="Ảnh gốc", use_column_width=True)
+    image = None
+    if camera_photo:
+        image = Image.open(camera_photo)
+    elif uploaded_file:
+        image = Image.open(uploaded_file)
+
+    if image:
+        st.image(image, caption="Ảnh bài làm đã chọn", use_container_width=True)
+
+with col_output:
+    st.subheader("🔍 Kết quả chấm bài")
     
-    with col2:
-        if st.button("🚀 Bắt đầu chấm bài", type="primary"):
-            if not api_key:
-                st.error("Lỗi: Bạn chưa cung cấp API Key!")
-            else:
-                with st.spinner("🤖 AI đang chấm bài, vui lòng đợi..."):
-                    prompt_text = """
-                    (Giữ nguyên prompt chuyên sâu về LaTeX và Việt - H'Mông của bạn tại đây)
-                    """
-                    result = analyze_real_image(api_key, image, prompt_text)
-                    
-                    if "❌" in result:
-                        st.error(result)
-                    else:
-                        st.success("Kết quả phân tích:")
-                        st.markdown(result)
+    if st.button("🚀 Bắt đầu phân tích", type="primary"):
+        if not api_key:
+            st.error("Bạn chưa nhập API Key ở thanh bên (Sidebar)!")
+        elif not image:
+            st.warning("Vui lòng chụp ảnh hoặc tải ảnh lên trước.")
+        else:
+            with st.spinner("⏳ AI đang chấm bài (Việt - H'Mông)..."):
+                # PROMPT TỐI ƯU
+                prompt_text = """
+Bạn là giáo viên Toán giỏi hỗ trợ học sinh vùng cao. Đọc ảnh bài làm và thực hiện:
+1. Chép lại đề bằng LaTeX. Hiển thị song song Việt - H'Mông.
+2. Chấm điểm chi tiết: Đúng/Sai ở đâu. Nhận xét bằng cả 2 ngôn ngữ.
+3. Giải lại đúng hoàn toàn bằng LaTeX, trình bày từng bước song ngữ.
+Ký hiệu: 🇻🇳 Tiếng Việt | 🟦 Tiếng H'Mông.
+                """
+                
+                result = analyze_real_image(api_key, image, prompt_text)
+                
+                if "❌" in result:
+                    st.error(result)
+                else:
+                    st.success("Hoàn thành!")
+                    st.markdown(result)
+
+# --- CHÂN TRANG ---
+st.divider()
+st.caption("Ghi chú: Kết quả do AI tạo ra có thể cần kiểm tra lại bởi giáo viên.")
