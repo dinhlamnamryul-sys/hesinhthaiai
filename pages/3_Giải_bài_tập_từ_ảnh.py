@@ -1,115 +1,75 @@
 import streamlit as st
-import requests
-import base64
+from openai import OpenAI
 from PIL import Image
+import base64
 from io import BytesIO
 
 # =========================
 #   CẤU HÌNH TRANG
 # =========================
-st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸", layout="wide")
+st.set_page_config(page_title="Chấm Bài AI Song Ngữ (OpenAI)", page_icon="📸", layout="wide")
 
 
 # =========================
-#   LẤY DANH SÁCH MODEL KHẢ DỤNG
+#   HÀM MÃ HÓA ẢNH
 # =========================
-def list_available_models(api_key):
-    """Chỉ trả về những model Google hiện còn hoạt động & miễn phí."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
-    try:
-        r = requests.get(url)
-        if r.status_code != 200:
-            return []
-        data = r.json()
-
-        all_models = [m["name"] for m in data.get("models", [])]
-
-        # Danh sách model Google hiện CHẮC CHẮN dùng được (không cần billing)
-        allow_list = [
-            "models/gemini-2.0-flash",
-            "models/gemini-2.0-flash-lite",
-            "models/gemini-1.5-flash-8b",
-        ]
-
-        return [m for m in all_models if m in allow_list]
-
-    except:
-        return []
+def encode_image(image):
+    buffered = BytesIO()
+    image.save(buffered, format="JPEG")
+    img_bytes = buffered.getvalue()
+    img_base64 = base64.b64encode(img_bytes).decode("utf-8")
+    return img_base64
 
 
 # =========================
 #   HÀM PHÂN TÍCH ẢNH
 # =========================
-def analyze_real_image(api_key, model, image, prompt):
-    if image.mode == "RGBA":
-        image = image.convert("RGB")
+def analyze_with_openai(api_key, image, prompt):
+    client = OpenAI(api_key=api_key)
 
-    buffered = BytesIO()
-    image.save(buffered, format="JPEG")
-    img_base64 = base64.b64encode(buffered.getvalue()).decode()
-
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt},
-                    {
-                        "inline_data": {
-                            "mime_type": "image/jpeg",
-                            "data": img_base64
-                        }
-                    }
-                ]
-            }
-        ]
-    }
+    img_b64 = encode_image(image)
 
     try:
-        response = requests.post(url, json=payload)
-        data = response.json()
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # HỖ TRỢ XỬ LÝ ẢNH MIỄN PHÍ
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": f"data:image/jpeg;base64,{img_b64}"
+                        }
+                    ]
+                }
+            ]
+        )
 
-        if response.status_code == 404:
-            return "❌ Model không tồn tại hoặc API Key không có quyền."
-
-        if response.status_code != 200:
-            msg = data.get("error", {}).get("message", response.text)
-            return f"❌ Lỗi {response.status_code}: {msg}"
-
-        return data["candidates"][0]["content"]["parts"][0]["text"]
+        return response.choices[0].message.content
 
     except Exception as e:
-        return f"❌ Lỗi kết nối: {str(e)}"
+        return f"❌ Lỗi: {str(e)}"
 
 
 # =========================
 #   SIDEBAR
 # =========================
 with st.sidebar:
-    st.title("⚙️ Cài đặt")
+    st.title("⚙️ Cài đặt OpenAI")
 
-    api_key = st.text_input("Dán Google API Key:", type="password")
+    api_key = st.text_input("Dán OpenAI API Key của bạn:", type="password")
 
     if api_key:
-        models = list_available_models(api_key)
-
-        if len(models) == 0:
-            st.error("❌ API Key không có quyền dùng bất kỳ model nào.\n👉 Bạn cần bật Billing hoặc đổi API Key.")
-            model = None
-        else:
-            model = st.selectbox("Chọn model (đã kiểm duyệt quyền truy cập):", models)
-            st.success(f"Model hợp lệ: {model}")
-
+        st.success("API Key hợp lệ (nếu sai OpenAI sẽ báo khi chạy).")
     else:
-        model = None
-        st.warning("⚠️ Vui lòng nhập API Key!")
+        st.warning("Vui lòng dán OpenAI API Key!")
 
 
 # =========================
 #   GIAO DIỆN CHÍNH
 # =========================
-st.title("📸 Chấm Bài & Giải Toán Việt – H’Mông")
+st.title("📸 Chấm Bài Toán Việt – H’Mông (OpenAI 4o-mini Vision)")
 
 col_in, col_out = st.columns([1, 1.2])
 
@@ -123,7 +83,7 @@ with col_in:
         if cam_file:
             image = Image.open(cam_file)
     else:
-        up_file = st.file_uploader("Chọn ảnh bài làm", type=["png", "jpg", "jpeg"])
+        up_file = st.file_uploader("Tải ảnh bài làm", type=["png", "jpg", "jpeg"])
         if up_file:
             image = Image.open(up_file)
 
@@ -136,20 +96,21 @@ with col_out:
 
     if st.button("🚀 Bắt đầu chấm bài", type="primary"):
         if not api_key:
-            st.error("❌ Chưa nhập API Key!")
-        elif not model:
-            st.error("❌ Không có model hợp lệ.")
+            st.error("❌ Bạn chưa nhập API Key!")
         elif not image:
-            st.warning("⚠️ Hãy tải ảnh bài làm!")
+            st.warning("⚠️ Vui lòng tải ảnh trước.")
         else:
-            with st.spinner("⏳ Đang phân tích ảnh..."):
+            with st.spinner("⏳ AI đang phân tích..."):
                 prompt = """
                 Phân tích ảnh bài làm toán:
-                1. Chép lại đề bằng LaTeX (song ngữ Việt - H'Mông).
+
+                1. Chép lại đề bằng LaTeX (song ngữ Việt Nam 🇻🇳 và H’Mông 🟦).
                 2. Chấm Đúng/Sai từng bước (song ngữ).
-                3. Giải lại bài đúng nhất bằng LaTeX (song ngữ).
-                Dùng 🇻🇳 cho tiếng Việt và 🟦 cho tiếng H'Mông.
+                3. Giải lại bài đúng và trình bày bằng LaTeX (song ngữ).
+                4. Gợi ý cho học sinh vùng cao, dễ hiểu, ngắn gọn.
+
+                Dùng ký hiệu ██ 🇻🇳 cho tiếng Việt và ██ 🟦 cho tiếng H'Mông.
                 """
 
-                result = analyze_real_image(api_key, model, image, prompt)
+                result = analyze_with_openai(api_key, image, prompt)
                 st.markdown(result)
