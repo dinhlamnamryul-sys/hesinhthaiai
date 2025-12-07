@@ -1,4 +1,4 @@
-# app.py — Ứng dụng Streamlit: Tổng hợp Toán + AI Features
+# app.py — Ứng dụng Streamlit: Tổng hợp Toán + AI Features (Cập nhật: tích hợp mục lục lớp 6-9)
 import re
 import io
 import json
@@ -12,6 +12,8 @@ from reportlab.lib.utils import ImageReader
 from PIL import Image
 import matplotlib.pyplot as plt
 from gtts import gTTS  # Thư viện mới để đọc văn bản
+import os
+import unicodedata
 
 # -----------------------
 # Cấu hình page
@@ -42,7 +44,85 @@ with st.sidebar:
     st.info("Lưu ý: Tính năng đọc văn bản cần kết nối internet.")
 
 # -----------------------
-# Hỗ trợ LaTeX → ảnh (GIỮ NGUYÊN)
+# Đọc và phân tích file mục lục đã upload
+# -----------------------
+DEFAULT_INDEX_PATH = "/mnt/data/mục lục toán.docx"
+
+def safe_norm(s: str):
+    if s is None:
+        return ""
+    return unicodedata.normalize("NFC", s).strip()
+
+def parse_index_from_docx(path=DEFAULT_INDEX_PATH):
+    """
+    Trả về cấu trúc: { '6': [ {'chapter_title': 'CHƯƠNG I....', 'lessons': ['Bài 1. ...', ...]}, ... ],
+                       '7': [...], '8': [...], '9': [...] }
+    Nếu file không tồn tại, trả rỗng.
+    """
+    res = {}
+    if not os.path.exists(path):
+        return res
+    try:
+        doc = Document(path)
+    except Exception:
+        return res
+
+    current_class = None
+    current_chapter = None
+    for p in doc.paragraphs:
+        line = safe_norm(p.text)
+        if not line:
+            continue
+        # phát hiện tiêu đề lớp: "Toán 6" hoặc "Toán 6:" hoặc "Toán 6\n"
+        m_class = re.match(r'^\s*To[nn]?\s*[:\-]?\s*(\d{1,2})\b', line, flags=re.IGNORECASE)
+        # Some files may have "Toán 6" exactly
+        m_class_alt = re.match(r'^\s*Toán\s*(\d{1,2})\b', line)
+        if m_class_alt:
+            current_class = m_class_alt.group(1)
+            if current_class not in res:
+                res[current_class] = []
+            current_chapter = None
+            continue
+
+        # CHƯƠNG detection (has word CHƯƠNG or Chương)
+        m_ch = re.match(r'^(CHƯƠNG|Chương)\s*([IVXLC]+\.?)?(.*)', line)
+        if m_ch:
+            title = line
+            current_chapter = {"chapter_title": title, "lessons": []}
+            if current_class is None:
+                # if no class heading before, try infer from preceding context:
+                # default put under '6' if empty
+                current_class = "6"
+                if current_class not in res:
+                    res[current_class] = []
+            res[current_class].append(current_chapter)
+            continue
+
+        # Bài detection: lines starting with 'Bài' or 'Bài 1.' etc
+        m_bai = re.match(r'^\s*Bài\s*\d+\.?\s*(.*)', line)
+        if m_bai and current_chapter is not None:
+            # store the full line (e.g., "Bài 1. Tập hợp.")
+            current_chapter["lessons"].append(line)
+            continue
+
+        # Some files enumerate "Bài 1. ..." after bullet; also sometimes 'MỤC LỤC' or 'Tập 1:' etc ignored.
+        # Nothing else needed; continue.
+    return res
+
+index_structure = parse_index_from_docx(DEFAULT_INDEX_PATH)
+
+# If parse failed, provide reasonable defaults based on typical classes
+if not index_structure:
+    # fallback minimal
+    index_structure = {
+        "6": [{"chapter_title": "CHƯƠNG I. TẬP HỢP CÁC SỐ TỰ NHIÊN.", "lessons": ["Bài 1. Tập hợp.", "Bài 2. Cách ghi số tự nhiên."]}],
+        "7": [{"chapter_title": "CHƯƠNG I. SỐ HỮU TỈ.", "lessons": ["Bài 1. Tập hợp các số hữu tỉ."]}],
+        "8": [{"chapter_title": "CHƯƠNG I. ĐA THỨC.", "lessons": ["Bài 1. Đơn thức."]}],
+        "9": [{"chapter_title": "Chương I. PHƯƠNG TRÌNH VÀ HỆ HAI PHƯƠNG TRÌNH BẬC NHẤT HAI ẨN.", "lessons": ["Bài 1. Khái niệm phương trình và hệ hai phương trình bậc nhất hai ẩn."]}],
+    }
+
+# -----------------------
+# HỖ TRỢ LaTeX → ảnh (GIỮ NGUYÊN)
 # -----------------------
 LATEX_RE = re.compile(r"\$\$(.+?)\$\$", re.DOTALL)
 
@@ -207,20 +287,79 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "🎧 Đọc Văn bản (TTS)"
 ])
 
-# --- TAB 1: TỔNG HỢP KIẾN THỨC (Cũ) ---
+# --- TAB 1: TỔNG HỢP KIẾN THỨC (Cập nhật: chọn Chương/Bài từ mục lục) ---
 with tab1:
-    st.subheader("Tổng hợp kiến thức Toán theo chủ đề")
+    st.subheader("Tổng hợp kiến thức Toán theo Chương/Bài (dựa trên mục lục upload)")
     col1, col2 = st.columns([1, 3])
     with col1:
-        lop_options = [f"Lớp {i}" for i in range(1, 10)] + ["Tất cả lớp"]
-        lop_sel = st.selectbox("Chọn lớp:", lop_options, key="tab1_lop")
-        
+        # lớp available from index_structure keys
+        classes = sorted([f"Lớp {k}" for k in index_structure.keys()], key=lambda x: int(re.search(r'\d+', x).group()))
+        classes = ["Tất cả lớp"] + classes
+        lop_sel = st.selectbox("Chọn lớp:", classes, key="tab1_lop")
+
+        # derive numeric class code if not "Tất cả lớp"
+        sel_class_num = None
+        if lop_sel != "Tất cả lớp":
+            sel_class_num = re.search(r'\d+', lop_sel).group()
+
+        # chapters list
+        chapters_for_sel = []
+        if sel_class_num:
+            chapters_for_sel = index_structure.get(sel_class_num, [])
+        else:
+            # if all classes, combine chapters titles with class prefix
+            combined = []
+            for k in sorted(index_structure.keys(), key=lambda x: int(x)):
+                for ch in index_structure[k]:
+                    combined.append({"chapter_title": f"(Lớp {k}) {ch['chapter_title']}", "lessons": [f"(Lớp {k}) {l}" for l in ch.get("lessons", [])]})
+            chapters_for_sel = combined
+
+        chapter_titles = ["Tất cả chương", "Toàn chương"]
+        chapter_titles += [c["chapter_title"] for c in chapters_for_sel]
+        chapter_sel = st.selectbox("Chọn chương:", chapter_titles, key="tab1_chapter")
+
+        # lessons
+        lessons = []
+        if chapter_sel in ["Tất cả chương", "Toàn chương"]:
+            # aggregate all lessons in class (or all classes)
+            for c in chapters_for_sel:
+                lessons.extend(c.get("lessons", []))
+        else:
+            # find selected chapter's lessons
+            for c in chapters_for_sel:
+                if c["chapter_title"] == chapter_sel:
+                    lessons = c.get("lessons", [])
+                    break
+        lesson_options = ["Toàn bài"] + lessons if lessons else ["Toàn chương (không có bài chi tiết)"]
+        lesson_sel = st.selectbox("Chọn bài (nếu muốn):", lesson_options, key="tab1_lesson")
+
     if st.button("🚀 Tổng hợp kiến thức", key="btn_tab1"):
+        # build prompt based on selection
+        if lop_sel == "Tất cả lớp":
+            scope = "Toàn bộ chương trình Toán từ Lớp 6 đến Lớp 9 theo mục lục đã cung cấp."
+        else:
+            scope = f"Toán {lop_sel.replace('Lớp ','')}"
+        if chapter_sel == "Tất cả chương":
+            scope_detail = "Tổng hợp toàn bộ các chương của lớp được chọn, theo từng chương và từng bài (nêu mục tiêu, khái niệm, công thức với LaTeX $$...$$ và ví dụ minh họa)."
+        elif chapter_sel == "Toàn chương":
+            scope_detail = "Tổng hợp nội dung chi tiết cho toàn chương(s) đã chọn."
+        else:
+            # specific chapter selected
+            if lesson_sel == "Toàn bài":
+                scope_detail = f"Tổng hợp toàn bộ nội dung của {chapter_sel} (theo mục lục), phân chia Khái niệm – Công thức (LaTeX trong $$...$$) – Ví dụ cho từng bài."
+            else:
+                scope_detail = f"Tổng hợp chuyên sâu cho: {lesson_sel} (thuộc {chapter_sel}), cấu trúc: Khái niệm – Công thức (LaTeX trong $$...$$) – Ví dụ, câu hỏi luyện tập và hướng dẫn giải ngắn."
+
         prompt = f"""
-        Bạn là giáo viên Toán. Hãy tổng hợp kiến thức môn Toán {lop_sel} theo CHỦ ĐỀ.
-        - Phân nhóm: Số học, Đại số, Hình học, Thống kê.
-        - Cấu trúc: Khái niệm – Công thức (LaTeX trong $$...$$) – Ví dụ.
-        - Trình bày rõ ràng để in ấn.
+Bạn là giáo viên Toán có kinh nghiệm. Hãy { 'soạn tài liệu' if 'Tổng hợp' in scope_detail else 'tổng hợp' } {scope}.
+Yêu cầu:
+- PHẠM VI: {scope_detail}
+- PHÂN NHÓM nội dung (nếu phù hợp): Số học, Đại số, Hình học, Thống kê.
+- CẤU TRÚC: Mỗi mục/bài trình bày theo: Mục tiêu (Kiến thức, Năng lực, Phẩm chất) – Khái niệm – Công thức (viết bằng LaTeX trong $$...$$ nếu có) – Ví dụ minh họa – Bài tập luyện tập (kèm đáp án tóm tắt).
+- Trình bày rõ ràng, phù hợp để in ấn, có tiêu đề và đánh số chương/bài.
+- Ngôn ngữ: tiếng Việt chuẩn, phù hợp học sinh trung học cơ sở.
+- Nếu nội dung có thể minh họa bằng hình/hệ quả, hãy ghi chú chỗ cần hình (ví dụ: [Chèn hình: Hình tam giác vuông]).
+Trả về kết quả dưới dạng văn bản dễ copy/paste.
         """
         with st.spinner("Đang tổng hợp..."):
             res = generate_with_gemini(api_key, prompt)
@@ -229,10 +368,9 @@ with tab1:
             else:
                 st.error(res["message"])
 
+    # hiển thị và nút tải về
     if "summary_text" in st.session_state:
         st.markdown(st.session_state["summary_text"].replace("\n", "<br>"), unsafe_allow_html=True)
-        
-        # Nút tải về
         col_d1, col_d2 = st.columns(2)
         with col_d1:
             docx = create_docx_bytes(st.session_state["summary_text"])
@@ -280,7 +418,9 @@ with tab2:
         st.markdown("---")
         st.markdown(st.session_state["plan_text"])
         docx_ga = create_docx_bytes(st.session_state["plan_text"])
-        st.download_button("📥 Tải Giáo án (DOCX)", docx_ga, f"GiaoAn_{ga_bai}.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        # Make filename safe
+        safe_name = re.sub(r'[\\/*?:"<>|]',"_", ga_bai)
+        st.download_button("📥 Tải Giáo án (DOCX)", docx_ga, f"GiaoAn_{safe_name}.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 # --- TAB 3: CHẾ LỜI BÀI HÁT (Mới) ---
 with tab3:
