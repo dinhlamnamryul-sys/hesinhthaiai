@@ -1,61 +1,51 @@
 import streamlit as st
+import requests
 import base64
 from PIL import Image
 from io import BytesIO
-from groq import Groq
 
 st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸")
 st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông)")
 
 # --- LẤY KEY ---
-# Sử dụng groq_api_key thay vì google_api_key
-api_key = st.secrets.get("GROQ_API_KEY", "")
+api_key = st.secrets.get("GOOGLE_API_KEY", "")
 
 if not api_key:
-    st.warning("⚠️ Chưa có Groq API Key trong hệ thống.")
-    api_key = st.text_input("Nhập Groq API Key:", type="password")
+    st.warning("⚠️ Chưa có API Key trong hệ thống.")
+    api_key = st.text_input("Nhập Google API Key:", type="password")
 
-# --- HÀM PHÂN TÍCH ẢNH DÙNG GROQ ---
-def analyze_real_image_groq(api_key, image, prompt):
+# --- HÀM PHÂN TÍCH ẢNH ---
+def analyze_real_image(api_key, image, prompt):
     if image.mode == "RGBA":
         image = image.convert("RGB")
 
     buffered = BytesIO()
-    # Lưu ảnh dưới định dạng JPEG (hoặc PNG tùy chọn)
     image.save(buffered, format="JPEG")
-    # Mã hóa Base64 cho ảnh
     img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-    # Khởi tạo Groq Client
-    try:
-        client = Groq(api_key=api_key)
-    except Exception as e:
-        return f"❌ Lỗi khởi tạo Groq Client: {str(e)}"
-    
-    # Chuẩn bị nội dung (text + image)
-    content = [
-        {"type": "text", "text": prompt},
-        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_base64}"}}
-    ]
+    MODEL = "models/gemini-2.0-flash"
+    url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
 
-    # Model hỗ trợ Vision trên Groq:
-    MODEL = "llama-3.1-405b-reasoning"  # Hoặc model Vision khác nếu có
-    
+    payload = {
+        "contents": [
+            {
+                "role": "user",
+                "parts": [
+                    {"text": prompt},
+                    {"inline_data": {"mime_type": "image/jpeg", "data": img_base64}}
+                ]
+            }
+        ]
+    }
+
     try:
-        # Gọi API của Groq
-        chat_completion = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": content,
-                }
-            ],
-            model=MODEL,
-        )
-        # Trả về nội dung phản hồi
-        return chat_completion.choices[0].message.content
+        response = requests.post(url, json=payload)
+        if response.status_code != 200:
+            return f"❌ Lỗi API {response.status_code}: {response.text}"
+        data = response.json()
+        return data["candidates"][0]["content"]["parts"][0]["text"]
     except Exception as e:
-        return f"❌ Lỗi kết nối Groq: {str(e)}"
+        return f"❌ Lỗi kết nối: {str(e)}"
 
 
 # -----------------------------
@@ -91,7 +81,7 @@ if image:
 
         if st.button("Phân tích ngay", type="primary"):
             if not api_key:
-                st.error("Thiếu Groq API Key!")
+                st.error("Thiếu API Key!")
             else:
                 with st.spinner("⏳ AI đang xử lý..."):
 
@@ -123,11 +113,11 @@ MỌI CÂU TRẢ LỜI PHẢI:
 - Dễ copy vào Word hoặc Overleaf.
 """
 
-                    # Thay đổi gọi hàm
-                    result = analyze_real_image_groq(api_key, image, prompt_text)
+                    result = analyze_real_image(api_key, image, prompt_text)
 
                     if "❌" in result:
                         st.error(result)
                     else:
                         st.success("🎉 Đã phân tích xong!")
                         st.markdown(result)
+
