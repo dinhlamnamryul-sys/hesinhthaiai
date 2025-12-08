@@ -18,7 +18,7 @@ import os
 # Cấu hình page
 # -----------------------
 st.set_page_config(page_title="Trợ lý Toán học & Giáo dục AI", layout="wide", page_icon="🎓")
-st.title("🎓 Trợ lý Giáo dục Đa năng (Groq API)") # Đã đổi tên tiêu đề
+st.title("🎓 Trợ lý Giáo dục Đa năng (Groq API)")
 
 st.markdown("""
 <style>
@@ -31,14 +31,13 @@ st.markdown("""
 
 # -----------------------
 # API Key & Config
-# ĐÃ CHUYỂN SANG GROQ API
 # -----------------------
 api_key = st.secrets.get("GROQ_API_KEY", "")
 
 with st.sidebar:
     st.header("⚙️ Cấu hình")
     if not api_key:
-        api_key = st.text_input("Nhập Groq API Key:", type="password") # Đã đổi nhãn
+        api_key = st.text_input("Nhập Groq API Key:", type="password")
 
     # Đã thay thế model Gemini bằng model Groq
     MODEL_DEFAULT = st.selectbox("Chọn model AI (Groq):",
@@ -48,7 +47,6 @@ with st.sidebar:
 
 # -----------------------
 # Mục lục Toán học Lớp 6 - 9 (Đã trích xuất từ file mục lục toán.docx)
-# (PHẦN NÀY KHÔNG ĐỔI)
 # -----------------------
 index_structure = {
     "6": [
@@ -190,18 +188,20 @@ index_structure = {
 
 # -----------------------
 # HỖ TRỢ LaTeX → ảnh
-# (PHẦN NÀY KHÔNG ĐỔI)
 # -----------------------
 LATEX_RE = re.compile(r"\$\$(.+?)\$\$", re.DOTALL)
 
 def find_latex_blocks(text):
+    # Tìm tất cả các khối LaTeX được bọc trong $$...$$
     return [(m.span(), m.group(0), m.group(1)) for m in LATEX_RE.finditer(text)]
 
 def render_latex_png_bytes(latex_code, fontsize=20, dpi=200):
+    # Render LaTeX code thành ảnh PNG dưới dạng bytes
     try:
         fig = plt.figure()
         fig.patch.set_alpha(0.0)
-        fig.text(0, 0, f"${latex_code}$", fontsize=fontsize)
+        # Sử dụng f"${latex_code}$" để đảm bảo cú pháp math mode
+        fig.text(0, 0, f"${latex_code}$", fontsize=fontsize) 
         buf = io.BytesIO()
         plt.axis('off')
         plt.savefig(buf, format='png', dpi=dpi, bbox_inches='tight', pad_inches=0.02, transparent=True)
@@ -209,11 +209,11 @@ def render_latex_png_bytes(latex_code, fontsize=20, dpi=200):
         buf.seek(0)
         return buf.read()
     except Exception:
+        # Trả về None nếu việc render thất bại
         return None
 
 # -----------------------
 # Xuất DOCX / PDF
-# (PHẦN NÀY KHÔNG ĐỔI)
 # -----------------------
 def create_docx_bytes(text):
     doc = Document()
@@ -231,9 +231,9 @@ def create_docx_bytes(text):
                 r = p.add_run()
                 r.add_picture(img_stream, width=Inches(3))
             else:
-                doc.add_paragraph(full)
+                doc.add_paragraph(full) # Nếu render lỗi, chèn nguyên văn $$...$$
         except Exception:
-            doc.add_paragraph(full)
+            doc.add_paragraph(full) # Nếu render lỗi, chèn nguyên văn $$...$$
         last = end
     for line in text[last:].splitlines():
         doc.add_paragraph(line)
@@ -276,10 +276,10 @@ def create_pdf_bytes(text):
                 c.drawImage(img_reader, margin, y - draw_h, width=draw_w, height=draw_h, mask='auto')
                 y -= draw_h + 8
             else:
-                c.drawString(margin, y, full)
+                c.drawString(margin, y, full) # Nếu render lỗi, chèn nguyên văn $$...$$
                 y -= 14
         except Exception:
-            c.drawString(margin, y, full)
+            c.drawString(margin, y, full) # Nếu render lỗi, chèn nguyên văn $$...$$
             y -= 14
         y = check_page_break(y)
         last = end
@@ -294,26 +294,19 @@ def create_pdf_bytes(text):
     return buf
 
 # -----------------------
-# HÀM GIÚP: Xử lý API (ĐÃ THAY THẾ BẰNG GROQ API)
+# HÀM GIÚP: Xử lý API (GROQ)
 # -----------------------
-
-# Đã loại bỏ các hàm extract_text_from_api_response và deep_find_first_string
-# vì hàm generate_with_ai (trước đây là generate_with_gemini) sẽ tự xử lý parsing
-
 def generate_with_ai(api_key, prompt, model=MODEL_DEFAULT):
     """Sử dụng Groq API để tạo nội dung văn bản."""
     if not api_key: return {"ok": False, "message": "Thiếu Groq API Key."}
     
-    # 1. Groq Endpoint (OpenAI compatible)
     url = "https://api.groq.com/openai/v1/chat/completions"
 
-    # 2. Groq/OpenAI Headers (API Key trong Authorization header)
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}" 
     }
 
-    # 3. Groq/OpenAI Payload (messages format)
     payload = {
         "model": model, # model là model Groq đã chọn
         "messages": [
@@ -325,7 +318,6 @@ def generate_with_ai(api_key, prompt, model=MODEL_DEFAULT):
         resp = requests.post(url, json=payload, headers=headers, timeout=60)
         data = resp.json()
         
-        # 4. Groq/OpenAI Response Parsing
         if resp.status_code != 200:
             error_msg = data.get("error", {}).get("message", resp.text)
             return {"ok": False, "message": f"Lỗi Groq API ({resp.status_code}): {error_msg}"}
@@ -342,8 +334,7 @@ def generate_with_ai(api_key, prompt, model=MODEL_DEFAULT):
         return {"ok": False, "message": str(e)}
 
 # -----------------------
-# TÍNH NĂNG MỚI: TEXT TO SPEECH
-# (PHẦN NÀY KHÔNG ĐỔI)
+# TÍNH NĂNG: TEXT TO SPEECH
 # -----------------------
 def text_to_speech_bytes(text, lang='vi'):
     try:
