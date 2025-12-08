@@ -3,7 +3,7 @@ import requests
 import base64
 from PIL import Image
 from io import BytesIO
-import json # Import thêm thư viện json để xử lý lỗi tốt hơn
+import json
 
 # =========================
 #   CẤU HÌNH TRANG
@@ -14,11 +14,10 @@ st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸", lay
 # =========================
 #   HÀM PHÂN TÍCH ẢNH
 # =========================
-def analyze_real_image(api_key, model, image, prompt):
+def analyze_real_image(api_key, model_name, image, prompt):
     """Gửi yêu cầu phân tích ảnh đến Gemini API."""
     try:
         # Chuyển đổi ảnh sang định dạng RGB và base64
-        # Đảm bảo ảnh được chuyển đổi về JPEG trước khi encode
         if image.mode == "RGBA":
             image = image.convert("RGB")
 
@@ -28,7 +27,8 @@ def analyze_real_image(api_key, model, image, prompt):
         img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
         # Đường dẫn API cho generateContent
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        # Sử dụng model_name (ví dụ: gemini-2.5-flash)
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
 
         payload = {
             "contents": [
@@ -46,7 +46,6 @@ def analyze_real_image(api_key, model, image, prompt):
             ]
         }
 
-        # Thiết lập header để đảm bảo request được gửi đi chính xác
         headers = {
             "Content-Type": "application/json"
         }
@@ -86,12 +85,11 @@ with st.sidebar:
     st.title("⚙️ Cài đặt")
     st.warning("⚠ Để chạy được, Key cần được kích hoạt **Billing** để hưởng **Free Tier**.")
     
-    # st.secrets cho bảo mật tốt hơn, nhưng dùng st.text_input theo yêu cầu
     api_key = st.text_input("Dán Google API Key:", type="password")
     
-    # Chỉ định model flash là lựa chọn mặc định và hiệu quả nhất
-    model = "models/gemini-2.5-flash"
-    st.info(f"Model được chọn (Tiết kiệm chi phí): **{model}**")
+    # CHỈ SỬ DỤNG TÊN MODEL KHÔNG CÓ TIỀN TỐ 'models/' để tránh lỗi 404
+    model_name = "gemini-2.5-flash"
+    st.info(f"Model được chọn (Tiết kiệm chi phí): **{model_name}**")
 
     if api_key:
         st.success("API Key đã nhập!")
@@ -106,7 +104,7 @@ st.title("📸 Chấm Bài & Giải Toán Việt – H’Mông")
 
 col_in, col_out = st.columns([1, 1.2])
 
-image = None # Khởi tạo biến image ở phạm vi ngoài if/else
+image = None # Khởi tạo biến image
 
 with col_in:
     st.subheader("📥 Đầu vào ảnh")
@@ -135,6 +133,7 @@ with col_out:
             st.warning("⚠ Hãy tải ảnh bài làm!")
         else:
             with st.spinner("⏳ Đang phân tích ảnh..."):
+                # Prompt hướng dẫn model thực hiện nhiệm vụ chấm bài song ngữ
                 prompt = """
                 Phân tích ảnh bài làm toán:
                 1. Chép lại đề bằng LaTeX (song ngữ Việt - H'Mông).
@@ -144,7 +143,7 @@ with col_out:
                 """
 
                 # Gọi hàm phân tích ảnh thực tế
-                result = analyze_real_image(api_key, model, image, prompt)
+                result = analyze_real_image(api_key, model_name, image, prompt)
                 
                 # Hiển thị kết quả an toàn
                 if result.startswith("❌"):
