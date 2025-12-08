@@ -6,7 +6,6 @@ st.set_page_config(page_title="Sinh Đề Chuẩn LaTeX", page_icon="📝", layo
 st.title("📝 Tạo Đề Tự Động ")
 
 # --- API Key ---
-# ĐÃ ĐỔI TỪ GOOGLE_API_KEY SANG GROQ_API_KEY
 api_key = st.secrets.get("GROQ_API_KEY", "")
 if not api_key:
     api_key = st.text_input("Nhập Groq API Key:", type="password")
@@ -203,10 +202,9 @@ Yêu cầu:
     return prompt
 
 # --- Gọi API ---
-# ĐÃ SỬA ĐỂ DÙNG GROQ API
 def generate_questions(api_key, prompt):
-    # Chọn model tốc độ cao của Groq
-    MODEL = "llama3-8b-8192"  
+    # ĐÃ THAY THẾ MODEL BỊ NGỪNG HỖ TRỢ BẰNG MODEL MỚI NHẤT
+    MODEL = "llama-3.1-8b-instant" 
     URL = "https://api.groq.com/openai/v1/chat/completions"
     
     payload = {
@@ -218,7 +216,6 @@ def generate_questions(api_key, prompt):
     
     headers = {
         "Content-Type": "application/json",
-        # Groq sử dụng Bearer token trong Header
         "Authorization": f"Bearer {api_key}" 
     }
     
@@ -230,7 +227,6 @@ def generate_questions(api_key, prompt):
         
         j = r.json()
         
-        # Phân tích phản hồi theo định dạng Groq/OpenAI
         if j.get("choices") and len(j["choices"]) > 0:
             text = j["choices"][0]["message"]["content"]
             return True, text
@@ -247,16 +243,20 @@ if st.button("tạo đề chuẩn"):
     if not api_key:
         st.warning("Nhập Groq API Key trước khi sinh đề!")
     else:
-        prompt = build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
-                              so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
-        with st.spinner("Đang tạo đề (Markdown + LaTeX + đáp án cách dòng)..."):
-            success, result = generate_questions(api_key, prompt)
-            if success:
-                st.success("✅ Sinh đề thành công!")
-                st.markdown(result, unsafe_allow_html=True)
-                
-                # --- Tải file markdown về máy ---
-                filename = f"De_{lop}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-                st.download_button("📥 Tải đề về máy (Markdown)", data=result, file_name=filename)
-            else:
-                st.error(result)
+        # Kiểm tra xem có chương/bài nào được chọn không
+        if not chuong or not bai:
+             st.error("Vui lòng chọn ít nhất một Chương và một Bài học để tạo đề!")
+        else:
+            prompt = build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
+                                so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
+            with st.spinner("Đang tạo đề (Markdown + LaTeX + đáp án cách dòng)..."):
+                success, result = generate_questions(api_key, prompt)
+                if success:
+                    st.success("✅ Sinh đề thành công!")
+                    st.markdown(result, unsafe_allow_html=True)
+                    
+                    # --- Tải file markdown về máy ---
+                    filename = f"De_{lop}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+                    st.download_button("📥 Tải đề về máy (Markdown)", data=result, file_name=filename)
+                else:
+                    st.error(result)
