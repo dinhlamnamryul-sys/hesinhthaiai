@@ -3,64 +3,44 @@ import requests
 import base64
 from PIL import Image
 from io import BytesIO
-from google_auth_oauthlib.flow import Flow
-from google.oauth2 import id_token
-import google.auth.transport.requests
-import os
 
-# ============================================
-# GOOGLE OAUTH CONFIG
-# ============================================
-CLIENT_SECRET_FILE = "client_secret.json"
-SCOPES = ["openid", "email", "profile"]
-
-if "google_user" not in st.session_state:
-    st.session_state.google_user = None
-
-# ============================================
-# STREAMLIT PAGE
-# ============================================
+# =========================
+#   CẤU HÌNH TRANG
+# =========================
 st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸", layout="wide")
 
-st.title("📸 Chấm Bài & Giải Toán Việt – H’Mông")
 
-# ============================================
-# LOGIN LOGIC
-# ============================================
-def login_button():
-    flow = Flow.from_client_secrets_file(
-        CLIENT_SECRET_FILE,
-        scopes=SCOPES,
-        redirect_uri="http://localhost:8501"
-    )
-    auth_url, _ = flow.authorization_url(prompt="consent")
-    st.markdown(f"[➡️ Đăng nhập Google để sử dụng ứng dụng]({auth_url})")
+# =========================
+#   LẤY DANH SÁCH MODEL KHẢ DỤNG
+# =========================
+def list_available_models(api_key):
+    """Chỉ trả về những model Google hiện còn hoạt động & miễn phí."""
+    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
+    try:
+        r = requests.get(url)
+        if r.status_code != 200:
+            return []
+        data = r.json()
 
+        all_models = [m["name"] for m in data.get("models", [])]
 
-def check_google_login():
-    if "code" in st.query_params:
-        code = st.query_params["code"]
+        # Danh sách model Google hiện CHẮC CHẮN dùng được (không cần billing)
+        allow_list = [
+            "models/gemini-2.0-flash",
+            "models/gemini-2.0-flash-lite",
+            "models/gemini-1.5-flash-8b",
+        ]
 
-        flow = Flow.from_client_secrets_file(
-            CLIENT_SECRET_FILE,
-            scopes=SCOPES,
-            redirect_uri="http://localhost:8501"
-        )
-        flow.fetch_token(code=code)
+        return [m for m in all_models if m in allow_list]
 
-        credentials = flow.credentials
-        req = google.auth.transport.requests.Request()
-        id_info = id_token.verify_oauth2_token(credentials.id_token, req)
-
-        st.session_state.google_user = id_info
+    except:
+        return []
 
 
-# ============================================
-# GEMINI API CALL — dùng API Key hệ thống
-# ============================================
-API_KEY = os.getenv("GEMINI_API_KEY")  # <== bạn đặt API Key trong môi trường !!!
-
-def analyze_real_image(model, image, prompt):
+# =========================
+#   HÀM PHÂN TÍCH ẢNH
+# =========================
+def analyze_real_image(api_key, model, image, prompt):
     if image.mode == "RGBA":
         image = image.convert("RGB")
 
@@ -68,7 +48,7 @@ def analyze_real_image(model, image, prompt):
     image.save(buffered, format="JPEG")
     img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
 
     payload = {
         "contents": [
@@ -86,41 +66,51 @@ def analyze_real_image(model, image, prompt):
         ]
     }
 
-    response = requests.post(url, json=payload)
-    data = response.json()
+    try:
+        response = requests.post(url, json=payload)
+        data = response.json()
 
-    if response.status_code != 200:
-        return f"❌ Lỗi {response.status_code}: {data}"
+        if response.status_code == 404:
+            return "❌ Model không tồn tại hoặc API Key không có quyền."
 
-    return data["candidates"][0]["content"]["parts"][0]["text"]
+        if response.status_code != 200:
+            msg = data.get("error", {}).get("message", response.text)
+            return f"❌ Lỗi {response.status_code}: {msg}"
+
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+
+    except Exception as e:
+        return f"❌ Lỗi kết nối: {str(e)}"
 
 
-# ============================================
-# MAIN UI
-# ============================================
+# =========================
+#   SIDEBAR
+# =========================
+with st.sidebar:
+    st.title("⚙️ Cài đặt")
 
-check_google_login()
+    api_key = st.text_input("Dán Google API Key:", type="password")
 
-if st.session_state.google_user is None:
-    st.warning("⚠️ Bạn cần đăng nhập Google để sử dụng ứng dụng.")
-    login_button()
-    st.stop()
+    if api_key:
+        models = list_available_models(api_key)
 
-# Nếu đã đăng nhập
-st.success(f"✔️ Đã đăng nhập: {st.session_state.google_user['email']}")
+        if len(models) == 0:
+            st.error("❌ API Key không có quyền dùng bất kỳ model nào.\n👉 Bạn cần bật Billing hoặc đổi API Key.")
+            model = None
+        else:
+            model = st.selectbox("Chọn model (đã kiểm duyệt quyền truy cập):", models)
+            st.success(f"Model hợp lệ: {model}")
 
-# Danh sách model
-models = [
-    "models/gemini-2.0-flash",
-    "models/gemini-2.0-flash-lite",
-    "models/gemini-1.5-flash-8b",
-]
+    else:
+        model = None
+        st.warning("⚠️ Vui lòng nhập API Key!")
 
-model = st.sidebar.selectbox("Chọn model:", models)
 
 # =========================
 #   GIAO DIỆN CHÍNH
 # =========================
+st.title("📸 Chấm Bài & Giải Toán Việt – H’Mông")
+
 col_in, col_out = st.columns([1, 1.2])
 
 with col_in:
@@ -145,7 +135,11 @@ with col_out:
     st.subheader("🔍 Kết quả AI")
 
     if st.button("🚀 Bắt đầu chấm bài", type="primary"):
-        if not image:
+        if not api_key:
+            st.error("❌ Chưa nhập API Key!")
+        elif not model:
+            st.error("❌ Không có model hợp lệ.")
+        elif not image:
             st.warning("⚠️ Hãy tải ảnh bài làm!")
         else:
             with st.spinner("⏳ Đang phân tích ảnh..."):
@@ -156,5 +150,6 @@ with col_out:
                 3. Giải lại bài đúng nhất bằng LaTeX (song ngữ).
                 Dùng 🇻🇳 cho tiếng Việt và 🟦 cho tiếng H'Mông.
                 """
-                result = analyze_real_image(model, image, prompt)
+
+                result = analyze_real_image(api_key, model, image, prompt)
                 st.markdown(result)
