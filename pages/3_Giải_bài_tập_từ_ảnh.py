@@ -3,30 +3,27 @@ import requests
 import base64
 from PIL import Image
 from io import BytesIO
+import json # Import thêm thư viện json để xử lý lỗi tốt hơn
 
 # =========================
-#   CẤU HÌNH TRANG
+#   CẤU HÌNH TRANG
 # =========================
 st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸", layout="wide")
 
 
 # =========================
-#   LẤY DANH SÁCH MODEL KHẢ DỤNG (Không cần thiết, ta dùng model cụ thể)
-# =========================
-# Hàm này bị loại bỏ để đơn giản hóa, ta sẽ dùng trực tiếp model hiệu quả nhất.
-
-
-# =========================
-#   HÀM PHÂN TÍCH ẢNH
+#   HÀM PHÂN TÍCH ẢNH
 # =========================
 def analyze_real_image(api_key, model, image, prompt):
     """Gửi yêu cầu phân tích ảnh đến Gemini API."""
     try:
         # Chuyển đổi ảnh sang định dạng RGB và base64
+        # Đảm bảo ảnh được chuyển đổi về JPEG trước khi encode
         if image.mode == "RGBA":
             image = image.convert("RGB")
 
         buffered = BytesIO()
+        # Lưu ảnh dưới định dạng JPEG
         image.save(buffered, format="JPEG")
         img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
@@ -49,35 +46,47 @@ def analyze_real_image(api_key, model, image, prompt):
             ]
         }
 
-        response = requests.post(url, json=payload)
+        # Thiết lập header để đảm bảo request được gửi đi chính xác
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        response = requests.post(url, json=payload, headers=headers)
 
-        # Xử lý phản hồi
+        # 1. Xử lý phản hồi JSON
         try:
             data = response.json()
-        except:
-            return f"❌ API trả về dữ liệu không hợp lệ.\nPhản hồi: {response.text}"
+        except json.JSONDecodeError:
+            # Nếu phản hồi không phải JSON
+            return f"❌ API trả về dữ liệu không phải JSON. Code: {response.status_code}\nPhản hồi: {response.text}"
 
+        # 2. Xử lý Lỗi HTTP (status_code không phải 200)
         if response.status_code != 200:
             msg = data.get("error", {}).get("message", response.text)
-            return f"❌ Lỗi {response.status_code}: {msg}"
+            return f"❌ Lỗi HTTP {response.status_code}: {msg}"
 
-        # Lấy nội dung phản hồi từ cấu trúc JSON
+        # 3. Lấy nội dung phản hồi từ cấu trúc JSON
         try:
+            # Truy cập an toàn vào cấu trúc lồng nhau
             return data["candidates"][0]["content"]["parts"][0]["text"]
-        except:
-            return f"❌ API không trả về nội dung hợp lệ.\nPhản hồi: {data}"
+        except (KeyError, IndexError):
+            # Nếu cấu trúc JSON hợp lệ nhưng thiếu `candidates` hoặc `content`
+            return f"❌ API không trả về nội dung hợp lệ (Thiếu key). Vui lòng kiểm tra Prompt hoặc Model.\nPhản hồi chi tiết: {json.dumps(data, indent=2)}"
 
+    except requests.exceptions.RequestException as req_err:
+        return f"❌ Lỗi kết nối mạng/Request: {str(req_err)}"
     except Exception as e:
-        return f"❌ Lỗi kết nối: {str(e)}"
+        return f"❌ Lỗi tổng quát: {str(e)}"
 
 
 # =========================
-#   SIDEBAR
+#   SIDEBAR
 # =========================
 with st.sidebar:
     st.title("⚙️ Cài đặt")
     st.warning("⚠ Để chạy được, Key cần được kích hoạt **Billing** để hưởng **Free Tier**.")
     
+    # st.secrets cho bảo mật tốt hơn, nhưng dùng st.text_input theo yêu cầu
     api_key = st.text_input("Dán Google API Key:", type="password")
     
     # Chỉ định model flash là lựa chọn mặc định và hiệu quả nhất
@@ -91,17 +100,18 @@ with st.sidebar:
 
 
 # =========================
-#   GIAO DIỆN CHÍNH
+#   GIAO DIỆN CHÍNH
 # =========================
 st.title("📸 Chấm Bài & Giải Toán Việt – H’Mông")
 
 col_in, col_out = st.columns([1, 1.2])
 
+image = None # Khởi tạo biến image ở phạm vi ngoài if/else
+
 with col_in:
     st.subheader("📥 Đầu vào ảnh")
     mode = st.radio("Chọn nguồn ảnh:", ["Máy ảnh", "Tải tệp lên"])
 
-    image = None
     if mode == "Máy ảnh":
         cam_file = st.camera_input("Chụp bài làm")
         if cam_file:
@@ -135,4 +145,9 @@ with col_out:
 
                 # Gọi hàm phân tích ảnh thực tế
                 result = analyze_real_image(api_key, model, image, prompt)
-                st.markdown(result)
+                
+                # Hiển thị kết quả an toàn
+                if result.startswith("❌"):
+                    st.error(result)
+                else:
+                    st.markdown(result)
