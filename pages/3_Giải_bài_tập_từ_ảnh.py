@@ -3,28 +3,49 @@ import requests
 import base64
 from PIL import Image
 from io import BytesIO
-import json  # Import json để xử lý lỗi API
+import json
 
 st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸")
 st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông)")
 
-# --- LẤY KEY ---
-api_key = st.secrets.get("GOOGLE_API_KEY", "")
+# =====================
+# 🔑 NHẬP GOOGLE API KEY
+# =====================
+
+with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
+    st.markdown("""
+### 👉 Cách lấy Google API Key để dùng ứng dụng:
+
+1. Truy cập trang:  
+   **https://aistudio.google.com/app/apikey**
+
+2. Đăng nhập bằng Gmail.
+
+3. Nhấn nút **Create API key** (Tạo khóa API).
+
+4. Copy API Key vừa tạo.
+
+5. Dán vào ô nhập bên dưới.
+
+⚠️ **Lưu ý quan trọng:**  
+- Không chia sẻ API Key cho người khác.  
+- Nếu lộ key, bạn có thể xoá và tạo key mới trong vài giây.  
+    """)
+
+st.subheader("🔐 Nhập Google API Key của bạn để sử dụng:")
+
+# lưu API key vào session_state
+api_key = st.text_input("Nhập Google API Key:", type="password")
 
 if not api_key:
-    st.warning("⚠️ Chưa có API Key trong hệ thống (st.secrets).")
-    if 'manual_api_key' not in st.session_state:
-        st.session_state['manual_api_key'] = ""
+    st.warning("⚠️ Bạn cần nhập API Key để tiếp tục sử dụng ứng dụng.")
+else:
+    st.success("✅ API Key đã được nhập!")
 
-    st.session_state['manual_api_key'] = st.text_input(
-        "Nhập Google API Key:",
-        type="password",
-        value=st.session_state['manual_api_key']
-    )
-    api_key = st.session_state['manual_api_key']
+# ===============================
+# 📌 HÀM PHÂN TÍCH ẢNH QUA GEMINI
+# ===============================
 
-
-# --- HÀM PHÂN TÍCH ẢNH ---
 def analyze_real_image(api_key, image, prompt):
     if not api_key:
         return "❌ Lỗi: API Key bị thiếu hoặc không được cung cấp."
@@ -63,7 +84,7 @@ def analyze_real_image(api_key, image, prompt):
             except json.JSONDecodeError:
                 pass
 
-            return f"❌ Lỗi API **{response.status_code}** ({response.reason}): {error_details}"
+            return f"❌ Lỗi API **{response.status_code}**: {error_details}"
 
         data = response.json()
 
@@ -76,22 +97,27 @@ def analyze_real_image(api_key, image, prompt):
         return f"❌ Lỗi kết nối: {str(e)}"
 
 
-# --- GIAO DIỆN CHỤP CAMERA ---
-st.subheader("📷 Hoặc chụp trực tiếp từ Camera")
-camera_photo = st.camera_input("Chụp ảnh bài làm tại đây")
+# ===============================
+# 📸 NHẬN ẢNH TỪ CAMERA / UPLOAD
+# ===============================
 
-# --- GIAO DIỆN TẢI ẢNH ---
-st.subheader("📤 Hoặc tải ảnh bài làm (PNG, JPG)")
-uploaded_file = st.file_uploader("Chọn ảnh:", type=["png", "jpg", "jpeg"])
+st.subheader("📷 Chụp ảnh bài làm")
+camera_photo = st.camera_input("Chụp trực tiếp từ camera:")
 
-# --- CHỌN NGUỒN ẢNH ---
+st.subheader("📤 Hoặc tải ảnh bài làm lên")
+uploaded_file = st.file_uploader("Chọn ảnh (PNG/JPG):", type=["png", "jpg", "jpeg"])
+
 image = None
-if camera_photo is not None:
+if camera_photo:
     image = Image.open(camera_photo)
-elif uploaded_file is not None:
+elif uploaded_file:
     image = Image.open(uploaded_file)
 
-# --- HIỂN THỊ & PHÂN TÍCH ---
+
+# ===============================
+# 🧠 PHÂN TÍCH ẢNH
+# ===============================
+
 if image:
     col1, col2 = st.columns([1, 1.5])
 
@@ -99,15 +125,14 @@ if image:
         st.image(image, caption="Ảnh bài làm", use_column_width=True)
 
     with col2:
-        st.subheader("🔍 Kết quả:")
+        st.subheader("🔍 Kết quả AI:")
 
-        if st.button("Phân tích ngay", type="primary"):
+        if st.button("Phân tích bài làm", type="primary"):
             if not api_key:
-                st.error("Thiếu API Key! Vui lòng nhập Key.")
+                st.error("❌ Bạn chưa nhập API Key!")
             else:
-                with st.spinner("⏳ AI đang xử lý..."):
+                with st.spinner("⏳ AI đang phân tích..."):
 
-                    # --- PROMPT SONG NGỮ TỐI ƯU HÓA ---
                     prompt_text = """
 Bạn là giáo viên Toán giỏi, nhiệm vụ là chấm ảnh bài làm và giải toán theo cách NGẮN GỌN – DỄ HIỂU – SONG NGỮ (Việt – H’Mông).
 
@@ -119,23 +144,19 @@ YÊU CẦU TRẢ LỜI:
 
 2️⃣ Chấm bài học sinh  
 - Nêu từng bước học sinh làm → ĐÚNG / SAI  
-- Nếu sai → chỉ rõ sai ở bước nào + giải thích NGẮN GỌN, dễ hiểu  
-- Trình bày song ngữ:  
-  🇻🇳 Nhận xét tiếng Việt  
-  🟦 Nhận xét tiếng H’Mông
+- Nếu sai → chỉ rõ sai ở bước nào + giải thích NGẮN GỌN  
+- Song ngữ Việt – H’Mông.
 
-3️⃣ Giải lại bài toán (ngắn nhất có thể)  
+3️⃣ Giải lại bài toán (ngắn – dễ hiểu)  
 - Dùng LaTeX cho biểu thức toán.  
-- Mỗi bước trình bày song song:  
-  🇻🇳 Giải thích tiếng Việt (ngắn – dễ hiểu)  
-  🟦 Giải thích tiếng H’Mông (ngắn – dễ hiểu)
+- Mỗi bước song song 2 ngôn ngữ:
+  🇻🇳 Giải thích tiếng Việt  
+  🟦 Giải thích tiếng H’Mông
 
-📌 QUY TẮC:
-- Không viết dài dòng.  
-- Chỉ nêu điều quan trọng.  
+📌 Quy tắc:
+- Không viết quá dài.  
 - Dùng từ đơn giản phù hợp học sinh vùng cao.  
-- Công thức LaTeX rõ ràng, tách dòng gọn.  
-- Mỗi bước đều song ngữ.
+- Công thức LaTeX rõ ràng, tách dòng.
 """
 
                     result = analyze_real_image(api_key, image, prompt_text)
