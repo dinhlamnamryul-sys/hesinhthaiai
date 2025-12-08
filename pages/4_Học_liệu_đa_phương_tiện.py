@@ -18,7 +18,7 @@ import os
 # Cấu hình page
 # -----------------------
 st.set_page_config(page_title="Trợ lý Toán học & Giáo dục AI", layout="wide", page_icon="🎓")
-st.title("🎓 Trợ lý Giáo dục Đa năng (Gemini API)")
+st.title("🎓 Trợ lý Giáo dục Đa năng (Groq API)") # Đã đổi tên tiêu đề
 
 st.markdown("""
 <style>
@@ -31,19 +31,24 @@ st.markdown("""
 
 # -----------------------
 # API Key & Config
+# ĐÃ CHUYỂN SANG GROQ API
 # -----------------------
-api_key = st.secrets.get("GOOGLE_API_KEY", "")
+api_key = st.secrets.get("GROQ_API_KEY", "")
+
 with st.sidebar:
     st.header("⚙️ Cấu hình")
     if not api_key:
-        api_key = st.text_input("Nhập Google API Key:", type="password")
-    
-    MODEL_DEFAULT = st.selectbox("Chọn model AI:",
-                                 ["models/gemini-2.0-flash", "models/gemini-1.5-flash", "models/gemini-1.5-pro"])
+        api_key = st.text_input("Nhập Groq API Key:", type="password") # Đã đổi nhãn
+
+    # Đã thay thế model Gemini bằng model Groq
+    MODEL_DEFAULT = st.selectbox("Chọn model AI (Groq):",
+                                 ["llama-3.1-8b-instant", "llama3-8b-8192", "mixtral-8x7b-32768"],
+                                 key="ai_model_select") 
     st.info("Lưu ý: Tính năng đọc văn bản cần kết nối internet.")
 
 # -----------------------
 # Mục lục Toán học Lớp 6 - 9 (Đã trích xuất từ file mục lục toán.docx)
+# (PHẦN NÀY KHÔNG ĐỔI)
 # -----------------------
 index_structure = {
     "6": [
@@ -185,6 +190,7 @@ index_structure = {
 
 # -----------------------
 # HỖ TRỢ LaTeX → ảnh
+# (PHẦN NÀY KHÔNG ĐỔI)
 # -----------------------
 LATEX_RE = re.compile(r"\$\$(.+?)\$\$", re.DOTALL)
 
@@ -207,6 +213,7 @@ def render_latex_png_bytes(latex_code, fontsize=20, dpi=200):
 
 # -----------------------
 # Xuất DOCX / PDF
+# (PHẦN NÀY KHÔNG ĐỔI)
 # -----------------------
 def create_docx_bytes(text):
     doc = Document()
@@ -287,47 +294,56 @@ def create_pdf_bytes(text):
     return buf
 
 # -----------------------
-# HÀM GIÚP: Xử lý API
+# HÀM GIÚP: Xử lý API (ĐÃ THAY THẾ BẰNG GROQ API)
 # -----------------------
-def extract_text_from_api_response(data):
-    if isinstance(data, dict) and "candidates" in data:
-        cands = data.get("candidates") or []
-        for cand in cands:
-            text = deep_find_first_string(cand)
-            if text: return text
-    text = deep_find_first_string(data)
-    return text if text else None
 
-def deep_find_first_string(obj, keys=["text", "output", "content"]):
-    if isinstance(obj, dict):
-        for k in keys:
-            if k in obj and isinstance(obj[k], str): return obj[k]
-        for v in obj.values():
-            res = deep_find_first_string(v, keys)
-            if res: return res
-    elif isinstance(obj, list):
-        for item in obj:
-            res = deep_find_first_string(item, keys)
-            if res: return res
-    return None
+# Đã loại bỏ các hàm extract_text_from_api_response và deep_find_first_string
+# vì hàm generate_with_ai (trước đây là generate_with_gemini) sẽ tự xử lý parsing
 
-def generate_with_gemini(api_key, prompt, model=MODEL_DEFAULT):
-    if not api_key: return {"ok": False, "message": "Thiếu API Key."}
-    url = f"https://generativelanguage.googleapis.com/v1/{model}:generateContent?key={api_key}"
-    payload = {"contents":[{"role":"user","parts":[{"text":prompt}]}]}
-    headers = {"Content-Type": "application/json"}
+def generate_with_ai(api_key, prompt, model=MODEL_DEFAULT):
+    """Sử dụng Groq API để tạo nội dung văn bản."""
+    if not api_key: return {"ok": False, "message": "Thiếu Groq API Key."}
+    
+    # 1. Groq Endpoint (OpenAI compatible)
+    url = "https://api.groq.com/openai/v1/chat/completions"
+
+    # 2. Groq/OpenAI Headers (API Key trong Authorization header)
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}" 
+    }
+
+    # 3. Groq/OpenAI Payload (messages format)
+    payload = {
+        "model": model, # model là model Groq đã chọn
+        "messages": [
+            {"role": "user", "content": prompt} 
+        ]
+    }
+    
     try:
         resp = requests.post(url, json=payload, headers=headers, timeout=60)
         data = resp.json()
-        if "error" in data: return {"ok": False, "message": data["error"]["message"]}
-        text = extract_text_from_api_response(data)
+        
+        # 4. Groq/OpenAI Response Parsing
+        if resp.status_code != 200:
+            error_msg = data.get("error", {}).get("message", resp.text)
+            return {"ok": False, "message": f"Lỗi Groq API ({resp.status_code}): {error_msg}"}
+
+        # Trích xuất văn bản từ cấu trúc Groq/OpenAI
+        text = None
+        if data.get("choices") and data["choices"][0].get("message") and data["choices"][0]["message"].get("content"):
+             text = data["choices"][0]["message"]["content"]
+             
         if text: return {"ok": True, "text": text}
-        return {"ok": False, "message": "Không tìm thấy text.", "raw": data}
+        return {"ok": False, "message": "Không tìm thấy text trong phản hồi.", "raw": data}
+        
     except Exception as e:
         return {"ok": False, "message": str(e)}
 
 # -----------------------
 # TÍNH NĂNG MỚI: TEXT TO SPEECH
+# (PHẦN NÀY KHÔNG ĐỔI)
 # -----------------------
 def text_to_speech_bytes(text, lang='vi'):
     try:
@@ -349,7 +365,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "🎧 Đọc Văn bản (TTS)"
 ])
 
-# --- TAB 1: TỔNG HỢP KIẾN THỨC (Cập nhật: chọn Chương/Bài từ mục lục) ---
+# --- TAB 1: TỔNG HỢP KIẾN THỨC ---
 with tab1:
     st.subheader("Tổng hợp kiến thức Toán theo Chương/Bài (dựa trên mục lục lớp 6-9)")
     col1, col2 = st.columns([1, 3])
@@ -426,7 +442,7 @@ Yêu cầu:
 Trả về kết quả dưới dạng văn bản dễ copy/paste.
         """
         with st.spinner("Đang tổng hợp..."):
-            res = generate_with_gemini(api_key, prompt)
+            res = generate_with_ai(api_key, prompt) # Đã thay đổi hàm gọi API
             if res["ok"]:
                 st.session_state["summary_text"] = res["text"]
             else:
@@ -443,7 +459,7 @@ Trả về kết quả dưới dạng văn bản dễ copy/paste.
             pdf = create_pdf_bytes(st.session_state["summary_text"])
             st.download_button("📥 Tải PDF", pdf, "KienThucToan.pdf", "application/pdf")
 
-# --- TAB 2: THIẾT KẾ GIÁO ÁN (Mới) ---
+# --- TAB 2: THIẾT KẾ GIÁO ÁN ---
 with tab2:
     st.subheader("Trợ lý soạn giáo án (Lesson Plan)")
     c1, c2, c3 = st.columns(3)
@@ -465,14 +481,14 @@ with tab2:
         1. Mục tiêu (Kiến thức, Năng lực, Phẩm chất).
         2. Chuẩn bị (GV, HS).
         3. Tiến trình dạy học:
-           - Hoạt động 1: Khởi động (Mở đầu).
-           - Hoạt động 2: Hình thành kiến thức mới.
-           - Hoạt động 3: Luyện tập.
-           - Hoạt động 4: Vận dụng & Tìm tòi mở rộng.
+            - Hoạt động 1: Khởi động (Mở đầu).
+            - Hoạt động 2: Hình thành kiến thức mới.
+            - Hoạt động 3: Luyện tập.
+            - Hoạt động 4: Vận dụng & Tìm tòi mở rộng.
         Trình bày chi tiết hoạt động của GV và HS.
         """
         with st.spinner("Đang soạn giáo án..."):
-            res = generate_with_gemini(api_key, prompt_ga)
+            res = generate_with_ai(api_key, prompt_ga) # Đã thay đổi hàm gọi API
             if res["ok"]:
                 st.session_state["plan_text"] = res["text"]
             else:
@@ -486,7 +502,7 @@ with tab2:
         safe_name = re.sub(r'[\\/*?:"<>|]',"_", ga_bai)
         st.download_button("📥 Tải Giáo án (DOCX)", docx_ga, f"GiaoAn_{safe_name}.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
-# --- TAB 3: CHẾ LỜI BÀI HÁT (Mới) ---
+# --- TAB 3: CHẾ LỜI BÀI HÁT ---
 with tab3:
     st.subheader("Sáng tác nhạc Toán học 🎵")
     st.write("Biến công thức khô khan thành giai điệu dễ nhớ!")
@@ -508,7 +524,7 @@ with tab3:
         - Có phân đoạn rõ ràng (Verse, Chorus/Điệp khúc).
         """
         with st.spinner("Nhạc sĩ AI đang phiêu..."):
-            res = generate_with_gemini(api_key, prompt_music)
+            res = generate_with_ai(api_key, prompt_music) # Đã thay đổi hàm gọi API
             if res["ok"]:
                 st.session_state["lyrics_text"] = res["text"]
             else:
@@ -549,4 +565,4 @@ with tab4:
 # Footer
 # -----------------------
 st.markdown("---")
-st.caption("Developed with ❤️ using Streamlit & Gemini AI.")
+st.caption("Developed with ❤️ using Streamlit & Groq AI.")
