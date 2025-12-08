@@ -1,132 +1,123 @@
-#!/usr/bin/env python3
-"""
-check_gemini_models.py
-- Lấy danh sách model từ Generative Language API (v1beta)
-- Lọc model có supportedGenerationMethods chứa "generateContent"
-- Lưu kết quả vào models_output.json
-- Không chứa API key cứng trong mã (dùng biến môi trường hoặc nhập)
-"""
-
+import streamlit as st
 import requests
-import json
-import os
-import sys
-from getpass import getpass
+import base64
+from PIL import Image
+from io import BytesIO
 
-BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
+st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸")
+st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông)")
 
-def get_api_key():
-    # Ưu tiên biến môi trường
-    api_key = os.getenv("GEMINI_API_KEY")
-    if api_key:
-        print("🔑 API Key lấy từ biến môi trường GEMINI_API_KEY")
-        return api_key.strip()
-    # Nếu không có, cho phép nhập (nhưng cảnh báo)
-    print("⚠ Không tìm thấy biến môi trường GEMINI_API_KEY.")
-    print("⚠ Nếu bạn nhập key ở đây, KHÔNG dán key lên chat hoặc kho công khai.")
-    api_key = getpass("Nhập Google API Key (input ẩn): ").strip()
-    if not api_key:
-        print("❌ Không có API key. Thoát.")
-        sys.exit(1)
-    return api_key
+# --- LẤY KEY ---
+api_key = st.secrets.get("GOOGLE_API_KEY", "")
 
-def list_models(api_key, timeout=20):
-    url = f"{BASE_URL}/models?key={api_key}"
-    try:
-        r = requests.get(url, timeout=timeout)
-    except requests.exceptions.RequestException as e:
-        return None, f"Không thể kết nối tới API: {e}"
+if not api_key:
+    st.warning("⚠️ Chưa có API Key trong hệ thống.")
+    api_key = st.text_input("Nhập Google API Key:", type="password")
 
-    try:
-        data = r.json()
-    except Exception:
-        return None, f"API trả về không phải JSON. Status: {r.status_code}, Text: {r.text}"
+# --- HÀM PHÂN TÍCH ẢNH ---
+def analyze_real_image(api_key, image, prompt):
+    if image.mode == "RGBA":
+        image = image.convert("RGB")
 
-    if r.status_code != 200:
-        # Trả về chi tiết lỗi
-        return None, f"ListModels lỗi HTTP {r.status_code}: {json.dumps(data, ensure_ascii=False)}"
+    buffered = BytesIO()
+    image.save(buffered, format="JPEG")
+    img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-    return data.get("models", []), None
+    MODEL = "models/gemini-2.0-flash"
+    url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
 
-def filter_generation_models(models):
-    gen = []
-    for m in models:
-        methods = m.get("supportedGenerationMethods", [])
-        if "generateContent" in methods:
-            gen.append(m)
-    return gen
-
-def print_summary(models, gen_models):
-    print("\n=== TỔNG QUAN ===")
-    print(f"• Tổng model trả về: {len(models)}")
-    print(f"• Model hỗ trợ generateContent: {len(gen_models)}")
-    print("=================\n")
-
-    if gen_models:
-        print("📌 Danh sách model hỗ trợ generateContent (tên):")
-        for m in gen_models:
-            print(" -", m.get("name"))
-    else:
-        print("⚠ Không tìm thấy model hỗ trợ generateContent cho API key này.")
-
-def save_output(raw_data, filename="models_output.json"):
-    try:
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump(raw_data, f, indent=2, ensure_ascii=False)
-        print(f"✅ Đã lưu output vào {filename}")
-    except Exception as e:
-        print("⚠ Lỗi khi lưu file:", e)
-
-def test_generate(api_key, model_name):
-    print(f"\n🚀 Thử generateContent với model: {model_name}")
-    url = f"{BASE_URL}/models/{model_name}:generateContent?key={api_key}"
-    body = {
+    payload = {
         "contents": [
-            {"parts": [{"text": "Hello test from local script. Please return any small text."}]}
+            {
+                "role": "user",
+                "parts": [
+                    {"text": prompt},
+                    {"inline_data": {"mime_type": "image/jpeg", "data": img_base64}}
+                ]
+            }
         ]
     }
+
     try:
-        r = requests.post(url, json=body, timeout=30)
-    except requests.exceptions.RequestException as e:
-        print("❌ Lỗi khi gọi generateContent:", e)
-        return
+        response = requests.post(url, json=payload)
+        if response.status_code != 200:
+            return f"❌ Lỗi API {response.status_code}: {response.text}"
+        data = response.json()
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+    except Exception as e:
+        return f"❌ Lỗi kết nối: {str(e)}"
 
-    print("HTTP Status:", r.status_code)
-    try:
-        print(json.dumps(r.json(), indent=2, ensure_ascii=False))
-    except Exception:
-        print("Raw response text:", r.text)
 
-def main():
-    api_key = get_api_key()
+# -----------------------------
+# 🚀 **TÍNH NĂNG MỚI: CHỤP CAMERA**
+# -----------------------------
+st.subheader("📷 Hoặc chụp trực tiếp từ Camera")
+camera_photo = st.camera_input("Chụp ảnh bài làm tại đây")
 
-    models, err = list_models(api_key)
-    if err:
-        print("❌", err)
-        print("\nHƯỚNG XỬ LÝ:")
-        print(" - Nếu lỗi 401/403: kiểm tra credentials, billing, permission.")
-        print(" - Nếu lỗi 404 theo dạng 'model X not found...' khi gọi generateContent: hãy xem danh sách models trả về để chọn model chính xác.")
-        print(" - Nếu không có model hỗ trợ generateContent: API key của bạn không có quyền dùng Gemini text/multimodal.")
-        sys.exit(1)
 
-    # Lưu raw data đầy đủ để bạn gửi cho trợ giúp nếu cần (không dán key)
-    raw = {"models": models}
-    save_output(raw)
+# --- GIAO DIỆN TẢI ẢNH ---
+st.subheader("📤 Hoặc tải ảnh bài làm (PNG, JPG)")
+uploaded_file = st.file_uploader("Chọn ảnh:", type=["png", "jpg", "jpeg"])
 
-    gen_models = filter_generation_models(models)
-    print_summary(models, gen_models)
 
-    # Nếu có model generateContent, thử gọi model đầu tiên
-    if gen_models:
-        first = gen_models[0].get("name")
-        test_generate(api_key, first)
-    else:
-        # In toàn bộ models (tên và supportedGenerationMethods) để tiện debug
-        print("\n--- Toàn bộ models (name + supportedGenerationMethods) ---")
-        for m in models:
-            print("•", m.get("name"), "=>", m.get("supportedGenerationMethods", []))
-        print("-----------------------------------------------------------")
-        print("\nKẾT LUẬN: Bạn cần yêu cầu quyền sử dụng Gemini text/multimodal từ Google (hoặc kiểm tra Billing, project, region, quota).")
+# --- CHỌN NGUỒN ẢNH ƯU TIÊN ---
+image = None
 
-if __name__ == "__main__":
-    main()
+if camera_photo is not None:
+    image = Image.open(camera_photo)
+elif uploaded_file is not None:
+    image = Image.open(uploaded_file)
+
+
+# Nếu có ảnh → hiển thị + xử lý
+if image:
+    col1, col2 = st.columns([1, 1.5])
+
+    with col1:
+        st.image(image, caption="Ảnh bài làm", use_column_width=True)
+
+    with col2:
+        st.subheader("🔍 Kết quả:")
+
+        if st.button("Phân tích ngay", type="primary"):
+            if not api_key:
+                st.error("Thiếu API Key!")
+            else:
+                with st.spinner("⏳ AI đang xử lý..."):
+
+                    # --- PROMPT SONG NGỮ ---
+                    prompt_text = """
+Bạn là giáo viên Toán giỏi, đọc ảnh bài làm của học sinh. 
+Yêu cầu:
+
+1️⃣ Chép lại đề bài bằng **LaTeX**, hiển thị song song:
+🇻🇳 (Tiếng Việt)
+🟦 (Tiếng H’Mông)
+
+2️⃣ Chấm bài từng bước:
+- Nói học sinh **Đúng / Sai** từng bước.
+- Nếu sai, ghi ngắn gọn **Sai ở bước nào & lý do**.
+- Hiển thị song song:
+🇻🇳 Nhận xét tiếng Việt
+🟦 Nhận xét H’Mông
+
+3️⃣ Giải chi tiết:
+- Viết từng bước bằng **LaTeX**, hiển thị song song:
+🇻🇳 Công thức / bước bằng tiếng Việt
+🟦 Công thức / bước bằng tiếng H’Mông
+- Nếu học sinh sai → giải lại đúng ở cả hai ngôn ngữ.
+
+MỌI CÂU TRẢ LỜI PHẢI:
+- Rõ ràng, đầy đủ, theo thứ tự.
+- Song song Việt – H’Mông từng bước.
+- Dễ copy vào Word hoặc Overleaf.
+"""
+
+                    result = analyze_real_image(api_key, image, prompt_text)
+
+                    if "❌" in result:
+                        st.error(result)
+                    else:
+                        st.success("🎉 Đã phân tích xong!")
+                        st.markdown(result)
+
