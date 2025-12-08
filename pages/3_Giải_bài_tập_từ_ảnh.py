@@ -14,17 +14,19 @@ st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸", lay
 #   LẤY DANH SÁCH MODEL KHẢ DỤNG
 # =========================
 def list_available_models(api_key):
-    """Chỉ trả về những model Google hiện còn hoạt động & miễn phí."""
     url = f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}"
     try:
         r = requests.get(url)
         if r.status_code != 200:
             return []
-        data = r.json()
+
+        try:
+            data = r.json()
+        except:
+            return []
 
         all_models = [m["name"] for m in data.get("models", [])]
 
-        # Danh sách model Google hiện CHẮC CHẮN dùng được (không cần billing)
         allow_list = [
             "models/gemini-2.0-flash",
             "models/gemini-2.0-flash-lite",
@@ -33,7 +35,7 @@ def list_available_models(api_key):
 
         return [m for m in all_models if m in allow_list]
 
-    except:
+    except Exception:
         return []
 
 
@@ -41,43 +43,49 @@ def list_available_models(api_key):
 #   HÀM PHÂN TÍCH ẢNH
 # =========================
 def analyze_real_image(api_key, model, image, prompt):
-    if image.mode == "RGBA":
-        image = image.convert("RGB")
-
-    buffered = BytesIO()
-    image.save(buffered, format="JPEG")
-    img_base64 = base64.b64encode(buffered.getvalue()).decode()
-
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {"text": prompt},
-                    {
-                        "inline_data": {
-                            "mime_type": "image/jpeg",
-                            "data": img_base64
-                        }
-                    }
-                ]
-            }
-        ]
-    }
-
     try:
-        response = requests.post(url, json=payload)
-        data = response.json()
+        if image.mode == "RGBA":
+            image = image.convert("RGB")
 
-        if response.status_code == 404:
-            return "❌ Model không tồn tại hoặc API Key không có quyền."
+        buffered = BytesIO()
+        image.save(buffered, format="JPEG")
+        img_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": prompt},
+                        {
+                            "inline_data": {
+                                "mime_type": "image/jpeg",
+                                "data": img_base64
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+
+        response = requests.post(url, json=payload)
+
+        # Tránh lỗi JSON rỗng
+        try:
+            data = response.json()
+        except:
+            return f"❌ API trả về dữ liệu không hợp lệ.\nPhản hồi: {response.text}"
 
         if response.status_code != 200:
             msg = data.get("error", {}).get("message", response.text)
             return f"❌ Lỗi {response.status_code}: {msg}"
 
-        return data["candidates"][0]["content"]["parts"][0]["text"]
+        # Kiểm tra cấu trúc JSON
+        try:
+            return data["candidates"][0]["content"]["parts"][0]["text"]
+        except:
+            return f"❌ API không trả về nội dung hợp lệ.\nPhản hồi: {data}"
 
     except Exception as e:
         return f"❌ Lỗi kết nối: {str(e)}"
@@ -95,15 +103,15 @@ with st.sidebar:
         models = list_available_models(api_key)
 
         if len(models) == 0:
-            st.error("❌ API Key không có quyền dùng bất kỳ model nào.\n👉 Bạn cần bật Billing hoặc đổi API Key.")
+            st.error("❌ API Key không dùng được model nào.\n👉 Hãy bật Billing HOẶC dùng Key khác.")
             model = None
         else:
-            model = st.selectbox("Chọn model (đã kiểm duyệt quyền truy cập):", models)
+            model = st.selectbox("Chọn model:", models)
             st.success(f"Model hợp lệ: {model}")
 
     else:
         model = None
-        st.warning("⚠️ Vui lòng nhập API Key!")
+        st.warning("⚠ Vui lòng nhập API Key!")
 
 
 # =========================
@@ -138,9 +146,9 @@ with col_out:
         if not api_key:
             st.error("❌ Chưa nhập API Key!")
         elif not model:
-            st.error("❌ Không có model hợp lệ.")
+            st.error("❌ Chưa chọn model hợp lệ.")
         elif not image:
-            st.warning("⚠️ Hãy tải ảnh bài làm!")
+            st.warning("⚠ Hãy tải ảnh bài làm!")
         else:
             with st.spinner("⏳ Đang phân tích ảnh..."):
                 prompt = """
