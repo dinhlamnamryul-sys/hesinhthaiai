@@ -3,96 +3,94 @@ import requests
 import base64
 from PIL import Image
 from io import BytesIO
+import json # Import thêm thư viện json để xử lý lỗi API chi tiết
 
-# --- CẤU HÌNH TRANG ---
-st.set_page_config(page_title="Chấm Bài AI Song Ngữ (GPT)", page_icon="📸", layout="wide")
-st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông) - Dùng GPT-4o")
+st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸")
+st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông)")
 
-# --- LẤY KEY TỪ SECRETS HOẶC NHẬP THỦ CÔNG ---
-# ĐÃ ĐỔI TÊN BIẾN TỪ 'GOOGLE_API_KEY' SANG 'OPENAI_API_KEY'
-api_key = st.secrets.get("OPENAI_API_KEY", "")
+# --- LẤY KEY ---
+# Ưu tiên lấy từ Streamlit Secrets, nếu không có sẽ hiển thị hộp nhập liệu
+api_key = st.secrets.get("GOOGLE_API_KEY", "")
 
 if not api_key:
-    st.warning("⚠️ Chưa có API Key trong hệ thống.")
-    # Cho phép người dùng nhập key nếu không tìm thấy trong secrets
-    api_key = st.text_input("Nhập OpenAI API Key:", type="password")
+    st.warning("⚠️ Chưa có API Key trong hệ thống (st.secrets).")
+    # Sử dụng st.session_state để lưu key người dùng nhập
+    if 'manual_api_key' not in st.session_state:
+        st.session_state['manual_api_key'] = ""
+        
+    st.session_state['manual_api_key'] = st.text_input(
+        "Nhập Google API Key:", 
+        type="password",
+        value=st.session_state['manual_api_key']
+    )
+    api_key = st.session_state['manual_api_key']
 
-# --- HÀM PHÂN TÍCH ẢNH (DÙNG OPENAI GPT-4o) ---
-def analyze_real_image_openai(api_key, image, prompt):
-    """Gửi ảnh và prompt tới OpenAI GPT-4 Vision API để phân tích."""
-    
-    # Chuyển đổi ảnh sang RGB nếu nó là RGBA
+
+# --- HÀM PHÂN TÍCH ẢNH (ĐÃ SỬA LỖI URL/MODEL) ---
+def analyze_real_image(api_key, image, prompt):
+    if not api_key:
+        return "❌ Lỗi: API Key bị thiếu hoặc không được cung cấp."
+        
     if image.mode == "RGBA":
         image = image.convert("RGB")
 
-    # Lưu ảnh vào buffer và encode sang Base64
     buffered = BytesIO()
     image.save(buffered, format="JPEG")
     img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-    # --- CẤU HÌNH API CỦA OPENAI ---
-    url = "https://api.openai.com/v1/chat/completions" # Endpoint chuẩn của OpenAI
-    MODEL = "gpt-4o" # Mô hình đa phương tiện mới nhất (hoặc "gpt-4-vision-preview")
-    
-    # Khóa API phải được gửi qua Header
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
+    # KHẮC PHỤC LỖI 400/403: Đã cập nhật mô hình và cấu trúc URL
+    MODEL = "gemini-2.5-flash"
+    # Cần thêm 'models/' vào URL nếu tên MODEL không có
+    url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
 
-    # Tạo Payload (Body của Request)
     payload = {
-        "model": MODEL,
-        "messages": [
+        "contents": [
             {
                 "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt}, # Prompt/Yêu cầu bằng văn bản
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            # OpenAI yêu cầu URL dạng Base64 Data URL
-                            "url": f"data:image/jpeg;base64,{img_base64}"
-                        }
-                    }
+                "parts": [
+                    {"text": prompt},
+                    {"inline_data": {"mime_type": "image/jpeg", "data": img_base64}}
                 ]
             }
-        ],
-        "max_tokens": 4096 # Giới hạn độ dài phản hồi
+        ]
     }
 
     try:
-        # Gửi POST request
-        response = requests.post(url, headers=headers, json=payload)
+        response = requests.post(url, json=payload)
         
-        # Xử lý các lỗi HTTP
+        # Xử lý lỗi chi tiết hơn
         if response.status_code != 200:
-            return f"❌ Lỗi API {response.status_code}: {response.text}"
-        
-        # Trích xuất kết quả từ JSON response
+            error_details = response.text
+            try:
+                error_json = response.json()
+                if "error" in error_json and "message" in error_json["error"]:
+                    error_details = error_json["error"]["message"]
+            except json.JSONDecodeError:
+                pass 
+                
+            return f"❌ Lỗi API **{response.status_code}** ({response.reason}): {error_details}"
+            
         data = response.json()
         
-        # Kiểm tra nếu có lỗi do API trả về
-        if "error" in data:
-            return f"❌ Lỗi API: {data['error']['message']}"
-        
-        # Trả về nội dung phản hồi của GPT
-        return data["choices"][0]["message"]["content"]
+        # Kiểm tra phản hồi rỗng
+        if not data.get("candidates"):
+             return f"❌ Lỗi: API trả về phản hồi rỗng hoặc không có ứng cử viên (candidates)."
+             
+        return data["candidates"][0]["content"]["parts"][0]["text"]
         
     except Exception as e:
-        return f"❌ Lỗi kết nối hoặc xử lý: {str(e)}"
+        return f"❌ Lỗi kết nối: {str(e)}"
 
 
 # -----------------------------
-# --- GIAO DIỆN STREAMLIT ---
+# 🚀 **TÍNH NĂNG MỚI: CHỤP CAMERA**
 # -----------------------------
-
-# --- NGUỒN ẢNH: CAMERA ---
 st.subheader("📷 Hoặc chụp trực tiếp từ Camera")
 camera_photo = st.camera_input("Chụp ảnh bài làm tại đây")
 
-# --- NGUỒN ẢNH: TẢI LÊN ---
-st.subheader("📤 Hoặc tải ảnh bài làm (PNG, JPG, JPEG)")
+
+# --- GIAO DIỆN TẢI ẢNH ---
+st.subheader("📤 Hoặc tải ảnh bài làm (PNG, JPG)")
 uploaded_file = st.file_uploader("Chọn ảnh:", type=["png", "jpg", "jpeg"])
 
 
@@ -117,11 +115,11 @@ if image:
 
         if st.button("Phân tích ngay", type="primary"):
             if not api_key:
-                st.error("Thiếu OpenAI API Key! Vui lòng nhập khóa ở trên.")
+                st.error("Thiếu API Key! Vui lòng nhập Key vào ô bên trên.")
             else:
-                with st.spinner("⏳ GPT-4o đang xử lý..."):
+                with st.spinner("⏳ AI đang xử lý..."):
 
-                    # --- PROMPT SONG NGỮ (Giữ nguyên) ---
+                    # --- PROMPT SONG NGỮ ---
                     prompt_text = """
 Bạn là giáo viên Toán giỏi, đọc ảnh bài làm của học sinh. 
 Yêu cầu:
@@ -149,8 +147,7 @@ MỌI CÂU TRẢ LỜI PHẢI:
 - Dễ copy vào Word hoặc Overleaf.
 """
 
-                    # --- GỌI HÀM OPENAI ĐÃ CHỈNH SỬA ---
-                    result = analyze_real_image_openai(api_key, image, prompt_text) 
+                    result = analyze_real_image(api_key, image, prompt_text)
 
                     if "❌" in result:
                         st.error(result)
