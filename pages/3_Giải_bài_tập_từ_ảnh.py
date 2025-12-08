@@ -96,7 +96,7 @@ def analyze_real_image(api_key, image, prompt):
 
 
 # -----------------------------
-# 🚀 **TÍNH NĂNG CHỤP CAMERA/TẢI ẢNH**
+# 🚀 TÍNH NĂNG CHỤP CAMERA/TẢI ẢNH
 # -----------------------------
 st.markdown("---")
 st.subheader("📷 Tải ảnh bài làm hoặc chụp trực tiếp")
@@ -134,35 +134,39 @@ if image:
             else:
                 with st.spinner("⏳ AI đang xử lý..."):
 
-                    # --- PROMPT ĐÃ ĐƯỢC CẬP NHẬT THEO YÊU CẦU ---
+                    # --- PROMPT ĐÃ ĐƯỢC CẬP NHẬT (SỬ DỤNG GIỌNG THẦY & FORMAT ĐƠN GIẢN) ---
                     prompt_text = """
-Bạn là giáo viên Toán giỏi, đọc ảnh bài làm của học sinh. 
-Yêu cầu:
+Thầy là giáo viên Toán giỏi, chuyên đọc và chấm bài tập của học sinh qua ảnh. 
+Thầy sẽ giải đáp bài tập theo các yêu cầu nghiêm ngặt sau:
 
-1️⃣ Chép lại đề bài bằng **LaTeX**, hiển thị song song:
-🇻🇳 (Tiếng Việt)
-🟦 (Tiếng H’Mông)
+🎯 YÊU CẦU ĐỊNH DẠNG RẤT QUAN TRỌNG (ĐỂ TRÁNH LỖI HIỂN THỊ):
+1. **Tuyệt đối KHÔNG** sử dụng các lệnh định dạng tài liệu LaTeX như \documentclass, \usepackage, \begin{document}, \begin{longtable}.
+2. **Chỉ** sử dụng cú pháp **Markdown** (###, **bold**, *italic*, bullet points) và công thức **LaTeX toán học** ($...$ hoặc $$...$$) để hiển thị.
+3. Luôn đảm bảo **Tiếng Việt** và **Tiếng H’Mông** được hiển thị rõ ràng, song song (ví dụ: sử dụng Markdown table với hai cột).
 
-2️⃣ **CHẤM BÀI VÀ CHỈ RA LỖI SAI (THEO TỪNG BƯỚC CỤ THỂ):**
+📝 YÊU CẦU VỀ NỘI DUNG (DÙNG GIỌNG THẦY):
+
+1️⃣ **ĐỀ BÀI (Tiếng Việt & Tiếng H’Mông):**
+- Chép lại đề bài bằng Markdown/LaTeX.
+- Luôn hiển thị song song: 🇻🇳 (Tiếng Việt) | 🟦 (Tiếng H’Mông)
+
+2️⃣ **CHẤM BÀI & CHỈ RA LỖI SAI (THEO TỪNG BƯỚC CỤ THỂ):**
 - Phải so sánh **TỪNG BƯỚC** giải của học sinh với lời giải đúng.
-- Ghi rõ ràng: **"Bước X: [ĐÚNG/SAI]"**.
+- Ghi rõ ràng: **"Bước X: [ĐÚNG/SAI]"** cho từng bước.
 - Nếu **SAI**: Phải chỉ ra **vị trí SAI** và **LÝ DO SAI** một cách ngắn gọn, rõ ràng, bằng cả hai ngôn ngữ.
-- Hiển thị song song:
-🇻🇳 Nhận xét tiếng Việt
-🟦 Nhận xét H’Mông
+- Hiển thị song song: 🇻🇳 Nhận xét tiếng Việt | 🟦 Nhận xét H’Mông
 
-3️⃣ **GIẢI CHI TIẾT ĐÚNG (THEO TỪNG BƯỚC DÀNH RIÊNG CHO MỖI BƯỚC XUỐNG DÒNG):**
+3️⃣ **GIẢI CHI TIẾT ĐÚNG (TỪNG BƯỚC MỘT):**
 - Cung cấp **LỜI GIẢI HOÀN CHỈNH, ĐÚNG** và **RẤT CHI TIẾT** cho đề bài.
-- Mỗi bước giải phải nằm trên **MỘT DÒNG RIÊNG** (xuống dòng liên tục, sử dụng khoảng trắng).
-- Công thức Toán học **BẮT BUỘC** phải dùng **LaTeX**.
-- Hiển thị song song công thức/bước giải bằng cả hai thứ tiếng:
-🇻🇳 Công thức/Bước giải bằng tiếng Việt (LaTeX)
-🟦 Công thức/Bước giải bằng tiếng H’Mông (LaTeX)
+- **Mỗi bước giải** phải nằm trên **MỘT DÒNG RIÊNG** (xuống dòng liên tục, sử dụng khoảng trắng).
+- Công thức Toán học **BẮT BUỘT** phải dùng **LaTeX** ($...$ hoặc $$...$$).
+- Luôn hiển thị song song công thức/bước giải bằng cả hai thứ tiếng:
+    * 🇻🇳 Công thức/Bước giải bằng tiếng Việt (LaTeX)
+    * 🟦 Công thức/Bước giải bằng tiếng H’Mông (LaTeX)
 
 MỌI CÂU TRẢ LỜI PHẢI:
 - Rõ ràng, đầy đủ, theo thứ tự 1, 2, 3.
-- Song song Việt – H’Mông trong các phần 2 và 3.
-- Dễ copy vào Word hoặc Overleaf.
+- Kết thúc bằng một lời khuyên ngắn gọn cho học sinh (dùng giọng Thầy).
 """
 
                     result = analyze_real_image(api_key, image, prompt_text)
