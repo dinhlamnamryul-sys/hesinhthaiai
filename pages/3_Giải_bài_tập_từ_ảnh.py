@@ -1,97 +1,99 @@
 import streamlit as st
+import requests
+import base64
 from PIL import Image
 from io import BytesIO
-import time # Dùng để mô phỏng độ trễ của API
 
 # =========================
 #   CẤU HÌNH TRANG
 # =========================
-st.set_page_config(page_title="Chấm Bài AI Song Ngữ - DEMO", page_icon="📸", layout="wide")
-
-# =========================
-#   HÀM MÔ PHỎNG PHÂN TÍCH ẢNH
-# =========================
-def mock_analyze_image(image, prompt):
-    """Mô phỏng hàm phân tích ảnh và trả về kết quả giả định."""
-    time.sleep(3) # Mô phỏng độ trễ của API
-
-    # Kết quả giả định (có thể thay đổi tùy ý)
-    mock_result = f"""
-## 🇻🇳 Kết quả Chấm Bài (DEMO) 🟦 Lus Kev Ntsuas Ntawv
-
----
-
-### 1. 🇻🇳 Đề bài (Việt - H'Mông) 🟦 Cov Lus Hauv Ntawv
-Đề bài trong ảnh được mô phỏng như sau:
-
-$$\\mathbf{{VNF}}: \\text{{Giải phương trình: }} 2x + 5 = 11$$
-$$\\mathbf{{HMG}}: \\text{{Xam teeb kev suav: }} 2x + 5 = 11$$
-
----
-
-### 2. 🇻🇳 Chấm Đúng/Sai Từng Bước 🟦 Ntsuas Qhov Yog/Tsis Yog
-
-* **Bước 1 (Step 1):**
-    * 🇻🇳 Bài làm: $2x = 11 - 5$
-    * 🟦 Lus Hauv Ntawv: $2x = 11 - 5$
-    * **✅ 🇻🇳 Đúng 🟦 Yog** (Đã chuyển vế và đổi dấu chính xác. / Hloov chaw thiab pauv cim yog lawm.)
-
-* **Bước 2 (Step 2):**
-    * 🇻🇳 Bài làm: $2x = 6$
-    * 🟦 Lus Hauv Ntawv: $2x = 6$
-    * **✅ 🇻🇳 Đúng 🟦 Yog** (Phép trừ chính xác. / Muab rho tawm yog lawm.)
-
-* **Bước 3 (Step 3):**
-    * 🇻🇳 Bài làm: $x = 6 \\div 2$
-    * 🟦 Lus Hauv Ntawv: $x = 6 \\div 2$
-    * **✅ 🇻🇳 Đúng 🟦 Yog** (Đã chuyển vế và đổi phép toán chính xác. / Hloov chaw thiab pauv kev suav yog lawm.)
-    
-* **Bước 4 (Step 4):**
-    * 🇻🇳 Bài làm: $x = 4$
-    * 🟦 Lus Hauv Ntawv: $x = 4$
-    * **❌ 🇻🇳 Sai 🟦 Tsis Yog** (Kết quả sai. Phải là $x=3$. / Qhov tshwm sim tsis yog. Yuav tsum yog $x=3$.)
-
----
-
-### 3. 🇻🇳 Giải lại Bài Đúng 🟦 Txhim Kev Suav Kom Yog
-
-Phép giải chính xác là:
-$$\\mathbf{{VNF}}:$$
-$$2x + 5 = 11$$
-$$2x = 11 - 5$$
-$$2x = 6$$
-$$x = 6 \\div 2$$
-$$x = 3$$
-$$\\text{{Vậy }} x = 3$$
-
-$$\\mathbf{{HMG}}:$$
-$$2x + 5 = 11$$
-$$2x = 11 - 5$$
-$$2x = 6$$
-$$x = 6 \\div 2$$
-$$x = 3$$
-$$\\text{{Li ntawd }} x = 3$$
-
-"""
-    return mock_result
+st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸", layout="wide")
 
 
 # =========================
-#   SIDEBAR (Đã đơn giản hóa)
+#   LẤY DANH SÁCH MODEL KHẢ DỤNG (Không cần thiết, ta dùng model cụ thể)
+# =========================
+# Hàm này bị loại bỏ để đơn giản hóa, ta sẽ dùng trực tiếp model hiệu quả nhất.
+
+
+# =========================
+#   HÀM PHÂN TÍCH ẢNH
+# =========================
+def analyze_real_image(api_key, model, image, prompt):
+    """Gửi yêu cầu phân tích ảnh đến Gemini API."""
+    try:
+        # Chuyển đổi ảnh sang định dạng RGB và base64
+        if image.mode == "RGBA":
+            image = image.convert("RGB")
+
+        buffered = BytesIO()
+        image.save(buffered, format="JPEG")
+        img_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+        # Đường dẫn API cho generateContent
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": prompt},
+                        {
+                            "inline_data": {
+                                "mime_type": "image/jpeg",
+                                "data": img_base64
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+
+        response = requests.post(url, json=payload)
+
+        # Xử lý phản hồi
+        try:
+            data = response.json()
+        except:
+            return f"❌ API trả về dữ liệu không hợp lệ.\nPhản hồi: {response.text}"
+
+        if response.status_code != 200:
+            msg = data.get("error", {}).get("message", response.text)
+            return f"❌ Lỗi {response.status_code}: {msg}"
+
+        # Lấy nội dung phản hồi từ cấu trúc JSON
+        try:
+            return data["candidates"][0]["content"]["parts"][0]["text"]
+        except:
+            return f"❌ API không trả về nội dung hợp lệ.\nPhản hồi: {data}"
+
+    except Exception as e:
+        return f"❌ Lỗi kết nối: {str(e)}"
+
+
+# =========================
+#   SIDEBAR
 # =========================
 with st.sidebar:
-    st.title("⚙️ Cài đặt (DEMO)")
-    st.info("💡 **Gỡ bỏ yêu cầu API Key.** Chương trình này đang chạy ở chế độ mô phỏng, không cần kết nối API.")
+    st.title("⚙️ Cài đặt")
+    st.warning("⚠ Để chạy được, Key cần được kích hoạt **Billing** để hưởng **Free Tier**.")
     
-    # Có thể thêm các tùy chọn giả lập
-    model = st.selectbox("Chọn model (Giả lập):", ["models/gemini-1.5-flash-8b (Mô phỏng)"])
-    st.success(f"Model đang chạy mô phỏng: {model}")
+    api_key = st.text_input("Dán Google API Key:", type="password")
+    
+    # Chỉ định model flash là lựa chọn mặc định và hiệu quả nhất
+    model = "models/gemini-2.5-flash"
+    st.info(f"Model được chọn (Tiết kiệm chi phí): **{model}**")
+
+    if api_key:
+        st.success("API Key đã nhập!")
+    else:
+        st.warning("Vui lòng nhập API Key!")
 
 
 # =========================
 #   GIAO DIỆN CHÍNH
 # =========================
-st.title("📸 Chấm Bài & Giải Toán Việt – H’Mông (DEMO)")
+st.title("📸 Chấm Bài & Giải Toán Việt – H’Mông")
 
 col_in, col_out = st.columns([1, 1.2])
 
@@ -114,15 +116,15 @@ with col_in:
 
 
 with col_out:
-    st.subheader("🔍 Kết quả AI (Mô phỏng)")
+    st.subheader("🔍 Kết quả AI")
 
-    if st.button("🚀 Bắt đầu chấm bài (DEMO)", type="primary"):
-        # Chỉ cần kiểm tra xem đã có ảnh chưa
-        if not image:
+    if st.button("🚀 Bắt đầu chấm bài", type="primary"):
+        if not api_key:
+            st.error("❌ Chưa nhập API Key!")
+        elif not image:
             st.warning("⚠ Hãy tải ảnh bài làm!")
         else:
-            with st.spinner("⏳ Đang phân tích ảnh (Mô phỏng độ trễ)..."):
-                # Ghi đè prompt mặc dù không dùng
+            with st.spinner("⏳ Đang phân tích ảnh..."):
                 prompt = """
                 Phân tích ảnh bài làm toán:
                 1. Chép lại đề bằng LaTeX (song ngữ Việt - H'Mông).
@@ -131,6 +133,6 @@ with col_out:
                 Dùng 🇻🇳 cho tiếng Việt và 🟦 cho tiếng H'Mông.
                 """
 
-                # Gọi hàm mô phỏng thay vì hàm API thật
-                result = mock_analyze_image(image, prompt)
+                # Gọi hàm phân tích ảnh thực tế
+                result = analyze_real_image(api_key, model, image, prompt)
                 st.markdown(result)
