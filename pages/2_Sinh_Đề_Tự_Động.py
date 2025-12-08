@@ -1,4 +1,3 @@
-# file: sinh_de_kntc_lop6_9_dapan_xuongdong.py
 import requests
 import streamlit as st
 from datetime import datetime
@@ -7,9 +6,10 @@ st.set_page_config(page_title="Sinh Đề Chuẩn LaTeX", page_icon="📝", layo
 st.title("📝 Tạo Đề Tự Động ")
 
 # --- API Key ---
-api_key = st.secrets.get("GOOGLE_API_KEY", "")
+# ĐÃ ĐỔI TỪ GOOGLE_API_KEY SANG GROQ_API_KEY
+api_key = st.secrets.get("GROQ_API_KEY", "")
 if not api_key:
-    api_key = st.text_input("Nhập Google API Key:", type="password")
+    api_key = st.text_input("Nhập Groq API Key:", type="password")
 
 # --- Chương & bài từng lớp ---
 chuong_options_lop = {
@@ -116,7 +116,7 @@ bai_options_lop = {
         "Chương VI: Hàm số y = ax^2 (a khác 0). Phương trình bậc hai một ẩn": ["Bài 18. Hàm số y = ax2 (a ≠ 0)","Bài 19. Phương trình bậc hai một ẩn","Luyện tập chung","Bài 20. Định lí Viète và ứng dụng","Bài 21. Giải bài toán bằng cách lập phương trình","Luyện tập chung","Bài tập cuối chương VI"],
         "Chương VII: Tần số và tần số tương đối": ["Bài 22. Bảng tần số và biểu đồ tần số","Bài 23. Bảng tần số tương đối và biểu đồ tần số tương đối","Luyện tập chung","Bài 24. Bảng tần số, tần số tương đối ghép nhóm và biểu đồ","Bài tập cuối chương VII"],
         "Chương VIII: Xác suất của biến cố trong một số mô hình xác suất đơn giản": ["Bài 25. Phép thử ngẫu nhiên và không gian mẫu","Bài 26. Xác suất của biến cố liên quan tới phép thử","Luyện tập chung","Bài tập cuối chương VIII"],
-        "Chương IX: Đường tròn ngoại tiếp và đường tròn nội tiếp": ["Bài 27. Góc nội tiếp","Bài 28. Đường tròn ngoại tiếp và đường tròn nội tiếp của một tam giác","Luyện tập chung","Bài 29. Tứ giác nội tiếp","Bài 30. Đa giác đều","Luyện tập chung","Bài tập cuối chương IX"],
+        "Chương IX: Đường tròn ngoại tiếp và đường tròn nội tiếp": ["Bài 27. Góc nội tiếp","Bài 28. Đường tròn ngoại tiếp và đường tròn nội tiếp của một tam giác","Bài 29. Tứ giác nội tiếp","Bài 30. Đa giác đều","Luyện tập chung","Bài tập cuối chương IX"],
         "Chương X: Một số hình khối trong thực tiễn": ["Bài 31. Hình trụ và hình nón","Bài 32. Hình cầu","Luyện tập chung","Bài tập cuối chương X"]
     }
 }
@@ -177,8 +177,8 @@ def build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
     "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng riêng, bắt đầu bằng '- '."
     if co_dap_an == "Có đáp án"
     else "Không cần đáp án, nhưng tất cả công thức bắt buộc LaTeX. "
-         "Với câu NL hoặc DS, mỗi lựa chọn A/B/C/D phải xuống dòng riêng, bắt đầu bằng '- '. "
-         "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng riêng, bắt đầu bằng '- '."
+          "Với câu NL hoặc DS, mỗi lựa chọn A/B/C/D phải xuống dòng riêng, bắt đầu bằng '- '. "
+          "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng riêng, bắt đầu bằng '- '."
 )
     prompt = f"""
 Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
@@ -187,13 +187,13 @@ Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối
 
 Yêu cầu:
 1. Tổng {so_cau} câu, gồm:
-   - NL (4 lựa chọn): {phan_bo_nl} câu
-   - DS (Đúng/Sai): {phan_bo_ds} câu
-   - TL: {phan_bo_tl} câu
+    - NL (4 lựa chọn): {phan_bo_nl} câu
+    - DS (Đúng/Sai): {phan_bo_ds} câu
+    - TL: {phan_bo_tl} câu
 2. Phân bố nhận thức:
-   - Nhận biết: {so_cau_nb}
-   - Thông hiểu: {so_cau_th}
-   - Vận dụng: {so_cau_vd}
+    - Nhận biết: {so_cau_nb}
+    - Thông hiểu: {so_cau_th}
+    - Vận dụng: {so_cau_vd}
 3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$.**
 4. Mỗi câu phải gắn nhãn Mức độ và Loại câu hỏi.
 5. NL/DS: mỗi đáp án A/B/C/D cách xuống 1 dòng. TL đánh số 1,2,3… mỗi công thức LaTeX.
@@ -203,28 +203,49 @@ Yêu cầu:
     return prompt
 
 # --- Gọi API ---
+# ĐÃ SỬA ĐỂ DÙNG GROQ API
 def generate_questions(api_key, prompt):
-    MODEL = "models/gemini-2.5-flash"
-    url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
-    payload = {"contents":[{"role":"user","parts":[{"text":prompt}]}]}
-    headers = {"Content-Type": "application/json"}
+    # Chọn model tốc độ cao của Groq
+    MODEL = "llama3-8b-8192"  
+    URL = "https://api.groq.com/openai/v1/chat/completions"
+    
+    payload = {
+        "model": MODEL,
+        "messages": [
+            {"role": "user", "content": prompt}
+        ]
+    }
+    
+    headers = {
+        "Content-Type": "application/json",
+        # Groq sử dụng Bearer token trong Header
+        "Authorization": f"Bearer {api_key}" 
+    }
     
     try:
-        r = requests.post(url, json=payload, headers=headers, timeout=300)
+        r = requests.post(URL, json=payload, headers=headers, timeout=300)
+        
         if r.status_code != 200:
             return False, f"Lỗi API {r.status_code}: {r.text}"
+        
         j = r.json()
-        if j.get("candidates") and len(j["candidates"])>0:
-            text = j["candidates"][0]["content"]["parts"][0]["text"]
+        
+        # Phân tích phản hồi theo định dạng Groq/OpenAI
+        if j.get("choices") and len(j["choices"]) > 0:
+            text = j["choices"][0]["message"]["content"]
             return True, text
-        return False, "AI không trả về nội dung hợp lệ."
+        
+        return False, "AI không trả về nội dung hợp lệ (kiểm tra JSON response)."
+    
     except requests.exceptions.Timeout:
         return False, "Lỗi kết nối: Yêu cầu hết thời gian."
+    except Exception as e:
+        return False, f"Lỗi không xác định: {str(e)}"
 
 # --- Nút bấm sinh đề ---
 if st.button("tạo đề chuẩn"):
     if not api_key:
-        st.warning("Nhập API Key trước khi sinh đề!")
+        st.warning("Nhập Groq API Key trước khi sinh đề!")
     else:
         prompt = build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
                               so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
