@@ -8,24 +8,7 @@ matplotlib
 requests
 deep-translator
 google-genai
-reportlab
-streamlit
-Pillow
-gTTS
-google-generativeai
-python-docx
-reportlab
-matplotlib
-requests
-deep-translator
-google-genai
-
-# Thêm để sửa lỗi ModuleNotFoundError
 google-auth
 google-auth-oauthlib
 google-auth-httplib2
-
-# Tùy chọn nhưng nên có để tránh lỗi HTTP
 httplib2
-
-
