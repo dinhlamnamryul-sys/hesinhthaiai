@@ -34,14 +34,14 @@ with st.expander("❓ Bạn chưa có Key? Nhấn vào đây để xem hướng 
     st.markdown("""
         Để sử dụng ứng dụng này, bạn cần có **Google Gemini API Key** (miễn phí ở mức cơ bản).
 
-        1. **Truy cập trang tạo Key:** Bạn truy cập trang [Google AI Studio]({link_to_get_key_from_search_result_if_available}).
+        1. **Truy cập trang tạo Key:** Bạn truy cập trang [Google AI Studio](https://ai.google.dev/gemini-api/docs/api-key).
         2. **Đăng nhập** bằng tài khoản Google của bạn.
         3. Nhấn vào nút **"Create API key"** (Tạo API Key).
         4. **Sao chép** chuỗi Key được tạo ra.
         5. **Dán** chuỗi Key đó vào ô nhập liệu bên trên.
     """)
 
-# --- HÀM PHÂN TÍCH ẢNH (Đã sửa lỗi URL/MODEL) ---
+# --- HÀM PHÂN TÍCH ẢNH ---
 def analyze_real_image(api_key, image, prompt):
     if not api_key:
         return "❌ Lỗi: API Key bị thiếu hoặc không được cung cấp."
@@ -53,7 +53,6 @@ def analyze_real_image(api_key, image, prompt):
     image.save(buffered, format="JPEG")
     img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-    # KHẮC PHỤC LỖI: Cập nhật mô hình và cấu trúc URL
     MODEL = "gemini-2.5-flash"
     url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
 
@@ -159,7 +158,7 @@ Thầy sẽ giải đáp bài tập theo các yêu cầu nghiêm ngặt sau:
 3️⃣ **GIẢI CHI TIẾT ĐÚNG (TỪNG BƯỚC MỘT):**
 - Cung cấp **LỜI GIẢI HOÀN CHỈNH, ĐÚNG** và **RẤT CHI TIẾT** cho đề bài.
 - **Mỗi bước giải** phải nằm trên **MỘT DÒNG RIÊNG** (xuống dòng liên tục, sử dụng khoảng trắng).
-- Công thức Toán học **BẮT BUỘT** phải dùng **LaTeX** ($...$ hoặc $$...$$).
+- Công thức Toán học **BẮT BUỘC** phải dùng **LaTeX** ($...$ hoặc $$...$$).
 - Luôn hiển thị song song công thức/bước giải bằng cả hai thứ tiếng:
     * 🇻🇳 Công thức/Bước giải bằng tiếng Việt (LaTeX)
     * 🟦 Công thức/Bước giải bằng tiếng H’Mông (LaTeX)
