@@ -10,10 +10,9 @@ st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông)")
 
 # Khởi tạo Session State cho API Key
 if 'api_key' not in st.session_state:
-    # Thử lấy key từ secrets (cách ưu tiên)
-    st.session_state['api_key'] = st.secrets.get("GOOGLE_API_KEY", "")
+    st.session_state['api_key'] = None  # Mặc định chưa có key
 
-# --- HÀM PHÂN TÍCH ẢNH (Giữ nguyên) ---
+# --- HÀM PHÂN TÍCH ẢNH ---
 def analyze_real_image(api_key, image, prompt):
     if image.mode == "RGBA":
         image = image.convert("RGB")
@@ -22,7 +21,8 @@ def analyze_real_image(api_key, image, prompt):
     image.save(buffered, format="JPEG")
     img_base64 = base64.b64encode(buffered.getvalue()).decode()
 
-    MODEL = "models/gemini-2.0-flash"
+    # Thay MODEL & URL nếu cần tương thích với Groq API
+    MODEL = "models/gemini-2.0-flash"  # giữ nguyên model nếu vẫn dùng Google Gemini, nếu dùng Groq API cần đổi
     url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
 
     payload = {
@@ -39,41 +39,37 @@ def analyze_real_image(api_key, image, prompt):
 
     try:
         response = requests.post(url, json=payload)
-        # Kiểm tra lỗi API (Ví dụ: key hết hạn hoặc sai cú pháp)
         if response.status_code != 200:
-            # Nếu lỗi là 400 (thường là key sai), xóa key khỏi session state
             if response.status_code == 400:
-                 del st.session_state['api_key']
-                 st.session_state['api_key'] = None
-                 return f"❌ Lỗi API {response.status_code}: API Key có vẻ không hợp lệ hoặc hết hạn. Vui lòng kiểm tra lại Key."
-                 
+                del st.session_state['api_key']
+                st.session_state['api_key'] = None
+                return f"❌ Lỗi API {response.status_code}: API Key có vẻ không hợp lệ hoặc hết hạn. Vui lòng kiểm tra lại Key."
             return f"❌ Lỗi API {response.status_code}: {response.text}"
-            
         data = response.json()
         return data["candidates"][0]["content"]["parts"][0]["text"]
     except Exception as e:
         return f"❌ Lỗi kết nối: {str(e)}"
 
 # =======================================================
-# 🔑 KHUNG QUẢN LÝ API KEY (Bắt chước luồng video)
+# 🔑 KHUNG QUẢN LÝ API KEY
 # =======================================================
 if not st.session_state.get('api_key'):
     st.markdown("---")
     st.subheader("🔑 Quản lý và Nhập Khóa API")
-    st.warning("⚠️ Ứng dụng yêu cầu Google API Key để hoạt động.")
+    st.warning("⚠️ Ứng dụng yêu cầu API Key từ Groq để hoạt động.")
 
     with st.form("api_key_form"):
-        new_api_key = st.text_input("Nhập Google API Key của bạn:", type="password", key="key_input")
+        new_api_key = st.text_input("Nhập Groq API Key của bạn:", type="password", key="key_input")
         submit_button = st.form_submit_button("Sử dụng Key")
 
         if submit_button and new_api_key:
             st.session_state['api_key'] = new_api_key
             st.success("✅ Đã lưu Key thành công. Vui lòng bấm 'Phân tích ngay' để xác nhận hoạt động!")
-            st.rerun() # Tải lại trang để áp dụng key mới
+            st.rerun()
         elif submit_button and not new_api_key:
             st.error("Vui lòng nhập Key để tiếp tục.")
 
-    st.markdown("Bạn có thể nhận Key miễn phí tại [Google AI Studio](https://makersuite.google.com/app/apikey).")
+    st.markdown("Bạn có thể nhận Key miễn phí tại [Groq API](https://www.groq.com/get-api-key).")
     st.markdown("---")
     
 else:
@@ -82,7 +78,7 @@ else:
     # =======================================================
     api_key = st.session_state['api_key']
     st.success("✅ Đã kết nối với API Key. Bắt đầu chấm bài!")
-    
+
     st.subheader("📷 Hoặc chụp trực tiếp từ Camera")
     camera_photo = st.camera_input("Chụp ảnh bài làm tại đây")
 
@@ -91,14 +87,11 @@ else:
 
     # --- CHỌN NGUỒN ẢNH ƯU TIÊN ---
     image = None
-
     if camera_photo is not None:
         image = Image.open(camera_photo)
     elif uploaded_file is not None:
         image = Image.open(uploaded_file)
 
-
-    # Nếu có ảnh → hiển thị + xử lý
     if image:
         col1, col2 = st.columns([1, 1.5])
 
@@ -109,10 +102,8 @@ else:
             st.subheader("🔍 Kết quả:")
 
             if st.button("Phân tích ngay", type="primary"):
-                # Key đã được đảm bảo có ở đây
                 with st.spinner("⏳ AI đang xử lý..."):
-
-                    # --- PROMPT SONG NGỮ (Giữ nguyên) ---
+                    # --- PROMPT SONG NGỮ ---
                     prompt_text = """
 Bạn là giáo viên Toán giỏi, đọc ảnh bài làm của học sinh. 
 Yêu cầu:
