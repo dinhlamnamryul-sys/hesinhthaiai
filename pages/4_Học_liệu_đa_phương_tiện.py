@@ -11,9 +11,8 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.utils import ImageReader
 from PIL import Image
 import matplotlib.pyplot as plt
-from gtts import gTTS  # Thư viện mới để đọc văn bản
+from gtts import gTTS # Thư viện mới để đọc văn bản
 import os
-import unicodedata
 
 # -----------------------
 # Cấu hình page
@@ -44,85 +43,148 @@ with st.sidebar:
     st.info("Lưu ý: Tính năng đọc văn bản cần kết nối internet.")
 
 # -----------------------
-# Đọc và phân tích file mục lục đã upload
+# Mục lục Toán học Lớp 6 - 9 (Đã trích xuất từ file mục lục toán.docx)
 # -----------------------
-DEFAULT_INDEX_PATH = "/mnt/data/mục lục toán.docx"
+index_structure = {
+    "6": [
+        {"chapter_title": "CHƯƠNG I. TẬP HỢP CÁC SỐ TỰ NHIÊN.", "lessons": [
+            "Bài 1. Tập hợp.", "Bài 2. Cách ghi số tự nhiên.", "Bài 3. Thứ tự trong tập hợp các số tự nhiên.", "Bài 4. Phép cộng và phép trừ số tự nhiên.", "Bài 5. Phép nhân và phép chia số tự nhiên.", "Bài 6. Luỹ thừa với số mũ tự nhiên.", "Bài 7. Thứ tự thực hiện các phép tính.", "Ôn tập chương I."
+        ]},
+        {"chapter_title": "CHƯƠNG II. TÍNH CHIA HẾT TRONG TẬP HỢP CÁC SỐ TỰ NHIÊN.", "lessons": [
+            "Bài 8. Quan hệ chia hết và tính chất.", "Bài 9. Dấu hiệu chia hết.", "Bài 10. Số nguyên tố.", "Bài 11. Ước chung. Ước chung lớn nhất.", "Bài 12. Bội chung. Bội chung nhỏ nhất.", "Ôn tập chương II."
+        ]},
+        {"chapter_title": "CHƯƠNG III. SỐ NGUYÊN.", "lessons": [
+            "Bài 13. Tập hợp các số nguyên.", "Bài 14. Phép cộng và phép trừ số nguyên.", "Bài 15. Quy tắc dấu ngoặc.", "Bài 16. Phép nhân số nguyên.", "Bài 17. Phép chia hết. Ước và bội của một số nguyên.", "Ôn tập chương III."
+        ]},
+        {"chapter_title": "CHƯƠNG IV. MỘT SỐ HÌNH PHẲNG TRONG THỰC TIỄN.", "lessons": [
+            "Bài 18. Hình tam giác đều. Hình vuông. Hình lục giác đều.", "Bài 19. Hình chữ nhật. Hình thoi. Hình bình hành. Hình thang cân.", "Bài 20. Chu vi và diện tích của một số tứ giác đã học.", "Ôn tập chương IV."
+        ]},
+        {"chapter_title": "CHƯƠNG V. TÍNH ĐỐI XỨNG CỦA HÌNH PHẲNG TRONG TỰ NHIÊN.", "lessons": [
+            "Bài 21. Hình có trục đối xứng.", "Bài 22. Hình có tâm đối xứng.", "Ôn tập chương V."
+        ]},
+        {"chapter_title": "CHƯƠNG VI. PHÂN SỐ.", "lessons": [
+            "Bài 23. Mở rộng phân số. Phân số bằng nhau.", "Bài 24. So sánh phân số. Hỗn số dương.", "Luyện tập chung.", "Bài 25. Phép cộng và phép trừ phân số.", "Bài 26. Phép nhân và phép chia phân số.", "Bài 27. Hai bài toán về phân số.", "Luyện tập chung.", "Bài tập cuối chương VI."
+        ]},
+        {"chapter_title": "CHƯƠNG VII. SỐ THẬP PHÂN.", "lessons": [
+            "Bài 28. Số thập phân.", "Bài 29. Tính toán với số thập phân.", "Bài 30. Làm tròn và ước lượng.", "Bài 31. Một số bài toán về tỉ số và tỉ số phần trăm.", "Luyện tập chung.", "Bài tập cuối chương VII."
+        ]},
+        {"chapter_title": "CHƯƠNG VIII. NHỮNG HÌNH HÌNH HỌC CƠ BẢN.", "lessons": [
+            "Bài 32. Điểm và đường thẳng.", "Bài 33. Điểm nằm giữa hai điểm. Tia.", "Bài 34. Đoạn thẳng. Độ dài đoạn thẳng.", "Bài 35. Trung điểm của đoạn thẳng.", "Luyện tập chung.", "Bài 36. Góc.", "Bài 37. Số đo góc.", "Luyện tập chung.", "Bài tập cuối chương VIII."
+        ]},
+        {"chapter_title": "CHƯƠNG IX. DỮ LIỆU VÀ XÁC SUẤT THỰC NGHIỆM.", "lessons": [
+            "Bài 38. Dữ liệu và thu thập dữ liệu.", "Bài 39. Bảng thống kê và biểu đồ tranh.", "Bài 40. Biểu đồ cột.", "Bài 41. Biểu đồ cột kép.", "Luyện tập chung.", "Bài 42. Kết quả có thể và sự kiện trong trò chơi, thí nghiệm.", "Bài 43. Xác suất thực nghiệm.", "Luyện tập chung.", "Bài tập cuối chương IX."
+        ]},
+        {"chapter_title": "HOẠT ĐỘNG THỰC HÀNH TRẢI NGHIỆM.", "lessons": [
+            "Kế hoạch chi tiêu cá nhân và gia đình.", "Hoạt động thể thao nào được yêu thích nhất trong hè?", "Vẽ hình đơn giản với phần mềm GeoGebra."
+        ]}
+    ],
+    "7": [
+        {"chapter_title": "CHƯƠNG I. SỐ HỮU TỈ.", "lessons": [
+            "Bài 1. Tập hợp các số hữu tỉ.", "Bài 2. Cộng, trừ, nhân, chia số hữu tỉ.", "Bài 3. Luỹ thừa với số mũ tự nhiên của một số hữu tỉ.", "Bài 4. Thứ tự thực hiện các phép tính. Quy tắc chuyển vế.", "Ôn tập chương I."
+        ]},
+        {"chapter_title": "CHƯƠNG II. SỐ THỰC.", "lessons": [
+            "Bài 5. Làm quen với số thập phân vô hạn tuần hoàn.", "Bài 6. Số vô tỉ. Căn bậc hai số học.", "Bài 7. Tập hợp các số thực.", "Ôn tập chương II."
+        ]},
+        {"chapter_title": "CHƯƠNG III. GÓC VÀ ĐƯỜNG THẲNG SONG SONG.", "lessons": [
+            "Bài 8. Góc ở vị trí đặc biệt. Tia phân giác của một góc.", "Bài 9. Hai đường thẳng song song và dấu hiệu nhận biết.", "Bài 10. Tiên đề Euclid. Tính chất của hai đường thẳng song song.", "Bài 11. Định lí và chứng minh định lí.", "Ôn tập chương III."
+        ]},
+        {"chapter_title": "CHƯƠNG IV. TAM GIÁC BẰNG NHAU.", "lessons": [
+            "Bài 12. Tổng các góc trong một tam giác.", "Bài 13. Hai tam giác bằng nhau. Trường hợp bằng nhau thứ nhất của tam giác.", "Bài 14. Trường hợp bằng nhau thứ hai và thứ ba của tam giác.", "Bài 15. Các trường hợp bằng nhau của tam giác vuông.", "Bài 16. Tam giác cân. Đường trung trực của đoạn thẳng.", "Ôn tập chương IV."
+        ]},
+        {"chapter_title": "CHƯƠNG V. THU THẬP VÀ BIỂU DIỄN DỮ LIỆU.", "lessons": [
+            "Bài 17. Thu thập và phân loại dữ liệu.", "Bài 18. Biểu đồ hình quạt tròn.", "Bài 19. Biểu đồ đoạn thẳng.", "Ôn tập chương V."
+        ]},
+        {"chapter_title": "CHƯƠNG VI. TỈ LỆ THỨC VÀ ĐẠI LƯỢNG TỈ LỆ.", "lessons": [
+            "Bài 20. Tỉ lệ thức.", "Bài 21. Tính chất của dãy tỉ số bằng nhau.", "Bài 22. Đại lượng tỉ lệ thuận.", "Bài 23. Đại lượng tỉ lệ nghịch.", "Ôn tập chương VI."
+        ]},
+        {"chapter_title": "CHƯƠNG VII. BIỂU THỨC ĐẠI SỐ VÀ ĐA THỨC MỘT BIẾN.", "lessons": [
+            "Bài 24. Biểu thức đại số.", "Bài 25. Đa thức một biến.", "Bài 26. Phép cộng và phép trừ đa thức một biến.", "Bài 27. Phép nhân đa thức một biến.", "Bài 28. Phép chia đa thức một biến.", "Ôn tập chương VII."
+        ]},
+        {"chapter_title": "CHƯƠNG VIII. LÀM QUEN VỚI BIẾN CỐ VÀ XÁC SUẤT CỦA BIẾN CỐ.", "lessons": [
+            "Bài 29. Làm quen với biến cố.", "Bài 30. Làm quen với xác suất của biến cố.", "Ôn tập chương VIII."
+        ]},
+        {"chapter_title": "CHƯƠNG IX. QUAN HỆ GIỮA CÁC YẾU TỐ TRONG MỘT TAM GIÁC.", "lessons": [
+            "Bài 31. Quan hệ giữa góc và cạnh đối diện trong một tam giác.", "Bài 32. Quan hệ giữa đường vuông góc và đường xiên.", "Bài 33. Quan hệ giữa ba cạnh của một tam giác.", "Bài 34. Sự đồng quy của ba đường trung tuyến, ba đường phân giác trong một tam giác.", "Bài 35. Sự đồng quy của ba đường trung trực, ba đường cao trong một tam giác.", "Ôn tập chương IX."
+        ]},
+        {"chapter_title": "CHƯƠNG X. MỘT SỐ HÌNH KHỐI TRONG THỰC TIỄN.", "lessons": [
+            "Bài 36. Hình hộp chữ nhật và hình lập phương.", "Bài 37. Hình lăng trụ đứng tam giác và hình lăng trụ đứng tứ giác.", "Ôn tập chương X.", "BÀI TẬP ÔN TẬP CUỐI NĂM."
+        ]}
+    ],
+    "8": [
+        {"chapter_title": "CHƯƠNG I. ĐA THỨC.", "lessons": [
+            "Bài 1. Đơn thức.", "Bài 2. Đa thức.", "Bài 3. Phép cộng và phép trừ đa thức.", "Bài 4. Phép nhân đa thức.", "Bài 5. Phép chia đa thức cho đơn thức.", "Ôn tập chương I."
+        ]},
+        {"chapter_title": "CHƯƠNG II. HẰNG ĐẲNG THỨC ĐÁNG NHỚ VÀ ỨNG DỤNG.", "lessons": [
+            "Bài 6. Hiệu hai bình phương. Bình phương của một tổng hay một hiệu.", "Bài 7. Lập phương của một tổng. Lập phương của một hiệu.", "Bài 8. Tổng và hiệu hai lập phương.", "Bài 9. Phân tích đa thức thành nhân tử.", "Ôn tập chương II."
+        ]},
+        {"chapter_title": "CHƯƠNG III. TỨ GIÁC.", "lessons": [
+            "Bài 10. Tứ giác.", "Bài 11. Hình thang cân.", "Bài 12. Hình bình hành.", "Bài 13. Hình chữ nhật.", "Bài 14. Hình thoi và hình vuông.", "Ôn tập chương III."
+        ]},
+        {"chapter_title": "CHƯƠNG IV. ĐỊNH LÍ THALÈS.", "lessons": [
+            "Bài 15. Định lí Thalès trong tam giác.", "Bài 16. Đường trung bình của tam giác.", "Bài 17. Tính chất đường phân giác của tam giác.", "Ôn tập chương IV."
+        ]},
+        {"chapter_title": "CHƯƠNG V. DỮ LIỆU VÀ BIỂU ĐỒ.", "lessons": [
+            "Bài 18. Thu thập và phân loại dữ liệu.", "Bài 19. Biểu diễn dữ liệu bằng bảng, biểu đồ.", "Bài 20. Phân tích số liệu thống kê dựa vào biểu đồ.", "Ôn tập chương V."
+        ]},
+        {"chapter_title": "CHƯƠNG VI. PHÂN THỨC ĐẠI SỐ.", "lessons": [
+            "Bài 21. Phân thức đại số.", "Bài 22. Tính chất cơ bản của phân thức đại số.", "Bài 23. Phép cộng và phép trừ phân thức đại số.", "Bài 24. Phép nhân và phép chia phân thức đại số.", "Ôn tập chương VI."
+        ]},
+        {"chapter_title": "CHƯƠNG VII. PHƯƠNG TRÌNH BẬC NHẤT VÀ HÀM SỐ BẬC NHẤT.", "lessons": [
+            "Bài 25. Phương trình bậc nhất một ẩn.", "Bài 26. Giải bài toán bằng cách lập phương trình.", "Bài 27. Khái niệm hàm số và đồ thị của hàm số.", "Bài 28. Hàm số bậc nhất và đồ thị của hàm số bậc nhất.", "Bài 29. Hệ số góc của đường thẳng.", "Ôn tập chương VII."
+        ]},
+        {"chapter_title": "CHƯƠNG VIII. MỞ ĐẦU VỀ TÍNH XÁC SUẤT CỦA BIẾN CỐ.", "lessons": [
+            "Bài 30. Kết quả có thể và kết quả thuận lợi.", "Bài 31. Cách tính xác suất của biến cố bằng tỉ số.", "Bài 32. Mối liên hệ giữa xác suất thực nghiệm với xác suất và ứng dụng.", "Ôn tập chương VIII."
+        ]},
+        {"chapter_title": "CHƯƠNG IX. TAM GIÁC ĐỒNG DẠNG.", "lessons": [
+            "Bài 33. Hai tam giác đồng dạng.", "Bài 34. Ba trường hợp đồng dạng của hai tam giác.", "Bài 35. Định lí Pythagore và ứng dụng.", "Bài 36. Các trường hợp đồng dạng của hai tam giác vuông.", "Bài 37. Hình đồng dạng.", "Ôn tập chương IX."
+        ]},
+        {"chapter_title": "CHƯƠNG X. MỘT SỐ HÌNH KHỐI TRONG THỰC TIỄN.", "lessons": [
+            "Bài 38. Hình chóp tam giác đều.", "Bài 39. Hình chóp tứ giác đều.", "Ôn tập chương X.", "BÀI TẬP ÔN TẬP CUỐI NĂM."
+        ]}
+    ],
+    "9": [
+        {"chapter_title": "Chương I. PHƯƠNG TRÌNH VÀ HỆ HAI PHƯƠNG TRÌNH BẬC NHẤT HAI ẨN.", "lessons": [
+            "Bài 1. Khái niệm phương trình và hệ hai phương trình bậc nhất hai ẩn.", "Bài 2. Giải hệ hai phương trình bậc nhất hai ẩn.", "Luyện tập chung.", "Bài 3. Giải bài toán bằng cách lập hệ phương trình.", "Bài tập cuối chương I."
+        ]},
+        {"chapter_title": "Chương II. PHƯƠNG TRÌNH VÀ BẤT PHƯƠNG TRÌNH BẬC NHẤT MỘT ẨN.", "lessons": [
+            "Bài 4. Phương trình quy về phương trình bậc nhất một ẩn.", "Bài 5. Bất đẳng thức và tính chất.", "Luyện tập chung.", "Bài 6. Bất phương trình bậc nhất một ẩn.", "Bài tập cuối chương II."
+        ]},
+        {"chapter_title": "Chương III. CĂN BẬC HAI VÀ CĂN BẬC BA.", "lessons": [
+            "Bài 7. Căn bậc hai và căn thức bậc hai.", "Bài 8. Khai căn bậc hai với phép nhân và phép chia.", "Luyện tập chung.", "Bài 9. Biến đổi đơn giản và rút gọn biểu thức chứa căn thức bậc hai.", "Bài 10. Căn bậc ba và căn thức bậc ba.", "Luyện tập chung.", "Bài tập cuối chương III."
+        ]},
+        {"chapter_title": "Chương IV. HỆ THỨC LƯỢNG TRONG TAM GIÁC VUÔNG.", "lessons": [
+            "Bài 11. Tỉ số lượng giác của góc nhọn.", "Bài 12. Một số hệ thức giữa cạnh, góc trong tam giác vuông và ứng dụng.", "Luyện tập chung.", "Bài tập cuối chương IV."
+        ]},
+        {"chapter_title": "Chương V. ĐƯỜNG TRÒN.", "lessons": [
+            "Bài 13. Mở đầu về đường tròn.", "Bài 14. Cung và dây của một đường tròn.", "Bài 15. Độ dài của cung tròn. Diện tích hình quạt tròn và hình vành khuyên.", "Luyện tập chung.", "Bài 16. Vị trí tương đối của đường thẳng và đường tròn.", "Bài 17. Vị trí tương đối của hai đường tròn.", "Luyện tập chung.", "Bài tập cuối chương V."
+        ]},
+        {"chapter_title": "HOẠT ĐỘNG THỰC HÀNH TRẢI NGHIỆM (Tập 1).", "lessons": [
+            "Pha chế dung dịch theo nồng độ yêu cầu.", "Tính chiều cao và xác định khoảng cách."
+        ]},
+        {"chapter_title": "Chương VI. HÀM SỐ y = ax2 (a khác 0). PHƯƠNG TRÌNH BẬC HAI MỘT ẨN.", "lessons": [
+            "Bài 18. Hàm số y = ax2 (a ≠ 0).", "Bài 19. Phương trình bậc hai một ẩn.", "Luyện tập chung.", "Bài 20. Định lí Viète và ứng dụng.", "Bài 21. Giải bài toán bằng cách lập phương trình.", "Luyện tập chung.", "Bài tập cuối chương VI."
+        ]},
+        {"chapter_title": "Chương VII. TẦN SỐ VÀ TẦN SỐ TƯƠNG ĐỐI.", "lessons": [
+            "Bài 22. Bảng tần số và biểu đồ tần số.", "Bài 23. Bảng tần số tương đối và biểu đồ tần số tương đối.", "Luyện tập chung.", "Bài 24. Bảng tần số, tần số tương đối ghép nhóm và biểu đồ.", "Bài tập cuối chương VII."
+        ]},
+        {"chapter_title": "Chương VIII. XÁC SUẤT CỦA BIẾN CỐ TRONG MỘT SỐ MÔ HÌNH XÁC SUẤT ĐƠN GIẢN.", "lessons": [
+            "Bài 25. Phép thử ngẫu nhiên và không gian mẫu.", "Bài 26. Xác suất của biến cố liên quan tới phép thử.", "Luyện tập chung.", "Bài tập cuối chương VIII."
+        ]},
+        {"chapter_title": "Chương IX. ĐƯỜNG TRÒN NGOẠI TIẾP VÀ ĐƯỜNG TRÒN NỘI TIẾP.", "lessons": [
+            "Bài 27. Góc nội tiếp.", "Bài 28. Đường tròn ngoại tiếp và đường tròn nội tiếp của một tam giác.", "Luyện tập chung.", "Bài 29. Tứ giác nội tiếp.", "Bài 30. Đa giác đều.", "Luyện tập chung.", "Bài tập cuối chương IX."
+        ]},
+        {"chapter_title": "Chương X. MỘT SỐ HÌNH KHỐI TRONG THỰC TIỄN.", "lessons": [
+            "Bài 31. Hình trụ và hình nón.", "Bài 32. Hình cầu.", "Luyện tập chung.", "Bài tập cuối chương X."
+        ]},
+        {"chapter_title": "HOẠT ĐỘNG THỰC HÀNH TRẢI NGHIỆM (Tập 2).", "lessons": [
+            "Giải phương trình, hệ phương trình và vẽ đồ thị hàm số với phần mềm GeoGebra.", "Vẽ hình đơn giản với phần mềm GeoGebra.", "Xác định tần số, tần số tương đối, vẽ các biểu đồ biểu diễn bảng tần số, tần số tướng đối bằng Excel.", "Gene trội trong các thế hệ lai."
+        ]}
+    ]
+}
 
-def safe_norm(s: str):
-    if s is None:
-        return ""
-    return unicodedata.normalize("NFC", s).strip()
-
-def parse_index_from_docx(path=DEFAULT_INDEX_PATH):
-    """
-    Trả về cấu trúc: { '6': [ {'chapter_title': 'CHƯƠNG I....', 'lessons': ['Bài 1. ...', ...]}, ... ],
-                       '7': [...], '8': [...], '9': [...] }
-    Nếu file không tồn tại, trả rỗng.
-    """
-    res = {}
-    if not os.path.exists(path):
-        return res
-    try:
-        doc = Document(path)
-    except Exception:
-        return res
-
-    current_class = None
-    current_chapter = None
-    for p in doc.paragraphs:
-        line = safe_norm(p.text)
-        if not line:
-            continue
-        # phát hiện tiêu đề lớp: "Toán 6" hoặc "Toán 6:" hoặc "Toán 6\n"
-        m_class = re.match(r'^\s*To[nn]?\s*[:\-]?\s*(\d{1,2})\b', line, flags=re.IGNORECASE)
-        # Some files may have "Toán 6" exactly
-        m_class_alt = re.match(r'^\s*Toán\s*(\d{1,2})\b', line)
-        if m_class_alt:
-            current_class = m_class_alt.group(1)
-            if current_class not in res:
-                res[current_class] = []
-            current_chapter = None
-            continue
-
-        # CHƯƠNG detection (has word CHƯƠNG or Chương)
-        m_ch = re.match(r'^(CHƯƠNG|Chương)\s*([IVXLC]+\.?)?(.*)', line)
-        if m_ch:
-            title = line
-            current_chapter = {"chapter_title": title, "lessons": []}
-            if current_class is None:
-                # if no class heading before, try infer from preceding context:
-                # default put under '6' if empty
-                current_class = "6"
-                if current_class not in res:
-                    res[current_class] = []
-            res[current_class].append(current_chapter)
-            continue
-
-        # Bài detection: lines starting with 'Bài' or 'Bài 1.' etc
-        m_bai = re.match(r'^\s*Bài\s*\d+\.?\s*(.*)', line)
-        if m_bai and current_chapter is not None:
-            # store the full line (e.g., "Bài 1. Tập hợp.")
-            current_chapter["lessons"].append(line)
-            continue
-
-        # Some files enumerate "Bài 1. ..." after bullet; also sometimes 'MỤC LỤC' or 'Tập 1:' etc ignored.
-        # Nothing else needed; continue.
-    return res
-
-index_structure = parse_index_from_docx(DEFAULT_INDEX_PATH)
-
-# If parse failed, provide reasonable defaults based on typical classes
-if not index_structure:
-    # fallback minimal
-    index_structure = {
-        "6": [{"chapter_title": "CHƯƠNG I. TẬP HỢP CÁC SỐ TỰ NHIÊN.", "lessons": ["Bài 1. Tập hợp.", "Bài 2. Cách ghi số tự nhiên."]}],
-        "7": [{"chapter_title": "CHƯƠNG I. SỐ HỮU TỈ.", "lessons": ["Bài 1. Tập hợp các số hữu tỉ."]}],
-        "8": [{"chapter_title": "CHƯƠNG I. ĐA THỨC.", "lessons": ["Bài 1. Đơn thức."]}],
-        "9": [{"chapter_title": "Chương I. PHƯƠNG TRÌNH VÀ HỆ HAI PHƯƠNG TRÌNH BẬC NHẤT HAI ẨN.", "lessons": ["Bài 1. Khái niệm phương trình và hệ hai phương trình bậc nhất hai ẩn."]}],
-    }
 
 # -----------------------
-# HỖ TRỢ LaTeX → ảnh (GIỮ NGUYÊN)
+# HỖ TRỢ LaTeX → ảnh
 # -----------------------
 LATEX_RE = re.compile(r"\$\$(.+?)\$\$", re.DOTALL)
 
@@ -144,7 +206,7 @@ def render_latex_png_bytes(latex_code, fontsize=20, dpi=200):
         return None
 
 # -----------------------
-# Xuất DOCX / PDF (GIỮ NGUYÊN)
+# Xuất DOCX / PDF
 # -----------------------
 def create_docx_bytes(text):
     doc = Document()
@@ -225,7 +287,7 @@ def create_pdf_bytes(text):
     return buf
 
 # -----------------------
-# HÀM GIÚP: Xử lý API (GIỮ NGUYÊN & BỔ SUNG)
+# HÀM GIÚP: Xử lý API
 # -----------------------
 def extract_text_from_api_response(data):
     if isinstance(data, dict) and "candidates" in data:
@@ -281,15 +343,15 @@ def text_to_speech_bytes(text, lang='vi'):
 # GIAO DIỆN CHÍNH (TABS)
 # -----------------------
 tab1, tab2, tab3, tab4 = st.tabs([
-    "📘 Tổng hợp Kiến thức", 
-    "📝 Thiết kế Giáo án", 
-    "🎵 Sáng tác Lời bài hát", 
+    "📘 Tổng hợp Kiến thức",
+    "📝 Thiết kế Giáo án",
+    "🎵 Sáng tác Lời bài hát",
     "🎧 Đọc Văn bản (TTS)"
 ])
 
 # --- TAB 1: TỔNG HỢP KIẾN THỨC (Cập nhật: chọn Chương/Bài từ mục lục) ---
 with tab1:
-    st.subheader("Tổng hợp kiến thức Toán theo Chương/Bài (dựa trên mục lục upload)")
+    st.subheader("Tổng hợp kiến thức Toán theo Chương/Bài (dựa trên mục lục lớp 6-9)")
     col1, col2 = st.columns([1, 3])
     with col1:
         # lớp available from index_structure keys
@@ -311,7 +373,9 @@ with tab1:
             combined = []
             for k in sorted(index_structure.keys(), key=lambda x: int(x)):
                 for ch in index_structure[k]:
-                    combined.append({"chapter_title": f"(Lớp {k}) {ch['chapter_title']}", "lessons": [f"(Lớp {k}) {l}" for l in ch.get("lessons", [])]})
+                    # Chỉ lấy tên chương và thêm tiền tố Lớp
+                    title = ch['chapter_title'] if not ch['chapter_title'].startswith(f"(Lớp {k})") else ch['chapter_title']
+                    combined.append({"chapter_title": f"(Lớp {k}) {title}", "lessons": [f"(Lớp {k}) {l}" for l in ch.get("lessons", [])]})
             chapters_for_sel = combined
 
         chapter_titles = ["Tất cả chương", "Toàn chương"]
