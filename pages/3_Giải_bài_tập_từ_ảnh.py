@@ -1,58 +1,133 @@
-import os
 import streamlit as st
-from groq import Groq  # thư viện chính thức của Groq
+import base64
 from PIL import Image
 from io import BytesIO
-import base64
+from groq import Groq
 
-# --- Cấu hình Streamlit ---
-st.set_page_config(page_title="Chấm Bài AI Song Ngữ (Groq)", page_icon="📸")
-st.title("📸 Chấm Bài & Giải Toán Qua Ảnh — thử Groq (text‑only)")
+st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸")
+st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông)")
 
-# --- Nhập API Key ---
-if 'api_key' not in st.session_state:
-    st.session_state['api_key'] = None
+# --- LẤY KEY ---
+# Sử dụng groq_api_key thay vì google_api_key
+api_key = st.secrets.get("GROQ_API_KEY", "")
 
-if not st.session_state['api_key']:
-    st.markdown("---")
-    st.subheader("🔑 Nhập Groq API Key")
-    st.warning("⚠️ Ứng dụng yêu cầu Groq API Key để hoạt động.")
-    with st.form("api_key_form"):
-        new_key = st.text_input("GROQ API Key:", type="password")
-        submitted = st.form_submit_button("Sử dụng API Key")
-        if submitted:
-            if new_key:
-                st.session_state['api_key'] = new_key.strip()
-                st.success("✅ Đã lưu API Key!")
-                st.rerun()
+if not api_key:
+    st.warning("⚠️ Chưa có Groq API Key trong hệ thống.")
+    api_key = st.text_input("Nhập Groq API Key:", type="password")
+
+# --- HÀM PHÂN TÍCH ẢNH DÙNG GROQ ---
+def analyze_real_image_groq(api_key, image, prompt):
+    if image.mode == "RGBA":
+        image = image.convert("RGB")
+
+    buffered = BytesIO()
+    # Lưu ảnh dưới định dạng JPEG (hoặc PNG tùy chọn)
+    image.save(buffered, format="JPEG")
+    # Mã hóa Base64 cho ảnh
+    img_base64 = base64.b64encode(buffered.getvalue()).decode()
+
+    # Khởi tạo Groq Client
+    try:
+        client = Groq(api_key=api_key)
+    except Exception as e:
+        return f"❌ Lỗi khởi tạo Groq Client: {str(e)}"
+    
+    # Chuẩn bị nội dung (text + image)
+    content = [
+        {"type": "text", "text": prompt},
+        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_base64}"}}
+    ]
+
+    # Model hỗ trợ Vision trên Groq:
+    MODEL = "llama-3.1-405b-reasoning"  # Hoặc model Vision khác nếu có
+    
+    try:
+        # Gọi API của Groq
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": content,
+                }
+            ],
+            model=MODEL,
+        )
+        # Trả về nội dung phản hồi
+        return chat_completion.choices[0].message.content
+    except Exception as e:
+        return f"❌ Lỗi kết nối Groq: {str(e)}"
+
+
+# -----------------------------
+# 🚀 **TÍNH NĂNG MỚI: CHỤP CAMERA**
+# -----------------------------
+st.subheader("📷 Hoặc chụp trực tiếp từ Camera")
+camera_photo = st.camera_input("Chụp ảnh bài làm tại đây")
+
+
+# --- GIAO DIỆN TẢI ẢNH ---
+st.subheader("📤 Hoặc tải ảnh bài làm (PNG, JPG)")
+uploaded_file = st.file_uploader("Chọn ảnh:", type=["png", "jpg", "jpeg"])
+
+
+# --- CHỌN NGUỒN ẢNH ƯU TIÊN ---
+image = None
+
+if camera_photo is not None:
+    image = Image.open(camera_photo)
+elif uploaded_file is not None:
+    image = Image.open(uploaded_file)
+
+
+# Nếu có ảnh → hiển thị + xử lý
+if image:
+    col1, col2 = st.columns([1, 1.5])
+
+    with col1:
+        st.image(image, caption="Ảnh bài làm", use_column_width=True)
+
+    with col2:
+        st.subheader("🔍 Kết quả:")
+
+        if st.button("Phân tích ngay", type="primary"):
+            if not api_key:
+                st.error("Thiếu Groq API Key!")
             else:
-                st.error("Vui lòng nhập API Key.")
-    st.markdown("Bạn có thể lấy Key tại https://console.groq.com/keys")
-    st.markdown("---")
-    st.stop()
+                with st.spinner("⏳ AI đang xử lý..."):
 
-# --- Init client Groq ---
-api_key = st.session_state['api_key']
-client = Groq(api_key=api_key)
+                    # --- PROMPT SONG NGỮ ---
+                    prompt_text = """
+Bạn là giáo viên Toán giỏi, đọc ảnh bài làm của học sinh. 
+Yêu cầu:
 
-st.success("✅ Groq API Key đã sẵn sàng.")
+1️⃣ Chép lại đề bài bằng **LaTeX**, hiển thị song song:
+🇻🇳 (Tiếng Việt)
+🟦 (Tiếng H’Mông)
 
-# --- Giao diện nhập prompt (text) ---
-st.subheader("🧠 Nhập prompt (tiếng Việt hoặc H’Mông, hoặc LaTeX…)")
+2️⃣ Chấm bài từng bước:
+- Nói học sinh **Đúng / Sai** từng bước.
+- Nếu sai, ghi ngắn gọn **Sai ở bước nào & lý do**.
+- Hiển thị song song:
+🇻🇳 Nhận xét tiếng Việt
+🟦 Nhận xét H’Mông
 
-user_prompt = st.text_area("Prompt cho AI:", height=200)
+3️⃣ Giải chi tiết:
+- Viết từng bước bằng **LaTeX**, hiển thị song song:
+🇻🇳 Công thức / bước bằng tiếng Việt
+🟦 Công thức / bước bằng tiếng H’Mông
+- Nếu học sinh sai → giải lại đúng ở cả hai ngôn ngữ.
 
-if st.button("Gửi prompt lên Groq"):
-    with st.spinner("⏳ Đang gửi yêu cầu..."):
-        try:
-            resp = client.chat.completions.create(
-                model="llama3-70b-8192",  # bạn có thể chọn model khác Groq hỗ trợ
-                messages=[
-                    {"role": "user", "content": user_prompt}
-                ]
-            )
-            text = resp.choices[0].message.content
-            st.markdown("### ✅ Kết quả từ AI:")
-            st.markdown(text)
-        except Exception as e:
-            st.error(f"❌ Lỗi khi gọi Groq API: {e}")
+MỌI CÂU TRẢ LỜI PHẢI:
+- Rõ ràng, đầy đủ, theo thứ tự.
+- Song song Việt – H’Mông từng bước.
+- Dễ copy vào Word hoặc Overleaf.
+"""
+
+                    # Thay đổi gọi hàm
+                    result = analyze_real_image_groq(api_key, image, prompt_text)
+
+                    if "❌" in result:
+                        st.error(result)
+                    else:
+                        st.success("🎉 Đã phân tích xong!")
+                        st.markdown(result)
