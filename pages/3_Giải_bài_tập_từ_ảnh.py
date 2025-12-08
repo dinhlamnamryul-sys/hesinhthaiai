@@ -5,20 +5,54 @@ from PIL import Image
 from io import BytesIO
 import json 
 
+# --- PROMPT ĐÃ ĐƯỢC TÁCH RA NGOÀI (GIẢM LỖI THỤT LỀ) ---
+PROMPT_TEXT = """
+Thầy là giáo viên Toán giỏi, chuyên đọc và chấm bài tập của học sinh qua ảnh. 
+Thầy sẽ giải đáp bài tập theo các yêu cầu nghiêm ngặt sau:
+
+🎯 YÊU CẦU ĐỊNH DẠNG RẤT QUAN TRỌNG (ĐỂ TRÁNH LỖI HIỂN THỊ):
+1. **Tuyệt đối KHÔNG** sử dụng các lệnh định dạng tài liệu LaTeX như \documentclass, \usepackage, \begin{document}, \begin{longtable}.
+2. **Chỉ** sử dụng cú pháp **Markdown** (###, **bold**, *italic*, bullet points) và công thức **LaTeX toán học** ($...$ hoặc $$...$$) để hiển thị.
+3. Luôn đảm bảo **Tiếng Việt** và **Tiếng H’Mông** được hiển thị rõ ràng, song song (ví dụ: sử dụng Markdown table với hai cột).
+
+📝 YÊU CẦU VỀ NỘI DUNG (DÙNG GIỌNG THẦY):
+
+1️⃣ **ĐỀ BÀI (Tiếng Việt & Tiếng H’Mông):**
+- Chép lại đề bài bằng Markdown/LaTeX.
+- Luôn hiển thị song song: 🇻🇳 (Tiếng Việt) | 🟦 (Tiếng H’Mông)
+
+2️⃣ **CHẤM BÀI & CHỈ RA LỖI SAI (THEO TỪNG BƯỚC CỤ THỂ):**
+- Phải so sánh **TỪNG BƯỚC** giải của học sinh với lời giải đúng.
+- Ghi rõ ràng: **"Bước X: [ĐÚNG/SAI]"** cho từng bước.
+- Nếu **SAI**: Phải chỉ ra **vị trí SAI** và **LÝ DO SAI** một cách ngắn gọn, rõ ràng, bằng cả hai ngôn ngữ.
+- Hiển thị song song: 🇻🇳 Nhận xét tiếng Việt | 🟦 Nhận xét H’Mông
+
+3️⃣ **GIẢI CHI TIẾT ĐÚNG (TỪNG BƯỚC MỘT):**
+- Cung cấp **LỜI GIẢI HOÀN CHỈNH, ĐÚNG** và **RẤT CHI TIẾT** cho đề bài.
+- **Mỗi bước giải** phải nằm trên **MỘT DÒNG RIÊNG** (xuống dòng liên tục, sử dụng khoảng trắng).
+- Công thức Toán học **BẮT BUỘT** phải dùng **LaTeX** ($...$ hoặc $$...$$).
+- Luôn hiển thị song song công thức/bước giải bằng cả hai thứ tiếng:
+    * 🇻🇳 Công thức/Bước giải bằng tiếng Việt (LaTeX)
+    * 🟦 Công thức/Bước giải bằng tiếng H’Mông (LaTeX)
+
+MỌI CÂU TRẢ LỜI PHẢI:
+- Rõ ràng, đầy đủ, theo thứ tự 1, 2, 3.
+- Kết thúc bằng một lời khuyên ngắn gọn cho học sinh (dùng giọng Thầy).
+"""
+# --- HẾT PROMPT ---
+
+
 st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸", layout="wide")
 st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông)")
 
 # --- LẤY KEY VÀ HƯỚNG DẪN ---
 st.subheader("🔑 Nhập Google Gemini API Key")
 
-# Sử dụng st.session_state để lưu key người dùng nhập cho các lần tương tác
 if 'manual_api_key' not in st.session_state:
     st.session_state['manual_api_key'] = ""
 
-# Lấy Key từ st.secrets (ưu tiên) hoặc từ input của người dùng
 api_key = st.secrets.get("GOOGLE_API_KEY", st.session_state['manual_api_key'])
 
-# Hiển thị ô nhập Key (nếu chưa có trong secrets)
 if not api_key:
     st.session_state['manual_api_key'] = st.text_input(
         "Vui lòng dán Key của bạn vào đây:", 
@@ -29,7 +63,6 @@ if not api_key:
 else:
     st.success("✅ Đã tìm thấy API Key.")
     
-# Hướng dẫn lấy Key
 with st.expander("❓ Bạn chưa có Key? Nhấn vào đây để xem hướng dẫn lấy Key."):
     st.markdown("""
         Để sử dụng ứng dụng này, bạn cần có **Google Gemini API Key** (miễn phí ở mức cơ bản).
@@ -71,7 +104,6 @@ def analyze_real_image(api_key, image, prompt):
     try:
         response = requests.post(url, json=payload)
         
-        # Xử lý lỗi chi tiết hơn
         if response.status_code != 200:
             error_details = response.text
             try:
@@ -133,42 +165,8 @@ if image:
             else:
                 with st.spinner("⏳ AI đang xử lý..."):
 
-                    # --- PROMPT ĐÃ ĐƯỢC CẬP NHẬT (SỬ DỤNG GIỌNG THẦY & FORMAT ĐƠN GIẢN) ---
-                    prompt_text = """
-Thầy là giáo viên Toán giỏi, chuyên đọc và chấm bài tập của học sinh qua ảnh. 
-Thầy sẽ giải đáp bài tập theo các yêu cầu nghiêm ngặt sau:
-
-🎯 YÊU CẦU ĐỊNH DẠNG RẤT QUAN TRỌNG (ĐỂ TRÁNH LỖI HIỂN THỊ):
-1. **Tuyệt đối KHÔNG** sử dụng các lệnh định dạng tài liệu LaTeX như \documentclass, \usepackage, \begin{document}, \begin{longtable}.
-2. **Chỉ** sử dụng cú pháp **Markdown** (###, **bold**, *italic*, bullet points) và công thức **LaTeX toán học** ($...$ hoặc $$...$$) để hiển thị.
-3. Luôn đảm bảo **Tiếng Việt** và **Tiếng H’Mông** được hiển thị rõ ràng, song song (ví dụ: sử dụng Markdown table với hai cột).
-
-📝 YÊU CẦU VỀ NỘI DUNG (DÙNG GIỌNG THẦY):
-
-1️⃣ **ĐỀ BÀI (Tiếng Việt & Tiếng H’Mông):**
-- Chép lại đề bài bằng Markdown/LaTeX.
-- Luôn hiển thị song song: 🇻🇳 (Tiếng Việt) | 🟦 (Tiếng H’Mông)
-
-2️⃣ **CHẤM BÀI & CHỈ RA LỖI SAI (THEO TỪNG BƯỚC CỤ THỂ):**
-- Phải so sánh **TỪNG BƯỚC** giải của học sinh với lời giải đúng.
-- Ghi rõ ràng: **"Bước X: [ĐÚNG/SAI]"** cho từng bước.
-- Nếu **SAI**: Phải chỉ ra **vị trí SAI** và **LÝ DO SAI** một cách ngắn gọn, rõ ràng, bằng cả hai ngôn ngữ.
-- Hiển thị song song: 🇻🇳 Nhận xét tiếng Việt | 🟦 Nhận xét H’Mông
-
-3️⃣ **GIẢI CHI TIẾT ĐÚNG (TỪNG BƯỚC MỘT):**
-- Cung cấp **LỜI GIẢI HOÀN CHỈNH, ĐÚNG** và **RẤT CHI TIẾT** cho đề bài.
-- **Mỗi bước giải** phải nằm trên **MỘT DÒNG RIÊNG** (xuống dòng liên tục, sử dụng khoảng trắng).
-- Công thức Toán học **BẮT BUỘC** phải dùng **LaTeX** ($...$ hoặc $$...$$).
-- Luôn hiển thị song song công thức/bước giải bằng cả hai thứ tiếng:
-    * 🇻🇳 Công thức/Bước giải bằng tiếng Việt (LaTeX)
-    * 🟦 Công thức/Bước giải bằng tiếng H’Mông (LaTeX)
-
-MỌI CÂU TRẢ LỜI PHẢI:
-- Rõ ràng, đầy đủ, theo thứ tự 1, 2, 3.
-- Kết thúc bằng một lời khuyên ngắn gọn cho học sinh (dùng giọng Thầy).
-"""
-
-                    result = analyze_real_image(api_key, image, prompt_text)
+                    # Sử dụng PROMPT_TEXT đã được định nghĩa ở trên
+                    result = analyze_real_image(api_key, image, PROMPT_TEXT)
 
                     if "❌" in result:
                         st.error(result)
