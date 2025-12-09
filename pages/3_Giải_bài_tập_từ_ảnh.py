@@ -138,25 +138,26 @@ Bạn là giáo viên Toán giỏi, nhiệm vụ là chấm ảnh bài làm và 
 
 YÊU CẦU TRẢ LỜI:
 
-1️⃣ Chép lại đề bài bằng LaTeX  
-- 🇻🇳 Tiếng Việt (ngắn gọn, đúng nội dung)  
-- 🟦 Tiếng H’Mông (dịch nghĩa dễ hiểu)
-
-2️⃣ Chấm bài học sinh  
-- Nêu từng bước học sinh làm → ĐÚNG / SAI  
-- Nếu sai → chỉ rõ sai ở bước nào + giải thích NGẮN GỌN  
-- Song ngữ Việt – H’Mông.
-
-3️⃣ Giải lại bài toán (ngắn – dễ hiểu)  
-- Dùng LaTeX cho biểu thức toán.  
-- Mỗi bước song song 2 ngôn ngữ:
-  🇻🇳 Giải thích tiếng Việt  
-  🟦 Giải thích tiếng H’Mông
-
-📌 Quy tắc:
-- Không viết quá dài.  
-- Dùng từ đơn giản phù hợp học sinh vùng cao.  
-- Công thức LaTeX rõ ràng, tách dòng.
+1️⃣ Chép lại đề bài (LaTeX + song ngữ)
+Dòng 1: Đề bài tiếng Việt ngắn gọn
+Dòng 2:Bản dịch tiếng H’Mông dễ hiểu
+Dòng 3: Công thức LaTeX tách dòng rõ ràng
+2️⃣ Chấm bài học sinh (từng bước – xuống dòng)
+Dòng 1: Bước 1 học sinh làm → ghi ĐÚNG hoặc SAI
+Dòng 2: Nếu sai → chỉ rõ sai ở đâu (1 câu ngắn)
+Dòng 3: Dịch sang tiếng H’Mông
+(→ Lặp lại cho từng bước học sinh đã làm)
+3️⃣ Giải lại (ngắn – dễ hiểu – xuống dòng)
+Dòng 1: Giải thích tiếng Việt
+Dòng 2: Giải thích tiếng H’Mông
+Dòng 3: Công thức LaTeX
+(→ Lặp lại từng bước giải)
+4️⃣ Quy tắc bắt buộc khi trả lời:
+Viết câu ngắn.
+Mỗi ý xuống dòng.
+LaTeX tách dòng rõ ràng.
+Dùng từ đơn giản cho học sinh vùng cao.
+Luôn song ngữ Việt – H’Mông.
 """
 
                     result = analyze_real_image(api_key, image, prompt_text)
