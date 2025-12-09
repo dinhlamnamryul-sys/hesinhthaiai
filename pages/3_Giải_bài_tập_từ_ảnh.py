@@ -21,43 +21,36 @@ with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
 
 2. Đăng nhập bằng Gmail.
 
-3. Nhấn nút **Create API key** (Tạo khóa API).
+3. Nhấn **Create API key**.
 
-4. Copy API Key vừa tạo.
+4. Copy API Key và dán vào ô bên dưới.
 
-5. Dán vào ô nhập bên dưới.
-
-⚠️ **Lưu ý quan trọng:**  
-- Không chia sẻ API Key cho người khác.  
-- Nếu lộ key, bạn có thể xoá và tạo key mới trong vài giây.  
+⚠️ **Không chia sẻ API Key cho người khác.**
     """)
 
-st.subheader("🔐 Nhập Google API Key của bạn để sử dụng:")
+st.subheader("🔐 Nhập Google API Key của bạn:")
 api_key = st.text_input("Nhập Google API Key:", type="password")
 
 if not api_key:
-    st.warning("⚠️ Bạn cần nhập API Key để tiếp tục sử dụng ứng dụng.")
+    st.warning("⚠️ Bạn cần nhập API Key để sử dụng ứng dụng.")
 else:
     st.success("✅ API Key đã được nhập!")
 
 
 # ===============================
-# 📌 HÀM PHÂN TÍCH ẢNH QUA GEMINI
+# 📌 HÀM PHÂN TÍCH ẢNH VỚI GEMINI
 # ===============================
 
 def analyze_real_image(api_key, image, prompt):
-    if not api_key:
-        return "❌ Lỗi: API Key bị thiếu hoặc không được cung cấp."
-
     if image.mode == "RGBA":
         image = image.convert("RGB")
 
-    buffered = BytesIO()
-    image.save(buffered, format="JPEG")
-    img_base64 = base64.b64encode(buffered.getvalue()).decode()
+    buf = BytesIO()
+    image.save(buf, format="JPEG")
+    img_b64 = base64.b64encode(buf.getvalue()).decode()
 
     MODEL = "gemini-2.5-flash"
-    url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
+    URL = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
 
     payload = {
         "contents": [
@@ -65,30 +58,20 @@ def analyze_real_image(api_key, image, prompt):
                 "role": "user",
                 "parts": [
                     {"text": prompt},
-                    {"inline_data": {"mime_type": "image/jpeg", "data": img_base64}}
+                    {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
                 ]
             }
         ]
     }
 
     try:
-        response = requests.post(url, json=payload)
+        res = requests.post(URL, json=payload)
+        if res.status_code != 200:
+            return f"❌ Lỗi API {res.status_code}: {res.text}"
 
-        if response.status_code != 200:
-            error_details = response.text
-            try:
-                error_json = response.json()
-                if "error" in error_json and "message" in error_json["error"]:
-                    error_details = error_json["error"]["message"]
-            except json.JSONDecodeError:
-                pass
-
-            return f"❌ Lỗi API **{response.status_code}**: {error_details}"
-
-        data = response.json()
-
+        data = res.json()
         if not data.get("candidates"):
-            return "❌ Lỗi: API trả về phản hồi rỗng."
+            return "❌ Lỗi: API trả về rỗng."
 
         return data["candidates"][0]["content"]["parts"][0]["text"]
 
@@ -97,20 +80,20 @@ def analyze_real_image(api_key, image, prompt):
 
 
 # ===============================
-# 📸 NHẬN ẢNH TỪ CAMERA / UPLOAD
+# 📸 CHỤP ẢNH / TẢI ẢNH
 # ===============================
 
 st.subheader("📷 Chụp ảnh bài làm")
-camera_photo = st.camera_input("Chụp trực tiếp từ camera:")
+photo = st.camera_input("Chụp trực tiếp:")
 
-st.subheader("📤 Hoặc tải ảnh bài làm lên")
-uploaded_file = st.file_uploader("Chọn ảnh (PNG/JPG):", type=["png", "jpg", "jpeg"])
+st.subheader("📤 Hoặc tải ảnh lên")
+upload = st.file_uploader("Chọn ảnh:", type=["png", "jpg", "jpeg"])
 
 image = None
-if camera_photo:
-    image = Image.open(camera_photo)
-elif uploaded_file:
-    image = Image.open(uploaded_file)
+if photo:
+    image = Image.open(photo)
+elif upload:
+    image = Image.open(upload)
 
 
 # ===============================
@@ -127,68 +110,77 @@ if image:
         st.subheader("🔍 Kết quả AI:")
 
         if st.button("Phân tích bài làm", type="primary"):
+
             if not api_key:
                 st.error("❌ Bạn chưa nhập API Key!")
             else:
                 with st.spinner("⏳ AI đang phân tích..."):
 
-                    # ================================
-                    # 📌 PROMPT TỐI ƯU CHỐNG LỖI LaTeX
-                    # ================================
+                    # =========================
+                    # 🎯 PROMPT CHUẨN – KHÔNG LỖI LaTeX
+                    # =========================
                     prompt_text = """
-Bạn là giáo viên Toán giỏi. Hãy chấm bài và giải toán NGẮN GỌN – DỄ HIỂU – SONG NGỮ (Việt – H’Mông).
+Bạn là giáo viên Toán giỏi. Hãy chấm ảnh bài làm và giải toán NGẮN – DỄ HIỂU – SONG NGỮ (Việt – H’Mông).
 
-⚠️ QUY TẮC QUAN TRỌNG KHI TRẢ LỜI:
-- Mọi công thức phải đặt trong khối LaTeX:
+==============================
+⚠️ QUY TẮC CÔNG THỨC TOÁN HỌC
+==============================
+- Mọi công thức必须 nằm trong khối:
   $$
   ... \\\\
-  ... \\\\
   $$
-- Mỗi phép tính *bắt buộc* xuống dòng bằng \\\\
-- Không ghép nhiều phép tính trên một dòng.
-- LaTeX phải cực kỳ đơn giản, không dùng ký hiệu khó.
-- Viết câu ngắn – dễ hiểu – phù hợp học sinh vùng cao.
+- Mỗi phép toán BẮT BUỘC xuống dòng bằng \\\\
+- KHÔNG được ghép nhiều công thức trên 1 dòng.
+- Dùng đúng chuẩn LaTeX:
+  \frac{}, \sqrt{}, ^{}, _{}, \triangle, \angle, \parallel, \perp
+- KHÔNG dùng ký tự lạ như:   
+- Đại số mẫu:
+  $$
+  x + 5 = 10 \\\\
+  x = 5
+  $$
+- Hình học mẫu:
+  $$
+  \frac{AP}{AB} = \frac{150}{300} = \frac{1}{2} \\\\
+  \triangle ABC,\; \angle ABC,\; AB \parallel CD
+  $$
 
 =====================
 1️⃣ CHÉP LẠI ĐỀ BÀI
 =====================
-- Dòng 1: Đề bài tiếng Việt ngắn.
-- Dòng 2: Dịch H’Mông đơn giản.
-- Dòng 3: LaTeX ví dụ:
-  $$
-  AP = 150\,m \\\\
-  PB = 150\,m
-  $$
+- Dòng 1: Tiếng Việt (ngắn).
+- Dòng 2: Tiếng H’Mông.
+- Dòng 3: LaTeX rõ ràng, mỗi dòng \\\\.
 
 =========================
 2️⃣ CHẤM BÀI HỌC SINH
 =========================
 Mỗi bước gồm 3 dòng:
-- Dòng 1: "Bước X: ĐÚNG" hoặc "Bước X: SAI"
-- Dòng 2: Nếu sai → chỉ lỗi 1 câu
-- Dòng 3: Dịch tiếng H’Mông
+- Dòng 1: “Bước X: ĐÚNG” hoặc “SAI”.
+- Dòng 2: Nếu sai → nêu lỗi 1 câu.
+- Dòng 3: Dịch tiếng H’Mông.
 
 ==========================
 3️⃣ GIẢI LẠI BÀI TOÁN
 ==========================
-Mỗi bước gồm 3 dòng:
-- Dòng 1: Giải tiếng Việt
-- Dòng 2: Giải tiếng H’Mông
-- Dòng 3: LaTeX dạng:
+Mỗi bước gồm:
+- Dòng 1: Tiếng Việt.
+- Dòng 2: Tiếng H’Mông.
+- Dòng 3: LaTeX:
   $$
   AP = 150\,m \\\\
   PB = 150\,m \\\\
-  AB = AP + PB = 300\,m \\\\
+  AB = 300\,m \\\\
   \frac{AP}{AB} = \frac{1}{2}
   $$
 
 ==========================
-4️⃣ GHI NHỚ
+4️⃣ LUÔN GHI NHỚ
 ==========================
-- Câu ngắn
-- Xuống dòng rõ ràng
-- Song ngữ Việt – H’Mông
-- LaTeX sạch, có \\\\ giữa các dòng
+- Câu ngắn.
+- Xuống dòng từng ý.
+- Song ngữ Việt – H’Mông.
+- LaTeX sạch, chuẩn, không ký tự lạ.
 """
 
                     result = analyze_real_image(api_key, image, prompt_text)
