@@ -5,8 +5,8 @@ from PIL import Image
 from io import BytesIO
 import json
 
-st.set_page_config(page_title="Chấm Bài AI Song Ngữ", page_icon="📸")
-st.title("📸 Chấm Bài & Giải Toán Qua Ảnh (Việt – H’Mông)")
+st.set_page_config(page_title="Giải Bài Tập Từ Ảnh", page_icon="📘")
+st.title("📘 Giải Bài Tập Từ Ảnh (Việt – H’Mông)")
 
 # =====================
 # 🔑 NHẬP GOOGLE API KEY
@@ -16,29 +16,26 @@ with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
     st.markdown("""
 ### 👉 Cách lấy Google API Key để dùng ứng dụng:
 
-1. Truy cập trang:  
-   **https://aistudio.google.com/app/apikey**
-
-2. Đăng nhập bằng Gmail.
-
+1. Truy cập: **https://aistudio.google.com/app/apikey**
+2. Đăng nhập Gmail.
 3. Nhấn **Create API key**.
+4. Copy API Key.
+5. Dán vào ô bên dưới.
 
-4. Copy API Key và dán vào ô bên dưới.
+⚠️ Không chia sẻ API Key cho người khác.
+""")
 
-⚠️ **Không chia sẻ API Key cho người khác.**
-    """)
-
-st.subheader("🔐 Nhập Google API Key của bạn:")
-api_key = st.text_input("Nhập Google API Key:", type="password")
+st.subheader("🔐 Nhập Google API Key:")
+api_key = st.text_input("Google API Key:", type="password")
 
 if not api_key:
-    st.warning("⚠️ Bạn cần nhập API Key để sử dụng ứng dụng.")
+    st.warning("⚠️ Nhập API Key để tiếp tục.")
 else:
-    st.success("✅ API Key đã được nhập!")
+    st.success("✅ API Key hợp lệ!")
 
 
 # ===============================
-# 📌 HÀM PHÂN TÍCH ẢNH VỚI GEMINI
+# 📌 HÀM GỌI GEMINI
 # ===============================
 
 def analyze_real_image(api_key, image, prompt):
@@ -53,15 +50,13 @@ def analyze_real_image(api_key, image, prompt):
     URL = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
 
     payload = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [
-                    {"text": prompt},
-                    {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
-                ]
-            }
-        ]
+        "contents": [{
+            "role": "user",
+            "parts": [
+                {"text": prompt},
+                {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
+            ]
+        }]
     }
 
     try:
@@ -70,8 +65,8 @@ def analyze_real_image(api_key, image, prompt):
             return f"❌ Lỗi API {res.status_code}: {res.text}"
 
         data = res.json()
-        if not data.get("candidates"):
-            return "❌ Lỗi: API trả về rỗng."
+        if "candidates" not in data:
+            return "❌ API trả về rỗng."
 
         return data["candidates"][0]["content"]["parts"][0]["text"]
 
@@ -80,13 +75,13 @@ def analyze_real_image(api_key, image, prompt):
 
 
 # ===============================
-# 📸 CHỤP ẢNH / TẢI ẢNH
+# 📸 CHỤP HOẶC TẢI ẢNH
 # ===============================
 
-st.subheader("📷 Chụp ảnh bài làm")
-photo = st.camera_input("Chụp trực tiếp:")
+st.subheader("📷 Chụp ảnh đề bài")
+photo = st.camera_input("Chụp từ camera:")
 
-st.subheader("📤 Hoặc tải ảnh lên")
+st.subheader("📤 Hoặc tải ảnh đề bài lên")
 upload = st.file_uploader("Chọn ảnh:", type=["png", "jpg", "jpeg"])
 
 image = None
@@ -97,96 +92,78 @@ elif upload:
 
 
 # ===============================
-# 🧠 PHÂN TÍCH ẢNH
+# 🧠 GIẢI BÀI TẬP TỪ ẢNH
 # ===============================
 
 if image:
+
     col1, col2 = st.columns([1, 1.5])
 
     with col1:
-        st.image(image, caption="Ảnh bài làm", use_column_width=True)
+        st.image(image, caption="Ảnh đề bài", use_column_width=True)
 
     with col2:
-        st.subheader("🔍 Kết quả AI:")
+        st.subheader("🔍 Kết quả giải bài:")
 
-        if st.button("Phân tích bài làm", type="primary"):
+        if st.button("Giải bài tập", type="primary"):
 
             if not api_key:
                 st.error("❌ Bạn chưa nhập API Key!")
             else:
-                with st.spinner("⏳ AI đang phân tích..."):
-
-                    # =========================
-                    # 🎯 PROMPT CHUẨN – KHÔNG LỖI LaTeX
-                    # =========================
+                with st.spinner("⏳ Đang giải bài..."):
+                    
+                    # ===============================
+                    # 🧠 PROMPT CHUẨN – GIẢI BÀI TẬP
+                    # ===============================
                     prompt_text = """
-Bạn là giáo viên Toán giỏi. Hãy chấm ảnh bài làm và giải toán NGẮN – DỄ HIỂU – SONG NGỮ (Việt – H’Mông).
+Bạn là giáo viên Toán giỏi. Hãy **giải bài tập trong ảnh** theo cách NGẮN – DỄ HIỂU – SONG NGỮ (Việt – H’Mông).
 
 ==============================
 ⚠️ QUY TẮC CÔNG THỨC TOÁN HỌC
 ==============================
-- Mọi công thức必须 nằm trong khối:
+- Tất cả công thức phải đặt trong khối:
   $$
   ... \\\\
   $$
 - Mỗi phép toán BẮT BUỘC xuống dòng bằng \\\\
-- KHÔNG được ghép nhiều công thức trên 1 dòng.
-- Dùng đúng chuẩn LaTeX:
+- Dùng đúng LaTeX chuẩn:
   \frac{}, \sqrt{}, ^{}, _{}, \triangle, \angle, \parallel, \perp
-- KHÔNG dùng ký tự lạ như:   
-- Đại số mẫu:
-  $$
-  x + 5 = 10 \\\\
-  x = 5
-  $$
-- Hình học mẫu:
-  $$
-  \frac{AP}{AB} = \frac{150}{300} = \frac{1}{2} \\\\
-  \triangle ABC,\; \angle ABC,\; AB \parallel CD
-  $$
+- TUYỆT ĐỐI KHÔNG sinh ký tự lạ như:   
+- Không ghép nhiều công thức trên 1 dòng.
+- Đơn vị viết dạng: 150\,m ; 30\,cm
 
 =====================
 1️⃣ CHÉP LẠI ĐỀ BÀI
 =====================
-- Dòng 1: Tiếng Việt (ngắn).
-- Dòng 2: Tiếng H’Mông.
-- Dòng 3: LaTeX rõ ràng, mỗi dòng \\\\.
-
-=========================
-2️⃣ CHẤM BÀI HỌC SINH
-=========================
-Mỗi bước gồm 3 dòng:
-- Dòng 1: “Bước X: ĐÚNG” hoặc “SAI”.
-- Dòng 2: Nếu sai → nêu lỗi 1 câu.
-- Dòng 3: Dịch tiếng H’Mông.
+- Dòng 1: Đề bài tiếng Việt (ngắn gọn).
+- Dòng 2: Dịch sang tiếng H’Mông.
+- Dòng 3: Công thức LaTeX rõ ràng, mỗi dòng có \\\\.
 
 ==========================
-3️⃣ GIẢI LẠI BÀI TOÁN
+2️⃣ GIẢI BÀI TẬP (SONG NGỮ)
 ==========================
-Mỗi bước gồm:
-- Dòng 1: Tiếng Việt.
-- Dòng 2: Tiếng H’Mông.
-- Dòng 3: LaTeX:
+Mỗi bước trình bày 3 dòng:
+- Dòng 1: Giải thích tiếng Việt.
+- Dòng 2: Giải thích tiếng H’Mông.
+- Dòng 3: Công thức LaTeX sạch:
   $$
-  AP = 150\,m \\\\
-  PB = 150\,m \\\\
-  AB = 300\,m \\\\
-  \frac{AP}{AB} = \frac{1}{2}
+  \frac{AP}{AB} = \frac{150}{300} = \frac{1}{2} \\\\
+  AP = 150\,m
   $$
 
 ==========================
-4️⃣ LUÔN GHI NHỚ
+3️⃣ TRÌNH BÀY RÕ RÀNG
 ==========================
 - Câu ngắn.
-- Xuống dòng từng ý.
+- Mỗi ý xuống dòng.
 - Song ngữ Việt – H’Mông.
-- LaTeX sạch, chuẩn, không ký tự lạ.
+- LaTeX sạch – không ký tự lạ.
 """
 
                     result = analyze_real_image(api_key, image, prompt_text)
 
-                    if "❌" in result:
+                    if result.startswith("❌"):
                         st.error(result)
                     else:
-                        st.success("🎉 Đã phân tích xong!")
+                        st.success("🎉 Hoàn thành!")
                         st.markdown(result)
