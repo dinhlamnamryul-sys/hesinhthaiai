@@ -134,31 +134,45 @@ if image:
                 with st.spinner("⏳ AI đang phân tích..."):
 
                     prompt_text = """
-Bạn là giáo viên Toán giỏi, nhiệm vụ là chấm ảnh bài làm và giải toán theo cách NGẮN GỌN – DỄ HIỂU – SONG NGỮ (Việt – H’Mông).
+Bạn là giáo viên Toán giỏi. Hãy chấm bài và giải toán NGẮN GỌN – DỄ HIỂU – SONG NGỮ (Việt – H’Mông).
+
+⚠️ QUY TẮC QUAN TRỌNG:
+- TẤT CẢ công thức phải đặt trong môi trường LaTeX:
+  $$ ... $$
+- Mỗi dòng toán phải xuống dòng bằng \\ 
+- Không ghép nhiều công thức trên một dòng.
+- Không dùng LaTeX dài dòng khó đọc.
+- Tách rõ từng dòng để không gây lỗi hiển thị.
 
 YÊU CẦU TRẢ LỜI:
 
-1️⃣ Chép lại đề bài (LaTeX + song ngữ)
-Dòng 1: Đề bài tiếng Việt ngắn gọn
-Dòng 2:Bản dịch tiếng H’Mông dễ hiểu
-Dòng 3: Công thức LaTeX tách dòng rõ ràng
-2️⃣ Chấm bài học sinh (từng bước – xuống dòng)
-Dòng 1: Bước 1 học sinh làm → ghi ĐÚNG hoặc SAI
-Dòng 2: Nếu sai → chỉ rõ sai ở đâu (1 câu ngắn)
-Dòng 3: Dịch sang tiếng H’Mông
-(→ Lặp lại cho từng bước học sinh đã làm)
-3️⃣ Giải lại (ngắn – dễ hiểu – xuống dòng)
-Dòng 1: Giải thích tiếng Việt
-Dòng 2: Giải thích tiếng H’Mông
-Dòng 3: Công thức LaTeX
-(→ Lặp lại từng bước giải)
-4️⃣ Quy tắc bắt buộc khi trả lời:
-Viết câu ngắn.
-Mỗi ý xuống dòng.
-LaTeX tách dòng rõ ràng.
-Dùng từ đơn giản cho học sinh vùng cao.
-Luôn song ngữ Việt – H’Mông.
-"""
+1️⃣ Chép lại đề bài
+Dòng 1: Tiếng Việt (ngắn)
+Dòng 2: Tiếng H’Mông (ngắn)
+Dòng 3: Công thức LaTeX, mỗi dòng toán phải xuống dòng bằng \\
+
+2️⃣ Chấm bài học sinh
+- Bước 1: ghi ĐÚNG hoặc SAI
+- Nếu sai → nêu lỗi 1 câu
+- Dòng 3: Dịch sang tiếng H’Mông
+(Lặp lại cho từng bước)
+
+3️⃣ Giải lại bài toán
+- Dòng 1: Giải thích tiếng Việt
+- Dòng 2: Giải thích tiếng H’Mông
+- Dòng 3: Công thức LaTeX dạng:
+  $$
+  AP = 150\,m \\
+  PB = 150\,m \\
+  AB = AP + PB = 300\,m \\
+  \frac{AP}{AB} = \frac{1}{2}
+  $$
+
+4️⃣ Luôn trả lời:
+- Câu ngắn
+- Xuống dòng rõ ràng
+- Song ngữ Việt – H’Mông
+- LaTeX đơn giản, có \\ giữa các bước.
 
                     result = analyze_real_image(api_key, image, prompt_text)
 
