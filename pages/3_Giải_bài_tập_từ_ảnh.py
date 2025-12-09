@@ -33,14 +33,13 @@ with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
     """)
 
 st.subheader("🔐 Nhập Google API Key của bạn để sử dụng:")
-
-# lưu API key vào session_state
 api_key = st.text_input("Nhập Google API Key:", type="password")
 
 if not api_key:
     st.warning("⚠️ Bạn cần nhập API Key để tiếp tục sử dụng ứng dụng.")
 else:
     st.success("✅ API Key đã được nhập!")
+
 
 # ===============================
 # 📌 HÀM PHÂN TÍCH ẢNH QUA GEMINI
@@ -133,46 +132,64 @@ if image:
             else:
                 with st.spinner("⏳ AI đang phân tích..."):
 
+                    # ================================
+                    # 📌 PROMPT TỐI ƯU CHỐNG LỖI LaTeX
+                    # ================================
                     prompt_text = """
 Bạn là giáo viên Toán giỏi. Hãy chấm bài và giải toán NGẮN GỌN – DỄ HIỂU – SONG NGỮ (Việt – H’Mông).
 
-⚠️ QUY TẮC QUAN TRỌNG:
-- TẤT CẢ công thức phải đặt trong môi trường LaTeX:
-  $$ ... $$
-- Mỗi dòng toán phải xuống dòng bằng \\ 
-- Không ghép nhiều công thức trên một dòng.
-- Không dùng LaTeX dài dòng khó đọc.
-- Tách rõ từng dòng để không gây lỗi hiển thị.
-
-YÊU CẦU TRẢ LỜI:
-
-1️⃣ Chép lại đề bài
-Dòng 1: Tiếng Việt (ngắn)
-Dòng 2: Tiếng H’Mông (ngắn)
-Dòng 3: Công thức LaTeX, mỗi dòng toán phải xuống dòng bằng \\
-
-2️⃣ Chấm bài học sinh
-- Bước 1: ghi ĐÚNG hoặc SAI
-- Nếu sai → nêu lỗi 1 câu
-- Dòng 3: Dịch sang tiếng H’Mông
-(Lặp lại cho từng bước)
-
-3️⃣ Giải lại bài toán
-- Dòng 1: Giải thích tiếng Việt
-- Dòng 2: Giải thích tiếng H’Mông
-- Dòng 3: Công thức LaTeX dạng:
+⚠️ QUY TẮC QUAN TRỌNG KHI TRẢ LỜI:
+- Mọi công thức phải đặt trong khối LaTeX:
   $$
-  AP = 150\,m \\
-  PB = 150\,m \\
-  AB = AP + PB = 300\,m \\
+  ... \\\\
+  ... \\\\
+  $$
+- Mỗi phép tính *bắt buộc* xuống dòng bằng \\\\
+- Không ghép nhiều phép tính trên một dòng.
+- LaTeX phải cực kỳ đơn giản, không dùng ký hiệu khó.
+- Viết câu ngắn – dễ hiểu – phù hợp học sinh vùng cao.
+
+=====================
+1️⃣ CHÉP LẠI ĐỀ BÀI
+=====================
+- Dòng 1: Đề bài tiếng Việt ngắn.
+- Dòng 2: Dịch H’Mông đơn giản.
+- Dòng 3: LaTeX ví dụ:
+  $$
+  AP = 150\,m \\\\
+  PB = 150\,m
+  $$
+
+=========================
+2️⃣ CHẤM BÀI HỌC SINH
+=========================
+Mỗi bước gồm 3 dòng:
+- Dòng 1: "Bước X: ĐÚNG" hoặc "Bước X: SAI"
+- Dòng 2: Nếu sai → chỉ lỗi 1 câu
+- Dòng 3: Dịch tiếng H’Mông
+
+==========================
+3️⃣ GIẢI LẠI BÀI TOÁN
+==========================
+Mỗi bước gồm 3 dòng:
+- Dòng 1: Giải tiếng Việt
+- Dòng 2: Giải tiếng H’Mông
+- Dòng 3: LaTeX dạng:
+  $$
+  AP = 150\,m \\\\
+  PB = 150\,m \\\\
+  AB = AP + PB = 300\,m \\\\
   \frac{AP}{AB} = \frac{1}{2}
   $$
 
-4️⃣ Luôn trả lời:
+==========================
+4️⃣ GHI NHỚ
+==========================
 - Câu ngắn
 - Xuống dòng rõ ràng
 - Song ngữ Việt – H’Mông
-- LaTeX đơn giản, có \\ giữa các bước.
+- LaTeX sạch, có \\\\ giữa các dòng
+"""
 
                     result = analyze_real_image(api_key, image, prompt_text)
 
