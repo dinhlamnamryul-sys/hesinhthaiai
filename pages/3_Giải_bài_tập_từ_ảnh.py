@@ -4,7 +4,7 @@ import streamlit as st
 from datetime import datetime
 
 st.set_page_config(page_title="Sinh Đề Chuẩn LaTeX", page_icon="📝", layout="wide")
-st.title("📝 Sinh Đề Tự Động – LaTeX + Đáp án cách dòng")
+st.title("📝 Tạo Đề Tự Động ")
 
 # --- API Key ---
 api_key = st.secrets.get("GOOGLE_API_KEY", "")
@@ -173,14 +173,13 @@ def build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
     
     dan_ap = (
     "Tạo đáp án chi tiết và lời giải sau mỗi câu hỏi, tất cả công thức bằng LaTeX. "
-    "Với câu NL hoặc DS, mỗi lựa chọn A/B/C/D phải cách nhau 1 dòng, không gộp. "
-    "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng riêng."
+    "Với câu NL hoặc DS, mỗi lựa chọn A/B/C/D phải xuống dòng riêng, bắt đầu bằng '- '. "
+    "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng riêng, bắt đầu bằng '- '."
     if co_dap_an == "Có đáp án"
     else "Không cần đáp án, nhưng tất cả công thức bắt buộc LaTeX. "
-         "Với câu NL hoặc DS, mỗi lựa chọn A/B/C/D phải xuống dòng riêng. "
-         "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng."
+         "Với câu NL hoặc DS, mỗi lựa chọn A/B/C/D phải xuống dòng riêng, bắt đầu bằng '- '. "
+         "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng riêng, bắt đầu bằng '- '."
 )
-    
     prompt = f"""
 Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
 - Chương: {', '.join(chuong)}
@@ -223,13 +222,13 @@ def generate_questions(api_key, prompt):
         return False, "Lỗi kết nối: Yêu cầu hết thời gian."
 
 # --- Nút bấm sinh đề ---
-if st.button("Sinh đề chuẩn + đáp án cách dòng"):
+if st.button("tạo đề chuẩn"):
     if not api_key:
         st.warning("Nhập API Key trước khi sinh đề!")
     else:
         prompt = build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
                               so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
-        with st.spinner("Đang sinh đề (Markdown + LaTeX + đáp án cách dòng)..."):
+        with st.spinner("Đang tạo đề (Markdown + LaTeX + đáp án cách dòng)..."):
             success, result = generate_questions(api_key, prompt)
             if success:
                 st.success("✅ Sinh đề thành công!")
