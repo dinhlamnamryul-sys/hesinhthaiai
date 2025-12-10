@@ -2,20 +2,13 @@
 import requests
 import streamlit as st
 from datetime import datetime
+# ... (cài đặt trang) ...
 
-st.set_page_config(page_title="Sinh Đề Chuẩn LaTeX", page_icon="📝", layout="wide")
-st.title("📝 Sinh Đề Tự Động – LaTeX + Đáp án cách dòng")
-
+# --- API Key & Hướng dẫn ---
+api_key = st.secrets.get("GOOGLE_API_KEY", "") # Dòng này khởi tạo api_key
+# ...
 if not api_key:
-    st.warning("⚠️ **Bạn cần nhập Google API Key để sử dụng tính năng sinh đề.**")
-    st.info("""
-    ### 🔑 Hướng dẫn lấy Google API Key (Gemini API)
-    1.  Truy cập vào trang **Google AI Studio** tại: [https://aistudio.google.com/](https://aistudio.google.com/)
-    2.  Đăng nhập bằng tài khoản Google của bạn.
-    3.  Tìm nút **"Create API key in new project"** hoặc truy cập mục **"API keys"** trong menu bên trái.
-    4.  Copy chuỗi Key vừa được tạo và dán vào ô bên dưới.
-    *Lưu ý: Việc sử dụng Gemini API có thể phát sinh chi phí theo chính sách của Google.*
-    """)
+    # ... (hiển thị hướng dẫn) ...
     api_key_input = st.text_input("Nhập Google API Key của bạn:", type="password")
     
     # Gán giá trị nhập vào cho api_key nếu có
