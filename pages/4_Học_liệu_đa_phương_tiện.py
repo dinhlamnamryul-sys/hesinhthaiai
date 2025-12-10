@@ -33,7 +33,13 @@ st.markdown("""
 # -----------------------
 # 🔑 NHẬP GOOGLE API KEY
 # =====================
+# Thêm dòng này ở đâu đó gần đầu file của bạn
+MODEL_DEFAULT = "gemini-2.5-flash"  # Hoặc bất kỳ tên mô hình nào bạn muốn dùng làm mặc định
 
+# ... sau đó mới đến dòng định nghĩa hàm của bạn
+def generate_with_gemini(api_key, prompt, model=MODEL_DEFAULT):
+    # Phần code gọi API Gemini
+    pass
 with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
     st.markdown("""
 ### 👉 Cách lấy Google API Key để dùng ứng dụng:
