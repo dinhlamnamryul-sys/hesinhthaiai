@@ -30,20 +30,69 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------
-# API Key & Config
-# -----------------------
-api_key = st.secrets.get("GROQ_API_KEY", "")
+# 🔑 NHẬP GOOGLE API KEY
+# =====================
 
-with st.sidebar:
-    st.header("⚙️ Cấu hình")
-    if not api_key:
-        api_key = st.text_input("Nhập Groq API Key:", type="password")
+with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
+    st.markdown("""
+### 👉 Cách lấy Google API Key để dùng ứng dụng:
 
-    # Đã thay thế model Gemini bằng model Groq
-    MODEL_DEFAULT = st.selectbox("Chọn model AI (Groq):",
-                                 ["llama-3.1-8b-instant", "llama3-8b-8192", "mixtral-8x7b-32768"],
-                                 key="ai_model_select") 
-    st.info("Lưu ý: Tính năng đọc văn bản cần kết nối internet.")
+1. Truy cập: **https://aistudio.google.com/app/apikey**
+2. Đăng nhập Gmail.
+3. Nhấn **Create API key**.
+4. Copy API Key.
+5. Dán vào ô bên dưới.
+
+⚠️ Không chia sẻ API Key cho người khác.
+""")
+
+st.subheader("🔐 Nhập Google API Key:")
+api_key = st.text_input("Google API Key:", type="password")
+
+if not api_key:
+    st.warning("⚠️ Nhập API Key để tiếp tục.")
+else:
+    st.success("✅ API Key hợp lệ!")
+
+
+# ===============================
+# 📌 HÀM GỌI GEMINI
+# ===============================
+
+def analyze_real_image(api_key, image, prompt):
+    if image.mode == "RGBA":
+        image = image.convert("RGB")
+
+    buf = BytesIO()
+    image.save(buf, format="JPEG")
+    img_b64 = base64.b64encode(buf.getvalue()).decode()
+
+    MODEL = "gemini-2.5-flash"
+    URL = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
+
+    payload = {
+        "contents": [{
+            "role": "user",
+            "parts": [
+                {"text": prompt},
+                {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
+            ]
+        }]
+    }
+
+    try:
+        res = requests.post(URL, json=payload)
+        if res.status_code != 200:
+            return f"❌ Lỗi API {res.status_code}: {res.text}"
+
+        data = res.json()
+        if "candidates" not in data:
+            return "❌ API trả về rỗng."
+
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+
+    except Exception as e:
+        return f"❌ Lỗi kết nối: {str(e)}"
 
 # -----------------------
 # Mục lục Toán học Lớp 6 - 9 (Đã trích xuất từ file mục lục toán.docx)
