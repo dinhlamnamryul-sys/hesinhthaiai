@@ -1,169 +1,119 @@
 import streamlit as st
 import requests
-import base64
-from PIL import Image
-from io import BytesIO
-import json
 
-st.set_page_config(page_title="Giải Bài Tập Từ Ảnh", page_icon="📘")
-st.title("📘 Giải Bài Tập Từ Ảnh (Việt – H’Mông)")
+st.set_page_config(page_title="Sinh Đề KNTC Tự Động", page_icon="📝", layout="wide")
+st.title("📝 Sinh Đề Tự Động – Kết nối tri thức với cuộc sống")
 
-# =====================
+# ============================
 # 🔑 NHẬP GOOGLE API KEY
-# =====================
-
-with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
+# ============================
+with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để mở)"):
     st.markdown("""
-### 👉 Cách lấy Google API Key để dùng ứng dụng:
-
 1. Truy cập: **https://aistudio.google.com/app/apikey**
-2. Đăng nhập Gmail.
-3. Nhấn **Create API key**.
-4. Copy API Key.
-5. Dán vào ô bên dưới.
+2. Nhấn **Create API Key**
+3. Sao chép API Key.
+4. Dán vào ô bên dưới.
 
-⚠️ Không chia sẻ API Key cho người khác.
+⚠️ Không chia sẻ API Key.
 """)
 
-st.subheader("🔐 Nhập Google API Key:")
-api_key = st.text_input("Google API Key:", type="password")
+api_key = st.text_input("Nhập Google API Key:", type="password")
 
 if not api_key:
-    st.warning("⚠️ Nhập API Key để tiếp tục.")
+    st.warning("⚠️ Bạn cần nhập API Key để sử dụng ứng dụng.")
 else:
-    st.success("✅ API Key hợp lệ!")
+    st.success("✅ API Key đã sẵn sàng!")
 
+# ============================
+# 📘 DANH SÁCH LỚP / BÀI
+# ============================
+lop_options = [f"Lớp {i}" for i in range(1, 10)]
+chuong_options = {f"Lớp {i}": [f"Chương {j}" for j in range(1, 6)] for i in range(1, 10)}
+bai_options = {f"Chương {i}": [f"Bài {j}" for j in range(1, 6)] for i in range(1, 6)}
 
-# ===============================
-# 📌 HÀM GỌI GEMINI
-# ===============================
+with st.sidebar:
+    st.header("📌 Thông tin sinh đề")
+    lop = st.selectbox("Chọn lớp", lop_options)
+    chuong = st.selectbox("Chọn chương", chuong_options[lop])
+    bai = st.selectbox("Chọn bài", bai_options[chuong])
+    so_cau = st.number_input("Số câu hỏi", min_value=1, max_value=50, value=10)
+    loai_cau = st.selectbox("Loại câu hỏi", ["Trắc nghiệm", "Tự luận", "Trộn cả hai"])
+    co_dap_an = st.checkbox("Có đáp án", value=True)
 
-def analyze_real_image(api_key, image, prompt):
-    if image.mode == "RGBA":
-        image = image.convert("RGB")
-
-    buf = BytesIO()
-    image.save(buf, format="JPEG")
-    img_b64 = base64.b64encode(buf.getvalue()).decode()
+# ============================
+# 🤖 HÀM GỌI GOOGLE AI GEMINI 2.5 FLASH
+# ============================
+def generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an):
 
     MODEL = "gemini-2.5-flash"
-    URL = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
+
+    prompt = f"""
+Bạn là giáo viên Toán. Hãy sinh đề kiểm tra theo sách 
+"Kết nối tri thức với cuộc sống":
+
+- Lớp: {lop}
+- Chương: {chuong}
+- Bài: {bai}
+- Số câu hỏi: {so_cau}
+- Loại câu hỏi: {loai_cau}
+- {'Có đáp án' if co_dap_an else 'Không có đáp án'}
+
+🎯 YÊU CẦU QUAN TRỌNG:
+
+1. Mỗi câu phải có dấu hỏi “?”.
+2. TRẮC NGHIỆM — đúng định dạng:
+   A. ...
+   B. ...
+   C. ...
+   D. ...
+3. TỰ LUẬN: dùng LaTeX nếu có công thức.
+4. Giữa câu hỏi và đáp án cách đúng **2 dòng trống**.
+5. Không sinh tiếng H'Mông.
+6. Chỉ dùng tiếng Việt.
+"""
 
     payload = {
-        "contents": [{
-            "role": "user",
-            "parts": [
-                {"text": prompt},
-                {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
-            ]
-        }]
+        "contents": [
+            {
+                "role": "user",
+                "parts": [{"text": prompt}]
+            }
+        ]
     }
 
     try:
-        res = requests.post(URL, json=payload)
-        if res.status_code != 200:
-            return f"❌ Lỗi API {res.status_code}: {res.text}"
+        response = requests.post(url, json=payload)
+        if response.status_code != 200:
+            return f"❌ Lỗi API {response.status_code}: {response.text}"
 
-        data = res.json()
-        if "candidates" not in data:
-            return "❌ API trả về rỗng."
-
+        data = response.json()
         return data["candidates"][0]["content"]["parts"][0]["text"]
 
     except Exception as e:
         return f"❌ Lỗi kết nối: {str(e)}"
 
 
-# ===============================
-# 📸 CHỤP HOẶC TẢI ẢNH
-# ===============================
+# ============================
+# ▶️ NÚT SINH ĐỀ
+# ============================
+if st.button("🎯 Sinh đề ngay"):
+    if not api_key:
+        st.error("❌ Chưa nhập API Key!")
+    else:
+        with st.spinner("⏳ Đang tạo đề..."):
+            result = generate_questions(api_key, lop, chuong, bai, so_cau, loai_cau, co_dap_an)
 
-st.subheader("📷 Chụp ảnh đề bài")
-photo = st.camera_input("Chụp từ camera:")
-
-st.subheader("📤 Hoặc tải ảnh đề bài lên")
-upload = st.file_uploader("Chọn ảnh:", type=["png", "jpg", "jpeg"])
-
-image = None
-if photo:
-    image = Image.open(photo)
-elif upload:
-    image = Image.open(upload)
-
-
-# ===============================
-# 🧠 GIẢI BÀI TẬP TỪ ẢNH
-# ===============================
-
-if image:
-
-    col1, col2 = st.columns([1, 1.5])
-
-    with col1:
-        st.image(image, caption="Ảnh đề bài", use_column_width=True)
-
-    with col2:
-        st.subheader("🔍 Kết quả giải bài:")
-
-        if st.button("Giải bài tập", type="primary"):
-
-            if not api_key:
-                st.error("❌ Bạn chưa nhập API Key!")
+            if "❌" in result:
+                st.error(result)
             else:
-                with st.spinner("⏳ Đang giải bài..."):
-                    
-                    # ===============================
-                    # 🧠 PROMPT CHUẨN – GIẢI BÀI TẬP
-                    # ===============================
-                    prompt_text = """
-Bạn là giáo viên Toán giỏi. Hãy **giải bài tập trong ảnh** theo cách NGẮN – DỄ HIỂU – SONG NGỮ (Việt – H’Mông).
+                st.success("🎉 Đề đã tạo xong!")
 
-==============================
-⚠️ QUY TẮC CÔNG THỨC TOÁN HỌC
-==============================
-- Tất cả công thức phải đặt trong khối:
-  $$
-  ... \\\\
-  $$
-- Mỗi phép toán BẮT BUỘC xuống dòng bằng \\\\
-- Dùng đúng LaTeX chuẩn:
-  \frac{}, \sqrt{}, ^{}, _{}, \triangle, \angle, \parallel, \perp
-- TUYỆT ĐỐI KHÔNG sinh ký tự lạ như:   
-- Không ghép nhiều công thức trên 1 dòng.
-- Đơn vị viết dạng: 150\,m ; 30\,cm
+                formatted = result
+                formatted = formatted.replace("A.", "<br><br>A.")
+                formatted = formatted.replace("B.", "<br>B.")
+                formatted = formatted.replace("C.", "<br>C.")
+                formatted = formatted.replace("D.", "<br>D.")
+                formatted = formatted.replace("\n\n", "\n\n<br>\n\n")
 
-=====================
-1️⃣ CHÉP LẠI ĐỀ BÀI
-=====================
-- Dòng 1: Đề bài tiếng Việt (ngắn gọn).
-- Dòng 2: Dịch sang tiếng H’Mông.
-- Dòng 3: Công thức LaTeX rõ ràng, mỗi dòng có \\\\.
-
-==========================
-2️⃣ GIẢI BÀI TẬP (SONG NGỮ)
-==========================
-Mỗi bước trình bày 3 dòng:
-- Dòng 1: Giải thích tiếng Việt.
-- Dòng 2: Giải thích tiếng H’Mông.
-- Dòng 3: Công thức LaTeX sạch:
-  $$
-  \frac{AP}{AB} = \frac{150}{300} = \frac{1}{2} \\\\
-  AP = 150\,m
-  $$
-
-==========================
-3️⃣ TRÌNH BÀY RÕ RÀNG
-==========================
-- Câu ngắn.
-- Mỗi ý xuống dòng.
-- Song ngữ Việt – H’Mông.
-- LaTeX sạch – không ký tự lạ.
-"""
-
-                    result = analyze_real_image(api_key, image, prompt_text)
-
-                    if result.startswith("❌"):
-                        st.error(result)
-                    else:
-                        st.success("🎉 Hoàn thành!")
-                        st.markdown(result)
+                st.markdown(formatted, unsafe_allow_html=True)
