@@ -5,15 +5,35 @@ from datetime import datetime
 # ... (cài đặt trang) ...
 
 # --- API Key & Hướng dẫn ---
-api_key = st.secrets.get("GOOGLE_API_KEY", "") # Dòng này khởi tạo api_key
-# ...
+# --- API Key & Hướng dẫn (Đã chỉnh sửa để ưu tiên nhập Key) ---
+# 1. Thử lấy Key từ st.secrets (dùng cho môi trường Cloud)
+api_key = st.secrets.get("GOOGLE_API_KEY", "")
+
+# 2. Nếu không tìm thấy Key trong st.secrets, Yêu cầu người dùng nhập
 if not api_key:
-    # ... (hiển thị hướng dẫn) ...
+    st.warning("⚠️ **Bạn cần nhập Google API Key để sử dụng tính năng sinh đề.**")
+    st.info("""
+    ### 🔑 Hướng dẫn lấy Google API Key (Gemini API)
+    1.  Truy cập vào trang **Google AI Studio** tại: [https://aistudio.google.com/](https://aistudio.google.com/)
+    2.  Đăng nhập bằng tài khoản Google của bạn.
+    3.  Tìm nút **"Create API key in new project"** hoặc truy cập mục **"API keys"** trong menu bên trái.
+    4.  Copy chuỗi Key vừa được tạo và dán vào ô bên dưới.
+    """)
+    
+    # Ô nhập liệu bắt buộc
     api_key_input = st.text_input("Nhập Google API Key của bạn:", type="password")
     
-    # Gán giá trị nhập vào cho api_key nếu có
+    # Gán giá trị nhập vào cho api_key
     if api_key_input:
         api_key = api_key_input
+
+# Dòng kiểm tra cuối cùng (trong nút bấm Sinh đề)
+# Đảm bảo nút bấm chỉ chạy khi api_key đã có giá trị
+if st.button("Sinh đề chuẩn + đáp án cách dòng"):
+    if not api_key:
+        st.error("❌ **Vui lòng nhập Google API Key trước khi sinh đề!**")
+    else:
+        # ... (logic sinh đề được gọi)
 # --- Chương & bài từng lớp ---
 chuong_options_lop = {
     "Lớp 6": [
