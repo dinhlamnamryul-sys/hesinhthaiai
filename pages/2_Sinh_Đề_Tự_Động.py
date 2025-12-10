@@ -3,26 +3,69 @@ import requests
 import streamlit as st
 from datetime import datetime
 
-st.set_page_config(page_title="Sinh Đề Chuẩn LaTeX", page_icon="📝", layout="wide")
-st.title("📝 Sinh Đề Tự Động – LaTeX + Đáp án cách dòng")
+# 🔑 NHẬP GOOGLE API KEY
+# =====================
 
-# --- API Key & Hướng dẫn ---
-# 1. Thử lấy Key từ st.secrets (dùng cho môi trường Cloud hoặc config file)
-api_key = st.secrets.get("GOOGLE_API_KEY", "")
+with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
+    st.markdown("""
+### 👉 Cách lấy Google API Key để dùng ứng dụng:
 
-# 2. Nếu không có Key trong secrets, yêu cầu người dùng nhập
+1. Truy cập: **https://aistudio.google.com/app/apikey**
+2. Đăng nhập Gmail.
+3. Nhấn **Create API key**.
+4. Copy API Key.
+5. Dán vào ô bên dưới.
+
+⚠️ Không chia sẻ API Key cho người khác.
+""")
+
+st.subheader("🔐 Nhập Google API Key:")
+api_key = st.text_input("Google API Key:", type="password")
+
 if not api_key:
-    st.warning("⚠️ **Bạn cần nhập Google API Key để sử dụng tính năng sinh đề.**")
-    st.info("""
-    ### 🔑 Hướng dẫn lấy Google API Key (Gemini API)
-    1.  Truy cập vào trang **Google AI Studio** tại: [https://aistudio.google.com/](https://aistudio.google.com/)
-    2.  Đăng nhập bằng tài khoản Google của bạn.
-    3.  Tìm nút **"Create API key in new project"** hoặc truy cập mục **"API keys"** trong menu bên trái.
-    4.  Copy chuỗi Key vừa được tạo và dán vào ô bên dưới.
-    """)
-    
-    # Ô nhập liệu bắt buộc
-    api_key_input = st.text_input("Nhập Google API Key của bạn:", type="password", key="api_input")
+    st.warning("⚠️ Nhập API Key để tiếp tục.")
+else:
+    st.success("✅ API Key hợp lệ!")
+
+
+# ===============================
+# 📌 HÀM GỌI GEMINI
+# ===============================
+
+def analyze_real_image(api_key, image, prompt):
+    if image.mode == "RGBA":
+        image = image.convert("RGB")
+
+    buf = BytesIO()
+    image.save(buf, format="JPEG")
+    img_b64 = base64.b64encode(buf.getvalue()).decode()
+
+    MODEL = "gemini-2.5-flash"
+    URL = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
+
+    payload = {
+        "contents": [{
+            "role": "user",
+            "parts": [
+                {"text": prompt},
+                {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
+            ]
+        }]
+    }
+
+    try:
+        res = requests.post(URL, json=payload)
+        if res.status_code != 200:
+            return f"❌ Lỗi API {res.status_code}: {res.text}"
+
+        data = res.json()
+        if "candidates" not in data:
+            return "❌ API trả về rỗng."
+
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+
+    except Exception as e:
+        return f"❌ Lỗi kết nối: {str(e)}"
 chuong_options_lop = {
     "Lớp 6": [
         "Chương I: Tập hợp các số tự nhiên",
