@@ -4,78 +4,56 @@ import base64
 from PIL import Image
 from io import BytesIO
 import json
+from deep_translator import GoogleTranslator
 
+# ================== CẤU HÌNH TRANG ==================
 st.set_page_config(
     page_title="Gia sư Toán AI (KNTT)",
     page_icon="🏔️",
     layout="wide"
+)
+
 # =====================
 # 🔑 NHẬP GOOGLE API KEY
 # =====================
-
 with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
     st.markdown("""
-### 👉 Cách lấy Google API Key để dùng ứng dụng:
-
-1. Truy cập: **https://aistudio.google.com/app/apikey**
-2. Đăng nhập Gmail.
-3. Nhấn **Create API key**.
-4. Copy API Key.
-5. Dán vào ô bên dưới.
-
-⚠️ Không chia sẻ API Key cho người khác.
+### 👉 Cách lấy Google API Key:
+1. Truy cập **https://aistudio.google.com/app/apikey**
+2. Đăng nhập Gmail
+3. Nhấn **Create API key**
+4. Copy và dán vào ô bên dưới
+⚠️ Không chia sẻ API Key
 """)
 
-st.subheader("🔐 Nhập Google API Key:")
-api_key = st.text_input("Google API Key:", type="password")
+api_key = st.text_input("🔐 Nhập Google API Key:", type="password")
 
 if not api_key:
-    st.warning("⚠️ Nhập API Key để tiếp tục.")
+    st.warning("⚠️ Vui lòng nhập API Key để tiếp tục.")
+    st.stop()
 else:
-    st.success("✅ API Key hợp lệ!")
-
+    st.success("✅ Đã nhập API Key")
 
 # ===============================
-# 📌 HÀM GỌI GEMINI
+# 📌 HÀM GỌI GEMINI (TEXT)
 # ===============================
-
-def analyze_real_image(api_key, image, prompt):
-    if image.mode == "RGBA":
-        image = image.convert("RGB")
-
-    buf = BytesIO()
-    image.save(buf, format="JPEG")
-    img_b64 = base64.b64encode(buf.getvalue()).decode()
-
-    MODEL = "gemini-2.5-flash"
+def call_gemini_text(api_key, prompt):
+    MODEL = "gemini-1.5-flash"
     URL = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
 
     payload = {
         "contents": [{
-            "role": "user",
-            "parts": [
-                {"text": prompt},
-                {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
-            ]
+            "parts": [{"text": prompt}]
         }]
     }
 
-    try:
-        res = requests.post(URL, json=payload)
-        if res.status_code != 200:
-            return f"❌ Lỗi API {res.status_code}: {res.text}"
+    res = requests.post(URL, json=payload)
+    if res.status_code != 200:
+        raise Exception(res.text)
 
-        data = res.json()
-        if "candidates" not in data:
-            return "❌ API trả về rỗng."
+    data = res.json()
+    return data["candidates"][0]["content"]["parts"][0]["text"]
 
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-
-    except Exception as e:
-        return f"❌ Lỗi kết nối: {str(e)}"
-# ================== TRANG ==================
-
-)
 # ================== CHƯƠNG TRÌNH HỌC ==================
 CHUONG_TRINH_HOC = {
     "Lớp 6": {
@@ -146,23 +124,38 @@ Không thêm bất kỳ chữ nào ngoài JSON.
 """
 
     try:
-        res = model.generate_content(prompt)
-        return json.loads(res.text)
+# ================== SINH CÂU HỎI ==================
+def tao_de_toan(lop, bai):
+    prompt = f"""
+Bạn là giáo viên Toán Việt Nam, dạy theo SGK Kết nối tri thức.
 
-    except json.JSONDecodeError:
-        st.error("⚠️ AI trả về sai định dạng JSON. Hãy bấm tạo lại.")
-        st.code(res.text)
-        return None
+Tạo 1 câu hỏi trắc nghiệm Toán {lop}
+Bài: {bai}
 
+Yêu cầu:
+- 4 đáp án A, B, C, D
+- 1 đáp án đúng
+- Có gợi ý giải
+
+TRẢ VỀ DUY NHẤT JSON:
+{{
+  "question": "...",
+  "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
+  "answer": "A",
+  "hint_vi": "..."
+}}
+"""
+
+    try:
+        text = call_gemini_text(api_key, prompt)
+        return json.loads(text)
     except Exception as e:
         st.error(f"❌ Lỗi AI: {e}")
         return None
 
-# ================== HÀM DỊCH SANG TIẾNG H’MÔNG ==================
+# ================== DỊCH H’MÔNG ==================
 def dich(text):
     try:
-        if not text:
-            return ""
         return GoogleTranslator(source="vi", target="hmn").translate(text)
     except:
         return "Không dịch được."
@@ -183,7 +176,6 @@ if st.button("✨ Tạo câu hỏi"):
 
 if st.session_state.cau:
     cau = st.session_state.cau
-
     st.markdown("### ❓ Câu hỏi")
     st.markdown(cau["question"])
 
@@ -191,10 +183,10 @@ if st.session_state.cau:
 
     if st.button("✅ Kiểm tra"):
         if ans.startswith(cau["answer"]):
-            st.success("🎉 Chính xác! Làm rất tốt!")
+            st.success("🎉 Chính xác!")
         else:
             st.error("❌ Chưa đúng")
-            st.info("💡 **Gợi ý:** " + cau["hint_vi"])
-            st.info("🗣️ **Tiếng H’Mông:** " + dich(cau["hint_vi"]))
+            st.info("💡 Gợi ý: " + cau["hint_vi"])
+            st.info("🗣️ H’Mông: " + dich(cau["hint_vi"]))
 
 st.caption("© 2025 – Gia sư Toán AI cho học sinh vùng cao")
