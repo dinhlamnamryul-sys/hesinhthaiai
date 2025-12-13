@@ -4,10 +4,15 @@ import os, json, re, io, base64
 from deep_translator import GoogleTranslator
 from gtts import gTTS
 import google.generativeai as genai
+from google.generativeai import types # Thêm import types
 
 # ================== GEMINI ==================
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-model = genai.GenerativeModel("gemini-1.5-flash")
+# Đảm bảo GOOGLE_API_KEY được thiết lập trong môi trường
+if not os.getenv("GOOGLE_API_KEY"):
+    st.error("Lỗi: Không tìm thấy biến môi trường GOOGLE_API_KEY.")
+else:
+    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+    model = genai.GenerativeModel("gemini-1.5-flash")
 
 # ================== TRANG ==================
 st.set_page_config(
@@ -15,7 +20,6 @@ st.set_page_config(
     page_icon="🏔️",
     layout="wide"
 )
-
 # ================== CHƯƠNG TRÌNH ==================
 CHUONG_TRINH_HOC = {
 
