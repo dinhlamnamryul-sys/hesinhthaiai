@@ -10,7 +10,7 @@ if not os.getenv("GOOGLE_API_KEY"):
     st.stop()
 
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-model = genai.GenerativeModel("gemini-1.0-pro")
+model = genai.GenerativeModel("gemini-pro")
 
 
 # ================== TRANG ==================
