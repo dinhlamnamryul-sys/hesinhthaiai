@@ -514,141 +514,136 @@ def tao_de_toan(lop, bai_hoc):
              dap_an = a * 10
 
     # --- LỚP 6 ---
-    elif "Lớp 6" in lop:
-
-    # ----- CHƯƠNG I. TẬP HỢP CÁC SỐ TỰ NHIÊN -----
+   # ================== LỚP 6 ==================
+elif "Lớp 6" in lop:
 
     # Bài 1. Tập hợp
     if "bài 1" in bai_lower or "tập hợp" in bai_lower:
-        de_latex = "Cho tập hợp $A = \\{1; 3; 5; 7\\}$. Số phần tử của tập hợp A là?"
+        de_latex = "Cho tập hợp $A = \\{1; 3; 5; 7\\}$. Số phần tử của A là?"
         dap_an = 4
-        goi_y_text = "Đếm số phần tử khác nhau trong tập hợp."
+        goi_y_text = "Đếm số phần tử khác nhau."
 
     # Bài 2. Cách ghi số tự nhiên
     elif "bài 2" in bai_lower or "cách ghi số" in bai_lower:
-        de_latex = "Viết số liền sau của số 399."
+        de_latex = "Viết số liền sau của 399."
         dap_an = 400
         goi_y_text = "Số liền sau lớn hơn số đã cho 1 đơn vị."
 
     # Bài 3. Thứ tự trong tập hợp các số tự nhiên
-    elif "bài 3" in bai_lower or "thứ tự trong tập hợp" in bai_lower:
+    elif "bài 3" in bai_lower or "thứ tự" in bai_lower:
         a, b = random.randint(10, 99), random.randint(10, 99)
-        de_latex = f"So sánh hai số: {a} \\; ? \\; {b}"
+        de_latex = f"So sánh: {a} ? {b}"
         dap_an = ">" if a > b else "<" if a < b else "="
-        goi_y_text = "So sánh dựa vào số chữ số và từng chữ số."
+        goi_y_text = "So sánh số chữ số và từng chữ số."
 
-    # Bài 4. Phép cộng và phép trừ số tự nhiên
+    # Bài 4. Phép cộng và phép trừ
     elif "bài 4" in bai_lower or "phép cộng" in bai_lower:
         a, b = random.randint(10, 50), random.randint(10, 50)
-        de_latex = f"Tính: ${a} + {b}$"
+        de_latex = f"Tính: {a} + {b}"
         dap_an = a + b
-        goi_y_text = "Cộng các số hạng lại với nhau."
+        goi_y_text = "Cộng các số hạng."
 
-    # Bài 5. Phép nhân và phép chia số tự nhiên
+    # Bài 5. Phép nhân và phép chia
     elif "bài 5" in bai_lower or "phép nhân" in bai_lower:
         a, b = random.randint(2, 9), random.randint(2, 9)
-        de_latex = f"Tính: ${a} \\times {b}$"
+        de_latex = f"Tính: {a} × {b}"
         dap_an = a * b
-        goi_y_text = "Phép nhân là phép cộng các số hạng bằng nhau."
+        goi_y_text = "Phép nhân là cộng nhiều lần."
 
-    # Bài 6. Lũy thừa với số mũ tự nhiên
+    # Bài 6. Lũy thừa
     elif "bài 6" in bai_lower or "lũy thừa" in bai_lower:
         base, exp = random.randint(2, 5), random.randint(2, 4)
-        de_latex = f"Tính: ${base}^{exp}$"
+        de_latex = f"Tính: {base}^{exp}"
         dap_an = base ** exp
-        goi_y_text = "Nhân cơ số với chính nó số mũ lần."
+        goi_y_text = "Nhân cơ số với chính nó nhiều lần."
 
-    # Bài 7. Thứ tự thực hiện các phép tính
+    # Bài 7. Thứ tự thực hiện phép tính
     elif "bài 7" in bai_lower or "thứ tự thực hiện" in bai_lower:
         a, b, c = random.randint(2, 5), random.randint(2, 5), random.randint(2, 5)
-        de_latex = f"Tính: ${a} + {b} \\times {c}$"
+        de_latex = f"Tính: {a} + {b} × {c}"
         dap_an = a + b * c
-        goi_y_text = "Thực hiện nhân trước, cộng sau."
-
-    # ----- CHƯƠNG II. TÍNH CHIA HẾT -----
+        goi_y_text = "Nhân trước, cộng sau."
 
     # Bài 8. Quan hệ chia hết
-    elif "bài 8" in bai_lower or "quan hệ chia hết" in bai_lower:
+    elif "bài 8" in bai_lower or "chia hết" in bai_lower:
         de_latex = "Số 24 có chia hết cho 6 không?"
         dap_an = "Có"
         goi_y_text = "Nếu thương là số tự nhiên thì chia hết."
 
     # Bài 9. Dấu hiệu chia hết
-    elif "bài 9" in bai_lower or "dấu hiệu chia hết" in bai_lower:
-        question_type = "mcq"
-        de_latex = "Số nào sau đây chia hết cho 3?"
+    elif "bài 9" in bai_lower or "dấu hiệu" in bai_lower:
+        de_latex = "Số nào chia hết cho 3?"
         dap_an = "123"
-        options = ["121", "122", "123", "124"]
-        goi_y_text = "Tổng các chữ số chia hết cho 3."
+        goi_y_text = "Tổng chữ số chia hết cho 3."
 
     # Bài 10. Số nguyên tố
-    elif "bài 10" in bai_lower or "số nguyên tố" in bai_lower:
-        question_type = "mcq"
-        de_latex = "Số nào sau đây là số nguyên tố?"
+    elif "bài 10" in bai_lower or "nguyên tố" in bai_lower:
+        de_latex = "Số nào là số nguyên tố?"
         dap_an = "13"
-        options = ["9", "12", "13", "15"]
-        goi_y_text = "Số nguyên tố chỉ có 2 ước là 1 và chính nó."
+        goi_y_text = "Chỉ có hai ước là 1 và chính nó."
 
-    # Bài 11. Ước chung – ƯCLN
+    # Bài 11. ƯCLN
     elif "bài 11" in bai_lower or "ước chung" in bai_lower:
         de_latex = "Tìm ƯCLN(12, 18)."
         dap_an = 6
-        goi_y_text = "Phân tích các số ra thừa số nguyên tố."
+        goi_y_text = "Phân tích ra thừa số nguyên tố."
 
-    # Bài 12. Bội chung – BCNN
+    # Bài 12. BCNN
     elif "bài 12" in bai_lower or "bội chung" in bai_lower:
         de_latex = "Tìm BCNN(6, 8)."
         dap_an = 24
-        goi_y_text = "Chọn các thừa số nguyên tố với số mũ lớn nhất."
+        goi_y_text = "Lấy số mũ lớn nhất của các thừa số."
 
-    # ----- CHƯƠNG III. SỐ NGUYÊN -----
-
-    # Bài 13. Tập hợp các số nguyên
-    elif "bài 13" in bai_lower or "tập hợp số nguyên" in bai_lower:
-        de_latex = "Số nào sau đây là số nguyên âm?"
+    # Bài 13. Số nguyên
+    elif "bài 13" in bai_lower or "số nguyên" in bai_lower:
+        de_latex = "Số nào là số nguyên âm?"
         dap_an = "-5"
-        goi_y_text = "Số nguyên âm nhỏ hơn 0."
+        goi_y_text = "Số nhỏ hơn 0."
 
     # Bài 14. Cộng trừ số nguyên
     elif "bài 14" in bai_lower or "cộng trừ số nguyên" in bai_lower:
         a, b = random.randint(-20, -1), random.randint(1, 10)
-        de_latex = f"Tính: ${a} + {b}$"
+        de_latex = f"Tính: {a} + {b}"
         dap_an = a + b
-        goi_y_text = "Cộng hai số khác dấu: lấy hiệu giá trị tuyệt đối."
+        goi_y_text = "Khác dấu thì lấy hiệu."
 
     # Bài 15. Quy tắc dấu ngoặc
     elif "bài 15" in bai_lower or "dấu ngoặc" in bai_lower:
         a, b = random.randint(-10, -1), random.randint(1, 10)
-        de_latex = f"Tính: $-({a} - {b})$"
+        de_latex = f"Tính: -({a} - {b})"
         dap_an = -(a - b)
-        goi_y_text = "Bỏ dấu ngoặc thì đổi dấu các hạng tử."
+        goi_y_text = "Bỏ ngoặc đổi dấu."
 
-    # Bài 16. Phép nhân số nguyên
+    # Bài 16. Nhân số nguyên
     elif "bài 16" in bai_lower or "nhân số nguyên" in bai_lower:
         a, b = random.randint(-9, -1), random.randint(2, 9)
-        de_latex = f"Tính: ${a} \\times {b}$"
+        de_latex = f"Tính: {a} × {b}"
         dap_an = a * b
-        goi_y_text = "Hai số khác dấu thì tích là số âm."
+        goi_y_text = "Khác dấu thì tích âm."
 
-    # Bài 17. Ước và bội của số nguyên
+    # Bài 17. Ước và bội
     elif "bài 17" in bai_lower or "ước và bội" in bai_lower:
         de_latex = "Số nào là ước của 12?"
         dap_an = "3"
-        goi_y_text = "Ước là số chia hết cho số đã cho."
+        goi_y_text = "Ước là số chia hết."
 
-    # ----- CHƯƠNG V. TÍNH ĐỐI XỨNG -----
-
-    # Bài 21. Hình có trục đối xứng
+    # Bài 21. Trục đối xứng
     elif "bài 21" in bai_lower or "trục đối xứng" in bai_lower:
-        de_latex = "Hình nào sau đây có trục đối xứng?"
+        de_latex = "Hình nào có trục đối xứng?"
         dap_an = "Hình chữ nhật"
-        goi_y_text = "Hình có thể gập trùng lên chính nó."
+        goi_y_text = "Có thể gập trùng."
 
-    # Bài 22. Hình có tâm đối xứng
+    # Bài 22. Tâm đối xứng
     elif "bài 22" in bai_lower or "tâm đối xứng" in bai_lower:
-        de_latex = "Hình nào sau đây có tâm đối xứng?"
+        de_latex = "Hình nào có tâm đối xứng?"
         dap_an = "Hình bình hành"
-        goi_y_text = "Giao điểm hai đường chéo là tâm đối xứng."
+        goi_y_text = "Giao điểm hai đường chéo."
+
+    else:
+        de_latex = "Tính: 2 + 3"
+        dap_an = 5
+        goi_y_text = "Phép cộng cơ bản."
+
     # --- LỚP 7 ---
     elif "Lớp 7" in lop:
         if "số hữu tỉ" in bai_lower:
