@@ -39,13 +39,15 @@ else:
 # ===============================
 def call_gemini(api_key, prompt):
     url = (
-        "https://generativelanguage.googleapis.com/v1/"
-        f"models/gemini-1.5-flash:generateContent?key={api_key}"
+        "https://generativelanguage.googleapis.com/v1beta/"
+        f"models/gemini-2.0-flash:generateContent?key={api_key}"
     )
 
     payload = {
         "contents": [{
-            "parts": [{"text": prompt}]
+            "parts": [
+                {"text": prompt}
+            ]
         }]
     }
 
@@ -67,7 +69,7 @@ def call_gemini(api_key, prompt):
         return data["candidates"][0]["content"]["parts"][0]["text"]
 
     except Exception as e:
-        st.error("❌ Lỗi kết nối tới Gemini")
+        st.error("❌ Lỗi kết nối Gemini")
         st.code(str(e))
         return None
 
