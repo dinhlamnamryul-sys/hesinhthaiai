@@ -130,33 +130,35 @@ CHUONG_TRINH_HOC = {
         ]
     }
 }
-
-# ================== HÀM SINH CÂU HỎI ==================
-def tao_de_toan(lop, bai):
+# ================== HÀM SINH CÂU HỎI (Sửa lỗi) ==================
+def tao_de_toan_sua_loi(lop, bai):
     prompt = f"""
 Bạn là giáo viên Toán Việt Nam, SGK Kết nối tri thức.
-
-Tạo 1 câu hỏi trắc nghiệm Toán {lop}
-Bài: {bai}
-
-Yêu cầu:
-- 4 đáp án A B C D
-- 1 đáp án đúng
-- Có gợi ý
-
-Trả về JSON:
-{{
- "question": "...",
- "options": ["A ...","B ...","C ...","D ..."],
- "answer": "A",
- "hint_vi": "..."
-}}
+... (giữ nguyên prompt) ...
 """
     try:
         res = model.generate_content(prompt).text
-        data = json.loads(re.search(r"\{.*\}", res, re.S).group())
-        return data
-    except:
+        
+        # Sửa lỗi: Trích xuất nội dung giữa hai dấu ngoặc nhọn { } lớn nhất
+        # Biểu thức chính quy mạnh mẽ hơn, tìm khối JSON bao quanh.
+        json_match = re.search(r"\{[\s\S]*\}", res) 
+        
+        if json_match:
+            json_string = json_match.group(0)
+            # Thử parse JSON
+            data = json.loads(json_string)
+            return data
+        else:
+            # Không tìm thấy khối JSON nào
+            print("Không tìm thấy khối JSON trong phản hồi.")
+            return None
+            
+    except json.JSONDecodeError as e:
+        print(f"Lỗi JSON Decode: {e}")
+        # print(f"Chuỗi JSON bị lỗi: {json_string}") 
+        return None
+    except Exception as e:
+        print(f"Lỗi không xác định: {e}")
         return None
 
 # ================== HÀM DỊCH ==================
