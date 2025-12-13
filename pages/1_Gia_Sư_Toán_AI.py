@@ -134,65 +134,102 @@ CHUONG_TRINH_HOC = {
         ]
     }
 }
-# ================== HÀM SINH CÂU HỎI (Sửa lỗi) ==================
-def tao_de_toan_sua_loi(lop, bai):
+# 1. Định nghĩa JSON schema mong muốn cho đầu ra
+CAU_HOI_SCHEMA = types.Schema(
+    type=types.Type.OBJECT,
+    properties={
+        "question": types.Schema(type=types.Type.STRING, description="Câu hỏi trắc nghiệm Toán."),
+        "options": types.Schema(
+            type=types.Type.ARRAY,
+            description="4 đáp án A, B, C, D.",
+            items=types.Schema(type=types.Type.STRING)
+        ),
+        "answer": types.Schema(type=types.Type.STRING, description="Đáp án đúng (ví dụ: A, B, C, D)."),
+        "hint_vi": types.Schema(type=types.Type.STRING, description="Gợi ý giải bài tập bằng tiếng Việt.")
+    },
+    required=["question", "options", "answer", "hint_vi"]
+)
+
+# ================== HÀM SINH CÂU HỎI (Đã tối ưu) ==================
+# Đổi tên lại thành tao_de_toan để khớp với phần giao diện
+def tao_de_toan(lop, bai):
     prompt = f"""
 Bạn là giáo viên Toán Việt Nam, SGK Kết nối tri thức.
-... (giữ nguyên prompt) ...
+Tạo 1 câu hỏi trắc nghiệm Toán {lop}
+Bài: {bai}
+
+Yêu cầu:
+- 4 đáp án A B C D
+- 1 đáp án đúng
+- Có gợi ý chi tiết
+
+Trả về theo định dạng JSON đã yêu cầu. Tuyệt đối không thêm bất kỳ văn bản giải thích hoặc ký tự markdown (như ```json) nào.
 """
     try:
-        res = model.generate_content(prompt).text
-        
-        # Sửa lỗi: Trích xuất nội dung giữa hai dấu ngoặc nhọn { } lớn nhất
-        # Biểu thức chính quy mạnh mẽ hơn, tìm khối JSON bao quanh.
-        json_match = re.search(r"\{[\s\S]*\}", res) 
-        
-        if json_match:
-            json_string = json_match.group(0)
-            # Thử parse JSON
-            data = json.loads(json_string)
-            return data
-        else:
-            # Không tìm thấy khối JSON nào
-            print("Không tìm thấy khối JSON trong phản hồi.")
-            return None
-            
-    except json.JSONDecodeError as e:
-        print(f"Lỗi JSON Decode: {e}")
-        # print(f"Chuỗi JSON bị lỗi: {json_string}") 
-        return None
+        res = model.generate_content(
+            prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=CAU_HOI_SCHEMA
+            )
+        )
+        # Sử dụng thuộc tính .json để tự động parse JSON an toàn hơn
+        data = json.loads(res.text) # Vẫn phải dùng json.loads(res.text) cho API hiện tại
+        return data
     except Exception as e:
-        print(f"Lỗi không xác định: {e}")
+        # Ghi lại lỗi để debug (quan trọng)
+        st.error(f"Lỗi AI/JSON: {e}")
+        # if 'res' in locals():
+        #     st.code(res.text, language='json')
         return None
 
-# ================== HÀM DỊCH ==================
+# ================== HÀM DỊCH (Giữ nguyên) ==================
 def dich(text):
     try:
+        # Hạn chế dịch nếu text quá ngắn hoặc không cần thiết
+        if not text:
+             return ""
         return GoogleTranslator(source="vi", target="hmn").translate(text)
-    except:
-        return text
+    except Exception:
+        return "Lỗi dịch thuật."
 
-# ================== GIAO DIỆN ==================
+# ================== GIAO DIỆN (Đã sửa lỗi gọi hàm) ==================
 st.title("🏫 Gia sư Toán AI – SGK KNTT")
+
+# ... (Chọn lớp, chương, bài giữ nguyên) ...
 
 lop = st.selectbox("Chọn lớp", CHUONG_TRINH_HOC.keys())
 chuong = st.selectbox("Chọn chương", CHUONG_TRINH_HOC[lop].keys())
 bai = st.selectbox("Chọn bài", CHUONG_TRINH_HOC[lop][chuong])
 
+# Khởi tạo state để lưu câu hỏi
+if 'cau' not in st.session_state:
+    st.session_state.cau = None
+
 if st.button("✨ Tạo câu hỏi"):
-    cau = tao_de_toan(lop, bai)
-    if cau:
-        st.markdown("### ❓ Câu hỏi")
-        st.markdown(cau["question"])
-        ans = st.radio("Chọn đáp án", cau["options"])
-        if st.button("✅ Kiểm tra"):
-            if ans.startswith(cau["answer"]):
-                st.success("🎉 Chính xác!")
-            else:
-                st.error("❌ Sai rồi")
-                st.info("Gợi ý: " + cau["hint_vi"])
-                st.info("H'Mông: " + dich(cau["hint_vi"]))
-    else:
-        st.error("AI bận, thử lại sau")
+    with st.spinner("Đang tạo câu hỏi..."):
+        st.session_state.cau = tao_de_toan(lop, bai) # Gọi hàm đã tối ưu
+
+if st.session_state.cau:
+    cau = st.session_state.cau
+    st.markdown("### ❓ Câu hỏi")
+    st.markdown(cau["question"])
+    
+    # Lấy đáp án người dùng chọn
+    # Sử dụng key để Streamlit không bị lỗi khi state thay đổi
+    ans = st.radio("Chọn đáp án", cau["options"], key="radio_ans")
+    
+    if st.button("✅ Kiểm tra", key="check_button"):
+        if ans.startswith(cau["answer"]):
+            st.success("🎉 Chính xác!")
+        else:
+            st.error("❌ Sai rồi")
+            st.info("**Gợi ý:** " + cau["hint_vi"])
+            st.info("**H'Mông:** " + dich(cau["hint_vi"]))
+else:
+    # Nếu chưa có câu hỏi và người dùng chưa bấm nút (hoặc bị lỗi)
+    if 'cau' in st.session_state and st.session_state.cau is None:
+        st.error("AI bận, thử lại sau. (Vui lòng kiểm tra lại GOOGLE_API_KEY và logs nếu lỗi vẫn tiếp diễn)")
+
 
 st.caption("© 2025 Trường PTDTBT TH&THCS Na Ư")
