@@ -10,8 +10,15 @@ if not os.getenv("GOOGLE_API_KEY"):
     st.stop()
 
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-model = genai.GenerativeModel("gemini-pro")
 
+# MODEL MỚI – TRÁNH LỖI 404
+model = genai.GenerativeModel(
+    model_name="models/gemini-1.5-flash-latest",
+    generation_config={
+        "temperature": 0.6,
+        "max_output_tokens": 512
+    }
+)
 
 # ================== TRANG ==================
 st.set_page_config(
