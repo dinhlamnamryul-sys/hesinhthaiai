@@ -515,7 +515,7 @@ def tao_de_toan(lop, bai_hoc):
 
     # --- LỚP 6 ---
    # ================== LỚP 6 ==================
-    elif "Lớp 6" in lop:
+elif "Lớp 6" in lop:
 
     # Bài 1. Tập hợp
     if "bài 1" in bai_lower or "tập hợp" in bai_lower:
