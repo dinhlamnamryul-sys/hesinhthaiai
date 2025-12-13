@@ -2,14 +2,15 @@
 import streamlit as st
 import os, json
 from deep_translator import GoogleTranslator
-# from gtts import gTTS # Tạm thời loại bỏ nếu chưa dùng để giảm dependency
+# from gtts import gTTS # Có thể bỏ nếu không dùng tính năng chuyển văn bản thành giọng nói
 import google.generativeai as genai
+# SỬA LỖI AttributeError: Import Schema, Type, Config trực tiếp
+from google.generativeai.types import Schema, Type, GenerateContentConfig 
 
 # ================== GEMINI ==================
 # Khởi tạo và kiểm tra API Key
 if not os.getenv("GOOGLE_API_KEY"):
     st.error("Lỗi: Không tìm thấy biến môi trường GOOGLE_API_KEY. Vui lòng thiết lập.")
-    # Dừng script nếu không có API Key
     st.stop()
 else:
     genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
@@ -100,23 +101,23 @@ CHUONG_TRINH_HOC = {
     }
 }
 
-# 1. Định nghĩa JSON schema mong muốn cho đầu ra (Đã sửa lỗi AttributeError)
-CAU_HOI_SCHEMA = genai.types.Schema(
-    type=genai.types.Type.OBJECT,
+# 1. Định nghĩa JSON schema mong muốn cho đầu ra
+CAU_HOI_SCHEMA = Schema( 
+    type=Type.OBJECT, 
     properties={
-        "question": genai.types.Schema(type=genai.types.Type.STRING, description="Câu hỏi trắc nghiệm Toán."),
-        "options": genai.types.Schema(
-            type=genai.types.Type.ARRAY,
+        "question": Schema(type=Type.STRING, description="Câu hỏi trắc nghiệm Toán."),
+        "options": Schema(
+            type=Type.ARRAY,
             description="4 đáp án A, B, C, D.",
-            items=genai.types.Schema(type=genai.types.Type.STRING)
+            items=Schema(type=Type.STRING)
         ),
-        "answer": genai.types.Schema(type=genai.types.Type.STRING, description="Đáp án đúng (ví dụ: A, B, C, D)."),
-        "hint_vi": genai.types.Schema(type=genai.types.Type.STRING, description="Gợi ý giải bài tập bằng tiếng Việt.")
+        "answer": Schema(type=Type.STRING, description="Đáp án đúng (ví dụ: A, B, C, D)."),
+        "hint_vi": Schema(type=Type.STRING, description="Gợi ý giải bài tập bằng tiếng Việt.")
     },
     required=["question", "options", "answer", "hint_vi"]
 )
 
-# ================== HÀM SINH CÂU HỎI (Tối ưu hóa JSON) ==================
+# ================== HÀM SINH CÂU HỎI ==================
 def tao_de_toan(lop, bai):
     prompt = f"""
 Bạn là giáo viên Toán Việt Nam, SGK Kết nối tri thức.
@@ -133,7 +134,7 @@ Trả về theo định dạng JSON đã yêu cầu. Tuyệt đối không thêm
     try:
         res = model.generate_content(
             prompt,
-            config=genai.types.GenerateContentConfig(
+            config=GenerateContentConfig( 
                 response_mime_type="application/json",
                 response_schema=CAU_HOI_SCHEMA
             )
@@ -146,8 +147,7 @@ Trả về theo định dạng JSON đã yêu cầu. Tuyệt đối không thêm
     except json.JSONDecodeError as e:
         # Xử lý lỗi khi AI trả về JSON không hợp lệ
         st.error(f"Lỗi JSON: AI trả về định dạng sai. Vui lòng thử lại. Lỗi chi tiết: {e}")
-        # In văn bản thô để debug
-        # st.code(res.text, language='json')
+        # Bạn có thể in res.text để xem phản hồi thô từ AI: st.code(res.text, language='json')
         return None
     except Exception as e:
         st.error(f"Lỗi AI: Không thể tạo câu hỏi. {e}")
@@ -158,6 +158,7 @@ def dich(text):
     try:
         if not text:
              return ""
+        # Sử dụng GoogleTranslator để dịch
         return GoogleTranslator(source="vi", target="hmn").translate(text)
     except:
         return "Lỗi dịch thuật."
@@ -175,7 +176,7 @@ bai = st.selectbox("Chọn bài", CHUONG_TRINH_HOC[lop][chuong])
 
 if st.button("✨ Tạo câu hỏi"):
     with st.spinner("Đang tạo câu hỏi..."):
-        # Reset câu trả lời cũ
+        # Reset câu trả lời cũ và tạo câu hỏi mới
         st.session_state.cau = tao_de_toan(lop, bai) 
 
 if st.session_state.cau:
