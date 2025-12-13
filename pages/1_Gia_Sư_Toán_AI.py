@@ -4,16 +4,16 @@ import os, json
 from deep_translator import GoogleTranslator
 import google.generativeai as genai
 
-# ================== GEMINI ==================
+# ================== GEMINI (BẢN ỔN ĐỊNH) ==================
 if not os.getenv("GOOGLE_API_KEY"):
     st.error("❌ Không tìm thấy GOOGLE_API_KEY. Vui lòng thiết lập biến môi trường.")
     st.stop()
 
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-# MODEL MỚI – TRÁNH LỖI 404
+# ⚠️ CHỈ DÙNG gemini-pro với google-generativeai==0.3.2
 model = genai.GenerativeModel(
-    model_name="models/gemini-1.5-flash-latest",
+    "gemini-pro",
     generation_config={
         "temperature": 0.6,
         "max_output_tokens": 512
@@ -26,7 +26,6 @@ st.set_page_config(
     page_icon="🏔️",
     layout="wide"
 )
-
 # ================== CHƯƠNG TRÌNH HỌC ==================
 CHUONG_TRINH_HOC = {
     "Lớp 6": {
