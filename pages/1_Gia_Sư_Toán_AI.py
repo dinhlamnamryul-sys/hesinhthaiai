@@ -1,30 +1,80 @@
-# ================== IMPORT ==================
 import streamlit as st
-import os, json
-from deep_translator import GoogleTranslator
-import google.generativeai as genai
+import requests
+import base64
+from PIL import Image
+from io import BytesIO
+import json
 
-# ================== GEMINI (BẢN ỔN ĐỊNH) ==================
-if not os.getenv("GOOGLE_API_KEY"):
-    st.error("❌ Không tìm thấy GOOGLE_API_KEY. Vui lòng thiết lập biến môi trường.")
-    st.stop()
-
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-
-# ⚠️ CHỈ DÙNG gemini-pro với google-generativeai==0.3.2
-model = genai.GenerativeModel(
-    "gemini-pro",
-    generation_config={
-        "temperature": 0.6,
-        "max_output_tokens": 512
-    }
-)
-
-# ================== TRANG ==================
 st.set_page_config(
     page_title="Gia sư Toán AI (KNTT)",
     page_icon="🏔️",
     layout="wide"
+# =====================
+# 🔑 NHẬP GOOGLE API KEY
+# =====================
+
+with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
+    st.markdown("""
+### 👉 Cách lấy Google API Key để dùng ứng dụng:
+
+1. Truy cập: **https://aistudio.google.com/app/apikey**
+2. Đăng nhập Gmail.
+3. Nhấn **Create API key**.
+4. Copy API Key.
+5. Dán vào ô bên dưới.
+
+⚠️ Không chia sẻ API Key cho người khác.
+""")
+
+st.subheader("🔐 Nhập Google API Key:")
+api_key = st.text_input("Google API Key:", type="password")
+
+if not api_key:
+    st.warning("⚠️ Nhập API Key để tiếp tục.")
+else:
+    st.success("✅ API Key hợp lệ!")
+
+
+# ===============================
+# 📌 HÀM GỌI GEMINI
+# ===============================
+
+def analyze_real_image(api_key, image, prompt):
+    if image.mode == "RGBA":
+        image = image.convert("RGB")
+
+    buf = BytesIO()
+    image.save(buf, format="JPEG")
+    img_b64 = base64.b64encode(buf.getvalue()).decode()
+
+    MODEL = "gemini-2.5-flash"
+    URL = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
+
+    payload = {
+        "contents": [{
+            "role": "user",
+            "parts": [
+                {"text": prompt},
+                {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
+            ]
+        }]
+    }
+
+    try:
+        res = requests.post(URL, json=payload)
+        if res.status_code != 200:
+            return f"❌ Lỗi API {res.status_code}: {res.text}"
+
+        data = res.json()
+        if "candidates" not in data:
+            return "❌ API trả về rỗng."
+
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+
+    except Exception as e:
+        return f"❌ Lỗi kết nối: {str(e)}"
+# ================== TRANG ==================
+
 )
 # ================== CHƯƠNG TRÌNH HỌC ==================
 CHUONG_TRINH_HOC = {
