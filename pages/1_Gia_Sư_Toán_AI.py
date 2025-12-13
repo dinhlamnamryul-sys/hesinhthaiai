@@ -513,131 +513,132 @@ def tao_de_toan(lop, bai_hoc):
              de_latex = f"Tính: ${a} \\times 10$"
              dap_an = a * 10
 
-     # --- LỚP 6 ---
+         # --- LỚP 6 (CHUẨN SGK KẾT NỐI TRI THỨC) ---
     elif "Lớp 6" in lop:
 
         question_type = "mcq"
 
-        # 1. Tập hợp
+        # 1. Tập hợp – phần tử
         if "tập hợp" in bai_lower:
             a = random.sample(range(1, 20), 5)
-            de_latex = f"Cho tập hợp $A = \\{{{'; '.join(map(str,a))}\\}}$. Số phần tử của A là?"
+            de_latex = f"Tập hợp $A = \\{{{'; '.join(map(str,a))}\\}}$ có bao nhiêu phần tử?"
             dap_an = len(a)
             options = random.sample([dap_an, dap_an+1, dap_an-1, dap_an+2], 4)
             goi_y_text = "Đếm số phần tử khác nhau."
 
-        # 2. Cách ghi số tự nhiên
-        elif "cách ghi" in bai_lower or "số tự nhiên" in bai_lower:
+        # 2. Cách ghi số tự nhiên – giá trị chữ số
+        elif "cách ghi" in bai_lower or "ghi số" in bai_lower:
             n = random.randint(100, 999)
-            de_latex = f"Số liền sau của {n} là:"
-            dap_an = n + 1
-            options = random.sample([dap_an, n, dap_an+1, n-1], 4)
-            goi_y_text = "Số liền sau lớn hơn 1 đơn vị."
+            hang = random.choice(["trăm", "chục", "đơn vị"])
 
-        # 3. Thứ tự
+            if hang == "trăm":
+                dap_an = (n // 100) * 100
+                de_latex = f"Trong số {n}, chữ số hàng trăm có giá trị là:"
+                options = random.sample([dap_an, n//100, 100, n%100], 4)
+
+            elif hang == "chục":
+                dap_an = ((n // 10) % 10) * 10
+                de_latex = f"Trong số {n}, chữ số hàng chục có giá trị là:"
+                options = random.sample([dap_an, (n//10)%10, 10, n%10], 4)
+
+            else:
+                dap_an = n % 10
+                de_latex = f"Trong số {n}, chữ số hàng đơn vị có giá trị là:"
+                options = random.sample([dap_an, n//10, 10, n%100], 4)
+
+            goi_y_text = "Giá trị chữ số phụ thuộc vào vị trí."
+
+        # 3. Thứ tự trong tập hợp số tự nhiên
         elif "thứ tự" in bai_lower:
             a, b = random.sample(range(10, 100), 2)
-            de_latex = f"So sánh hai số: {a} và {b}. Kết quả đúng là:"
             if a > b:
                 dap_an = f"{a} > {b}"
                 options = [dap_an, f"{a} < {b}", f"{a} = {b}", f"{b} > {a}"]
             else:
                 dap_an = f"{a} < {b}"
                 options = [dap_an, f"{a} > {b}", f"{a} = {b}", f"{b} < {a}"]
+            de_latex = "So sánh hai số sau:"
             goi_y_text = "So sánh giá trị hai số."
 
-        # 4. Phép cộng
-        elif "phép cộng" in bai_lower:
-            a = random.randint(10, 99)
-            b = random.randint(10, 99)
-            de_latex = f"Kết quả của phép tính {a} + {b} là:"
-            dap_an = a + b
-            options = random.sample([dap_an, dap_an+1, dap_an-1, dap_an+10], 4)
-            goi_y_text = "Cộng các số hạng."
+        # 4. Phép cộng – phép trừ
+        elif "phép cộng" in bai_lower or "phép trừ" in bai_lower:
+            a = random.randint(20, 99)
+            b = random.randint(10, a)
+            dap_an = a - b
+            de_latex = f"Kết quả của phép tính {a} - {b} là:"
+            options = random.sample([dap_an, dap_an+1, dap_an-1, a+b], 4)
+            goi_y_text = "Thực hiện phép tính."
 
-        # 5. Phép nhân
-        elif "phép nhân" in bai_lower:
+        # 5. Phép nhân – phép chia
+        elif "phép nhân" in bai_lower or "phép chia" in bai_lower:
             a = random.randint(2, 9)
             b = random.randint(2, 9)
-            de_latex = f"Kết quả của phép tính {a} × {b} là:"
             dap_an = a * b
+            de_latex = f"Kết quả của phép tính {a} × {b} là:"
             options = random.sample([dap_an, dap_an+a, dap_an-b, dap_an+5], 4)
-            goi_y_text = "Phép nhân là cộng nhiều lần."
+            goi_y_text = "Nhân là cộng nhiều lần."
 
-        # 6. Lũy thừa
+        # 6. Lũy thừa với số mũ tự nhiên
         elif "lũy thừa" in bai_lower:
-            base = random.randint(2, 5)
-            exp = random.randint(2, 4)
-            de_latex = f"Giá trị của {base}^{exp} bằng:"
-            dap_an = base ** exp
-            options = random.sample([dap_an, dap_an*base, dap_an-exp, dap_an+base], 4)
+            a = random.randint(2, 5)
+            b = random.randint(2, 4)
+            dap_an = a ** b
+            de_latex = f"Giá trị của {a}^{b} bằng:"
+            options = random.sample([dap_an, dap_an*a, dap_an-b, a*b], 4)
             goi_y_text = "Nhân cơ số với chính nó."
 
         # 7. Thứ tự thực hiện phép tính
         elif "thứ tự thực hiện" in bai_lower:
-            a = random.randint(2, 9)
-            b = random.randint(2, 9)
-            c = random.randint(2, 9)
-            de_latex = f"Giá trị của biểu thức {a} + {b} × {c} là:"
+            a, b, c = random.randint(2,9), random.randint(2,9), random.randint(2,9)
             dap_an = a + b * c
+            de_latex = f"Giá trị của biểu thức {a} + {b} × {c} là:"
             options = random.sample([dap_an, (a+b)*c, a+b+c, a*b+c], 4)
             goi_y_text = "Nhân trước, cộng sau."
 
-        # 8. Chia hết
+        # 8. Dấu hiệu chia hết
         elif "chia hết" in bai_lower:
-            n = random.choice([12, 18, 24, 36, 48])
-            de_latex = f"Số {n} có chia hết cho 6 không?"
+            n = random.choice([18, 24, 36, 45])
             dap_an = "Có"
-            options = ["Có", "Không", "Chỉ chia hết cho 3", "Chỉ chia hết cho 2"]
-            goi_y_text = "Thương là số tự nhiên."
-
-        # 9. Dấu hiệu chia hết
-        elif "dấu hiệu" in bai_lower:
-            n = random.choice([123, 246, 369, 456])
             de_latex = f"Số {n} có chia hết cho 3 không?"
-            dap_an = "Có"
             options = ["Có", "Không", "Chỉ chia hết cho 9", "Không xác định"]
             goi_y_text = "Tổng chữ số chia hết cho 3."
 
-        # 10. Số nguyên tố
+        # 9. Số nguyên tố – hợp số
         elif "nguyên tố" in bai_lower:
-            dap_an = str(random.choice([2, 3, 5, 7, 11, 13]))
-            options = random.sample([dap_an, "4", "6", "9"], 4)
+            dap_an = "13"
             de_latex = "Số nào sau đây là số nguyên tố?"
-            goi_y_text = "Chỉ có 2 ước."
+            options = ["13", "9", "15", "21"]
+            goi_y_text = "Chỉ có 2 ước là 1 và chính nó."
 
-        # 11. ƯCLN
-        elif "ước chung" in bai_lower:
-            a = random.randint(6, 24)
-            b = random.randint(6, 24)
+        # 10. Ước chung – bội chung
+        elif "ước" in bai_lower or "bội" in bai_lower:
+            a, b = random.randint(6, 24), random.randint(6, 24)
             dap_an = math.gcd(a, b)
-            options = random.sample([dap_an, dap_an*2, 1, max(a,b)], 4)
             de_latex = f"ƯCLN của {a} và {b} là:"
+            options = random.sample([dap_an, 1, max(a,b), dap_an*2], 4)
             goi_y_text = "Phân tích thừa số nguyên tố."
 
-        # 12. BCNN
-        elif "bội chung" in bai_lower:
-            a = random.randint(3, 12)
-            b = random.randint(3, 12)
-            dap_an = a * b // math.gcd(a, b)
-            options = random.sample([dap_an, a*b, max(a,b), dap_an//2], 4)
-            de_latex = f"BCNN của {a} và {b} là:"
-            goi_y_text = "BCNN = tích / ƯCLN."
-
-        # 13. Số nguyên
+        # 11. Số nguyên – trục số
         elif "số nguyên" in bai_lower:
-            a = random.randint(-20, 20)
-            b = random.randint(-20, 20)
+            a = random.randint(-10, 10)
+            b = random.randint(-10, 10)
             dap_an = a + b
-            options = random.sample([dap_an, a-b, b-a, abs(a+b)], 4)
             de_latex = f"Kết quả của phép tính {a} + ({b}) là:"
+            options = random.sample([dap_an, a-b, b-a, abs(a+b)], 4)
             goi_y_text = "Cộng hai số nguyên."
 
-        # 14. Đối xứng
-        elif "đối xứng" in bai_lower:
-            de_latex = "Hình nào sau đây có tâm đối xứng?"
+        # 12. Hình có trục đối xứng
+        elif "trục đối xứng" in bai_lower:
+            dap_an = "Hình chữ nhật"
+            de_latex = "Hình nào sau đây có trục đối xứng?"
+            options = ["Hình chữ nhật", "Hình bình hành", "Hình thang thường", "Tam giác thường"]
+            goi_y_text = "Chia hình thành hai phần đối xứng."
+
+        # 13. Hình có tâm đối xứng
+        elif "tâm đối xứng" in bai_lower or "đối xứng" in bai_lower:
             dap_an = "Hình bình hành"
-            options = ["Hình bình hành", "Hình tam giác", "Hình thang", "Hình tròn"]
+            de_latex = "Hình nào sau đây có tâm đối xứng?"
+            options = ["Hình bình hành", "Tam giác", "Hình thang", "Hình diều"]
             goi_y_text = "Giao điểm hai đường chéo."
 
         else:
