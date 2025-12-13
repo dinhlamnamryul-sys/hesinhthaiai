@@ -1,8 +1,5 @@
 import streamlit as st
 import requests
-import base64
-from PIL import Image
-from io import BytesIO
 import json
 from deep_translator import GoogleTranslator
 
@@ -18,11 +15,12 @@ st.set_page_config(
 # =====================
 with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
     st.markdown("""
-### 👉 Cách lấy Google API Key:
-1. Truy cập **https://aistudio.google.com/app/apikey**
-2. Đăng nhập Gmail
-3. Nhấn **Create API key**
-4. Copy và dán vào ô bên dưới
+### 👉 Cách lấy Google API Key
+1. Truy cập: https://aistudio.google.com/app/apikey  
+2. Đăng nhập Gmail  
+3. Nhấn **Create API key**  
+4. Copy và dán vào ô bên dưới  
+
 ⚠️ Không chia sẻ API Key
 """)
 
@@ -35,11 +33,13 @@ else:
     st.success("✅ Đã nhập API Key")
 
 # ===============================
-# 📌 HÀM GỌI GEMINI (TEXT)
+# 📌 HÀM GỌI GEMINI (TEXT ONLY)
 # ===============================
-def call_gemini_text(api_key, prompt):
-    MODEL = "gemini-1.5-flash"
-    URL = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
+def call_gemini(api_key, prompt):
+    url = (
+        "https://generativelanguage.googleapis.com/v1/"
+        f"models/gemini-1.5-flash:generateContent?key={api_key}"
+    )
 
     payload = {
         "contents": [{
@@ -47,7 +47,7 @@ def call_gemini_text(api_key, prompt):
         }]
     }
 
-    res = requests.post(URL, json=payload)
+    res = requests.post(url, json=payload)
     if res.status_code != 200:
         raise Exception(res.text)
 
@@ -98,36 +98,10 @@ CHUONG_TRINH_HOC = {
     }
 }
 
-# ================== HÀM SINH CÂU HỎI ==================
-def tao_de_toan(lop, bai):
-    prompt = f"""
-Bạn là giáo viên Toán Việt Nam, dạy theo SGK Kết nối tri thức.
-
-Hãy tạo 1 câu hỏi trắc nghiệm Toán {lop}
-Bài: {bai}
-
-Yêu cầu:
-- Có 4 đáp án A, B, C, D
-- Chỉ có 1 đáp án đúng
-- Mức độ phù hợp học sinh THCS
-- Có gợi ý giải chi tiết bằng tiếng Việt
-
-TRẢ VỀ DUY NHẤT JSON theo mẫu:
-{{
-  "question": "...",
-  "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
-  "answer": "A",
-  "hint_vi": "..."
-}}
-
-Không thêm bất kỳ chữ nào ngoài JSON.
-"""
-
-    try:
 # ================== SINH CÂU HỎI ==================
 def tao_de_toan(lop, bai):
     prompt = f"""
-Bạn là giáo viên Toán Việt Nam, dạy theo SGK Kết nối tri thức.
+Bạn là giáo viên Toán Việt Nam.
 
 Tạo 1 câu hỏi trắc nghiệm Toán {lop}
 Bài: {bai}
@@ -146,12 +120,8 @@ TRẢ VỀ DUY NHẤT JSON:
 }}
 """
 
-    try:
-        text = call_gemini_text(api_key, prompt)
-        return json.loads(text)
-    except Exception as e:
-        st.error(f"❌ Lỗi AI: {e}")
-        return None
+    text = call_gemini(api_key, prompt)
+    return json.loads(text)
 
 # ================== DỊCH H’MÔNG ==================
 def dich(text):
@@ -176,8 +146,9 @@ if st.button("✨ Tạo câu hỏi"):
 
 if st.session_state.cau:
     cau = st.session_state.cau
+
     st.markdown("### ❓ Câu hỏi")
-    st.markdown(cau["question"])
+    st.write(cau["question"])
 
     ans = st.radio("👉 Chọn đáp án", cau["options"])
 
@@ -188,5 +159,7 @@ if st.session_state.cau:
             st.error("❌ Chưa đúng")
             st.info("💡 Gợi ý: " + cau["hint_vi"])
             st.info("🗣️ H’Mông: " + dich(cau["hint_vi"]))
+
+st.caption("© 2025 – Gia sư Toán AI cho học sinh vùng cao")’Mông: " + dich(cau["hint_vi"]))
 
 st.caption("© 2025 – Gia sư Toán AI cho học sinh vùng cao")
