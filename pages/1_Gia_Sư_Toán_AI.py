@@ -2,6 +2,7 @@
 import streamlit as st
 import requests
 import json
+import re # Bổ sung thư viện re để xử lý chuỗi
 from deep_translator import GoogleTranslator
 
 # ================== TRANG ==================
@@ -20,8 +21,7 @@ with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
 
 1. Truy cập: https://aistudio.google.com/app/apikey  
 2. Đăng nhập Gmail  
-3. Nhấn **Create API key**  
-4. Copy và dán vào ô bên dưới  
+3. Nhấn **Create API key** 4. Copy và dán vào ô bên dưới  
 
 ⚠️ Không chia sẻ API Key cho người khác
 """)
@@ -36,11 +36,13 @@ else:
 
 # ===============================
 # 📌 HÀM GỌI GEMINI (REST API)
+# Đã sửa: Chuyển Key sang Header 'x-goog-api-key'
 # ===============================
 def call_gemini(api_key, prompt):
+    # 1. Endpoint không kèm Key (Key được gửi qua Header)
     url = (
         "https://generativelanguage.googleapis.com/v1beta/"
-        f"models/gemini-2.0-flash:generateContent?key={api_key}"
+        "models/gemini-2.0-flash:generateContent"
     )
 
     payload = {
@@ -51,18 +53,25 @@ def call_gemini(api_key, prompt):
         }]
     }
 
+    # 2. Định nghĩa Headers để gửi Key
+    headers = {
+        "Content-Type": "application/json",
+        "x-goog-api-key": api_key  # Gửi Key qua Header
+    }
+
     try:
-        res = requests.post(url, json=payload, timeout=60)
+        # Gửi yêu cầu kèm Headers
+        res = requests.post(url, headers=headers, json=payload, timeout=60)
 
         if res.status_code != 200:
             st.error("❌ Không gọi được Gemini API")
-            st.code(res.text)
+            st.code(f"Mã lỗi: {res.status_code}\nPhản hồi lỗi: {res.text}")
             return None
 
         data = res.json()
 
-        if "candidates" not in data:
-            st.error("❌ Gemini không trả về nội dung")
+        if "candidates" not in data or not data["candidates"]:
+            st.error("❌ Gemini không trả về nội dung (có thể do nội dung không an toàn)")
             st.code(data)
             return None
 
@@ -105,7 +114,7 @@ CHUONG_TRINH_HOC = {
     }
 }
 
-# ================== HÀM SINH CÂU HỎI ==================
+# ================== HÀM SINH CÂU HỎI (ĐÃ SỬA LỖI JSON DECODE) ==================
 def tao_de_toan(lop, bai):
     prompt = f"""
 Bạn là giáo viên Toán Việt Nam, dạy theo SGK Kết nối tri thức.
@@ -133,9 +142,23 @@ TRẢ VỀ DUY NHẤT JSON:
         return None
 
     try:
+        # **PHẦN SỬA LỖI JSON DECODE:** Xử lý chuỗi trả về
+        # 1. Loại bỏ các thẻ Markdown code fences (```json, ```)
+        text = text.strip()
+        if text.startswith("```json"):
+            text = text.replace("```json", "", 1).strip()
+        if text.endswith("```"):
+            text = text.rsplit("```", 1)[0].strip()
+        
+        # 2. Thử tải JSON đã được làm sạch
         return json.loads(text)
-    except:
-        st.error("⚠️ AI trả về sai định dạng JSON")
+        
+    except json.JSONDecodeError as e:
+        st.error(f"⚠️ AI trả về sai định dạng JSON sau khi làm sạch: {e}")
+        st.code(text)
+        return None
+    except Exception as e:
+        st.error(f"⚠️ Lỗi xử lý JSON không xác định: {e}")
         st.code(text)
         return None
 
@@ -169,7 +192,8 @@ if st.session_state.cau:
     ans = st.radio("👉 Chọn đáp án", cau["options"])
 
     if st.button("✅ Kiểm tra"):
-        if ans.startswith(cau["answer"]):
+        # Đảm bảo ans là chuỗi, bắt đầu bằng chữ cái đáp án
+        if ans and ans.startswith(cau["answer"]):
             st.success("🎉 Chính xác! Rất tốt!")
         else:
             st.error("❌ Chưa đúng")
