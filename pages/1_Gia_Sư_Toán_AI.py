@@ -1,125 +1,154 @@
 import streamlit as st
 import random
-from gtts import gTTS
-import tempfile
-import os
+import re
 from deep_translator import GoogleTranslator
 
-# ================== CẤU HÌNH ==================
+# ===============================
+# CẤU HÌNH TRANG
+# ===============================
 st.set_page_config(
-    page_title="Gia sư Toán AI – Bản Mường",
+    page_title="Gia sư Toán AI - Bản Mường",
     page_icon="🏔️",
     layout="wide"
 )
 
-# ================== DỊCH GỢI Ý H’MÔNG ==================
-def dich_hmong(text):
-    try:
-        return GoogleTranslator(source="vi", target="hmn").translate(text)
-    except:
-        return "(Không dịch được – kiểm tra mạng)"
+st.title("🏫 GIA SƯ TOÁN AI – BẢN MƯỜNG")
+st.caption("Hỗ trợ học sinh vùng cao | Lớp 6–9")
 
-# ================== ĐỌC ĐỀ ==================
-def doc_de(text):
-    tts = gTTS(text=text, lang="vi")
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as fp:
-        tts.save(fp.name)
-        return fp.name
+# ===============================
+# HÀM DỊCH GIỮ NGUYÊN CÔNG THỨC
+# ===============================
+def dich_tieng_mong_giu_latex(text):
+    parts = re.split(r'(\$.*?\$)', text)
+    ket_qua = []
 
-# ================== TRỘN ĐÁP ÁN ==================
-def tron_dap_an(dung, sai):
-    ds = sai + [dung]
-    random.shuffle(ds)
-    return ds
+    for part in parts:
+        if part.startswith('$') and part.endswith('$'):
+            ket_qua.append(part)
+        else:
+            if part.strip():
+                try:
+                    trans = GoogleTranslator(source='vi', target='hmn').translate(part)
+                    ket_qua.append(trans)
+                except:
+                    ket_qua.append(part)
+            else:
+                ket_qua.append(part)
 
-# ================== SINH CÂU HỎI ==================
-def tao_de_toan(lop):
-    # -------- LỚP 6 --------
-    if lop == "Lớp 6":
-        a = random.randint(2, 5)
+    return "".join(ket_qua)
+
+# ===============================
+# SINH CÂU HỎI LỚP 6
+# ===============================
+def sinh_cau_hoi_lop_6(bai):
+    # ---------- BÀI 1: TẬP HỢP ----------
+    if bai == "Bài 1. Tập hợp":
+        tap = sorted(random.sample(range(1, 10), 5))
+        dung = random.choice(tap)
+        sai = random.choice([x for x in range(1, 12) if x not in tap])
+
+        question = f"Cách viết nào đúng với tập hợp $A = \\{{{';'.join(map(str, tap))}\\}}$?"
+
+        dap_an_dung = f"${dung} \\in A$"
+
+        dap_an_sai = [
+            f"${sai} \\in A$",
+            f"${dung} \\notin A$",
+            f"${tap[0]} \\subset {tap[1]}$"
+        ]
+
+        options = dap_an_sai + [dap_an_dung]
+        random.shuffle(options)
+
+        goi_y_viet = (
+            "Dấu ∈ có nghĩa là 'thuộc'. "
+            "Muốn biết một số có thuộc tập hợp hay không, "
+            "em chỉ cần kiểm tra số đó có nằm trong danh sách các phần tử hay không."
+        )
+
+        goi_y_latex = f"{dung} \\in \\{{{';'.join(map(str, tap))}\\}}"
+
+        return question, dap_an_dung, options, goi_y_viet, goi_y_latex
+
+    # ---------- BÀI 6: LŨY THỪA ----------
+    if bai == "Bài 6. Lũy thừa":
+        a = random.randint(2, 4)
         n = random.randint(2, 3)
 
-        de_latex = rf"Tính\ giá\ trị:\ {a}^{{{n}}}"
-        dap_an = rf"{a**n}"
-        options = tron_dap_an(
-            dap_an,
-            [rf"{a*n}", rf"{a+n}", rf"{a**(n+1)}"]
+        question = f"Tính giá trị của $ {a}^{n} $"
+
+        dap_an_dung = str(a ** n)
+
+        options = [
+            str(a ** n),
+            str(a * n),
+            str(a + n),
+            str(a ** (n + 1))
+        ]
+        random.shuffle(options)
+
+        goi_y_viet = (
+            "Lũy thừa nghĩa là nhân một số với chính nó nhiều lần. "
+            f"${a}^{n}$ nghĩa là lấy {a} nhân với chính nó {n} lần."
         )
-        goi_y = "Lũy thừa là nhân số đó với chính nó nhiều lần."
 
-    # -------- LỚP 7 --------
-    elif lop == "Lớp 7":
-        a = random.randint(2, 9)
-        de_latex = rf"Tính:\ (-{a})^2"
-        dap_an = rf"{a*a}"
-        options = tron_dap_an(
-            dap_an,
-            [rf"{-a*a}", rf"{a}", rf"{2*a}"]
-        )
-        goi_y = "Bình phương của số âm là số dương."
+        goi_y_latex = f"{a}^{n} = " + " \\times ".join([str(a)] * n)
 
-    # -------- LỚP 8 --------
-    elif lop == "Lớp 8":
-        a = random.randint(2, 6)
-        de_latex = rf"Rút\ gọn:\ x(x+{a})-x^2"
-        dap_an = rf"{a}x"
-        options = tron_dap_an(
-            dap_an,
-            [rf"x^2", rf"{a}", rf"-{a}x"]
-        )
-        goi_y = "Khai triển rồi thu gọn."
+        return question, dap_an_dung, options, goi_y_viet, goi_y_latex
 
-    # -------- LỚP 9 --------
-    else:
-        a = random.randint(1, 9)
-        de_latex = rf"Điều\ kiện\ xác\ định\ của\ \sqrt{{x-{a}}}\ là"
-        dap_an = rf"x\ge {a}"
-        options = tron_dap_an(
-            dap_an,
-            [rf"x>{a}", rf"x\le {a}", rf"x<{a}"]
-        )
-        goi_y = "Biểu thức trong căn bậc hai phải không âm."
+    return None
 
-    return de_latex, dap_an, options, goi_y
+# ===============================
+# GIAO DIỆN CHỌN BÀI
+# ===============================
+st.sidebar.header("📚 Chọn bài học")
 
-# ================== GIAO DIỆN ==================
-st.markdown(
-    "<h1 style='text-align:center'>🏫 GIA SƯ TOÁN AI – BẢN MƯỜNG</h1>",
-    unsafe_allow_html=True
+lop = st.sidebar.selectbox("Chọn lớp", ["Lớp 6"])
+bai = st.sidebar.selectbox(
+    "Chọn bài",
+    ["Bài 1. Tập hợp", "Bài 6. Lũy thừa"]
 )
 
-lop = st.selectbox("📘 Chọn lớp", ["Lớp 6", "Lớp 7", "Lớp 8", "Lớp 9"])
+if st.sidebar.button("✨ Tạo câu hỏi"):
+    data = sinh_cau_hoi_lop_6(bai)
+    if data:
+        st.session_state.cau_hoi = data
+        st.session_state.da_tra_loi = False
 
-if st.button("✨ Tạo câu hỏi"):
-    st.session_state.cau = tao_de_toan(lop)
-
-if "cau" in st.session_state:
-    de, dap_an, options, goi_y = st.session_state.cau
+# ===============================
+# HIỂN THỊ CÂU HỎI
+# ===============================
+if "cau_hoi" in st.session_state:
+    question, dap_an_dung, options, goi_y_viet, goi_y_latex = st.session_state.cau_hoi
 
     st.markdown("### ❓ Câu hỏi")
-    st.latex(de)
+    st.markdown(question)
 
-    # ---- ĐỌC ĐỀ ----
-    if st.button("🔊 Đọc đề"):
-        audio_path = doc_de(de.replace("\\", "").replace("{", "").replace("}", ""))
-        st.audio(audio_path)
-        os.remove(audio_path)
+    # ---- NÚT DỊCH TIẾNG MÔNG ----
+    if st.button("🌏 Dịch câu hỏi sang tiếng Mông"):
+        st.info(dich_tieng_mong_giu_latex(question))
 
-    chon = st.radio(
-        "Chọn đáp án:",
-        options,
-        format_func=lambda x: f"${x}$"
-    )
+    # ---- TRẢ LỜI ----
+    user_ans = st.radio("Chọn đáp án:", options)
 
     if st.button("✅ Kiểm tra"):
-        if chon == dap_an:
+        st.session_state.da_tra_loi = True
+
+        if user_ans == dap_an_dung:
             st.success("🎉 Chính xác!")
         else:
-            st.error("❌ Chưa đúng")
-            st.markdown("**Đáp án đúng:**")
-            st.latex(dap_an)
-            st.info(f"💡 Gợi ý (Việt): {goi_y}")
-            st.info(f"🌱 Gợi ý (H’Mông): {dich_hmong(goi_y)}")
+            st.error(f"❌ Chưa đúng. Đáp án đúng là {dap_an_dung}")
 
-st.markdown("---")
-st.caption("© 2025 – Gia sư Toán AI cho học sinh vùng cao")
+    # ---- GỢI Ý ----
+    if st.session_state.get("da_tra_loi", False):
+        st.markdown("---")
+        st.markdown("### 💡 Gợi ý")
+
+        st.markdown("**Tiếng Việt:**")
+        st.write(goi_y_viet)
+
+        st.markdown("**Công thức:**")
+        st.latex(goi_y_latex)
+
+        st.markdown("**Tiếng Mông:**")
+        st.write(dich_tieng_mong_giu_latex(goi_y_viet))
