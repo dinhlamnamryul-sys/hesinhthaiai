@@ -585,44 +585,49 @@ def tao_de_toan(lop, bai_hoc):
             de_latex = f"Tìm số dư trong phép chia: ${a} : {b}$"
             dap_an = a % b
             goi_y_text = "Thực hiện phép chia và lấy phần dư."
-  # --- LỚP 7 (ĐÃ SỬA LỖI & NÂNG CẤP GỢI Ý) ---
+ # --- LỚP 7 (ĐÃ SỬA LỖI LOGIC SO SÁNH & HIỂN THỊ) ---
     elif "Lớp 7" in lop:
-        question_type = "mcq" # Chuyển toàn bộ sang trắc nghiệm
+        question_type = "mcq" # Chuyển toàn bộ sang trắc nghiệm để tránh lỗi nhập liệu
 
         # 1. SỐ HỮU TỈ (CỘNG TRỪ NHÂN CHIA)
         if "cộng trừ" in bai_lower:
-            # Random tử mẫu nhỏ để dễ tính
+            # Chọn mẫu số chung nhỏ để biểu thức đẹp
             mau = random.randint(2, 9)
             tu1 = random.randint(1, 9)
             tu2 = random.randint(1, 9)
             
             if random.random() > 0.5: # Phép cộng
                 de_latex = f"Tính giá trị biểu thức: $\\frac{{{tu1}}}{{{mau}}} + \\frac{{{tu2}}}{{{mau}}}$"
-                # Tạo đáp án đúng dạng LaTeX
-                ans_correct = f"$\\frac{{{tu1 + tu2}}}{{{mau}}}$"
+                # Đáp án đúng dạng Chuỗi LaTeX
+                kq_tu = tu1 + tu2
+                ans_correct = f"$\\frac{{{kq_tu}}}{{{mau}}}$"
+                
+                # Tạo phương án nhiễu
+                fake1 = f"$\\frac{{{kq_tu}}}{{{mau + mau}}}$" # Sai: Cộng cả mẫu
+                fake2 = f"$\\frac{{{tu1 * tu2}}}{{{mau}}}$"    # Sai: Nhân tử
+                fake3 = f"$\\frac{{{abs(tu1 - tu2)}}}{{{mau}}}$" # Sai: Trừ
+                
                 dap_an = ans_correct
-                # Tạo các đáp án nhiễu (Lỗi cộng mẫu, nhân tử, trừ)
-                options = [
-                    ans_correct,
-                    f"$\\frac{{{tu1 + tu2}}}{{{mau + mau}}}$", # Sai: Cộng cả mẫu
-                    f"$\\frac{{{tu1 * tu2}}}{{{mau}}}$",       # Sai: Nhân tử
-                    f"$\\frac{{{abs(tu1 - tu2)}}}{{{mau}}}$"    # Sai: Trừ
-                ]
+                options = [ans_correct, fake1, fake2, fake3]
+                
                 goi_y_text = "Muốn cộng hai phân số cùng mẫu, ta cộng các tử và giữ nguyên mẫu."
-                goi_y_latex = "\\frac{a}{m} + \\frac{b}{m} = \\frac{a+b}{m}"
+                goi_y_latex = "\\frac{A}{M} + \\frac{B}{M} = \\frac{A+B}{M}"
             else: # Phép trừ
                 tu_lon = tu1 + tu2 
                 de_latex = f"Tính giá trị biểu thức: $\\frac{{{tu_lon}}}{{{mau}}} - \\frac{{{tu1}}}{{{mau}}}$"
-                ans_correct = f"$\\frac{{{tu2}}}{{{mau}}}$"
+                
+                kq_tu = tu2
+                ans_correct = f"$\\frac{{{kq_tu}}}{{{mau}}}$"
+                
+                fake1 = f"$\\frac{{{kq_tu}}}{{0}}$"              # Sai: Mẫu bằng 0
+                fake2 = f"$\\frac{{{tu_lon + tu1}}}{{{mau}}}$"    # Sai: Cộng thay vì trừ
+                fake3 = f"$1$"
+                
                 dap_an = ans_correct
-                options = [
-                    ans_correct,
-                    f"$\\frac{{{tu2}}}{{0}}$",                  # Sai: Trừ mẫu bằng 0
-                    f"$\\frac{{{tu_lon + tu1}}}{{{mau}}}$",     # Sai: Cộng
-                    f"$1$"
-                ]
-                goi_y_text = "Muốn trừ hai phân số cùng mẫu, ta trừ tử của số bị trừ cho tử của số trừ và giữ nguyên mẫu."
-                goi_y_latex = "\\frac{a}{m} - \\frac{b}{m} = \\frac{a-b}{m}"
+                options = [ans_correct, fake1, fake2, fake3]
+                
+                goi_y_text = "Muốn trừ hai phân số cùng mẫu, ta trừ tử số và giữ nguyên mẫu số."
+                goi_y_latex = "\\frac{A}{M} - \\frac{B}{M} = \\frac{A-B}{M}"
 
         elif "nhân chia" in bai_lower:
             a = random.randint(1, 5)
@@ -633,29 +638,31 @@ def tao_de_toan(lop, bai_hoc):
             if random.random() > 0.5: # Phép nhân
                 de_latex = f"Tính: $\\frac{{{a}}}{{{b}}} \\cdot \\frac{{{c}}}{{{d}}}$"
                 ans_correct = f"$\\frac{{{a*c}}}{{{b*d}}}$"
+                
+                fake1 = f"$\\frac{{{a*d}}}{{{b*c}}}$" # Nhân chéo
+                fake2 = f"$\\frac{{{a+c}}}{{{b+d}}}$" # Cộng tử mẫu
+                fake3 = f"$\\frac{{{a}}}{{{b}}}$"
+                
                 dap_an = ans_correct
-                options = [
-                    ans_correct,
-                    f"$\\frac{{{a*d}}}{{{b*c}}}$", # Sai: Nhân chéo
-                    f"$\\frac{{{a+c}}}{{{b+d}}}$", # Sai: Cộng tử, cộng mẫu
-                    f"$\\frac{{{a}}}{{{b}}}$"
-                ]
+                options = [ans_correct, fake1, fake2, fake3]
+                
                 goi_y_text = "Nhân hai phân số: Tử nhân với tử, mẫu nhân với mẫu."
                 goi_y_latex = "\\frac{a}{b} \\cdot \\frac{c}{d} = \\frac{a \\cdot c}{b \\cdot d}"
             else: # Phép chia
                 de_latex = f"Tính: $\\frac{{{a}}}{{{b}}} : \\frac{{{c}}}{{{d}}}$"
                 ans_correct = f"$\\frac{{{a*d}}}{{{b*c}}}$"
+                
+                fake1 = f"$\\frac{{{a*c}}}{{{b*d}}}$" # Nhân bình thường
+                fake2 = f"$\\frac{{{b*c}}}{{{a*d}}}$" # Nghịch đảo sai
+                fake3 = f"$\\frac{{{c}}}{{{d}}}$"
+                
                 dap_an = ans_correct
-                options = [
-                    ans_correct,
-                    f"$\\frac{{{a*c}}}{{{b*d}}}$", # Sai: Làm giống phép nhân
-                    f"$\\frac{{{b*c}}}{{{a*d}}}$", # Sai: Nghịch đảo sai
-                    f"$\\frac{{{a}}}{{{b}}}$"
-                ]
+                options = [ans_correct, fake1, fake2, fake3]
+                
                 goi_y_text = "Chia cho một phân số là nhân với phân số đảo ngược của nó."
                 goi_y_latex = "\\frac{a}{b} : \\frac{c}{d} = \\frac{a}{b} \\cdot \\frac{d}{c}"
 
-        # 2. LŨY THỪA (SỬA LỖI HIỂN THỊ 0)
+        # 2. LŨY THỪA (ĐÃ KHẮC PHỤC LỖI TRẢ VỀ 0)
         elif "lũy thừa" in bai_lower:
             base_tu = random.choice([1, 2, 3])
             base_mau = random.choice([2, 3, 4, 5])
@@ -663,17 +670,18 @@ def tao_de_toan(lop, bai_hoc):
             
             de_latex = f"Giá trị của lũy thừa $(\\frac{{{base_tu}}}{{{base_mau}}})^{exp}$ là?"
             
-            # Tính toán kết quả đúng
+            # Tính kết quả
             res_tu = base_tu ** exp
             res_mau = base_mau ** exp
-            ans_correct = f"$\\frac{{{res_tu}}}{{{res_mau}}}$"
-            dap_an = ans_correct
             
-            # Tạo phương án nhiễu
+            # QUAN TRỌNG: Lưu đáp án dưới dạng chuỗi LaTeX y hệt options
+            ans_correct = f"$\\frac{{{res_tu}}}{{{res_mau}}}$"
+            
             fake1 = f"$\\frac{{{base_tu * exp}}}{{{base_mau}}}$"       # Lỗi: Tử nhân số mũ
             fake2 = f"$\\frac{{{base_tu}}}{{{base_mau * exp}}}$"       # Lỗi: Mẫu nhân số mũ
             fake3 = f"$\\frac{{{base_tu}}}{{{res_mau}}}$"              # Lỗi: Quên lũy thừa tử
             
+            dap_an = ans_correct
             options = [ans_correct, fake1, fake2, fake3]
             
             goi_y_text = "Lũy thừa của một thương bằng thương các lũy thừa."
@@ -686,17 +694,17 @@ def tao_de_toan(lop, bai_hoc):
             sqrt_val = int(math.sqrt(val))
             
             de_latex = f"Căn bậc hai số học của {val} là?"
-            ans_correct = f"{sqrt_val}"
-            dap_an = ans_correct
+            ans_correct = f"{sqrt_val}" # Lưu dạng chuỗi
             
-            options = [
-                f"{sqrt_val}",
-                f"-{sqrt_val}",           # Sai: Số âm
-                f"$\\pm {sqrt_val}$",     # Sai: Căn bậc hai đại số
-                f"{val}"                  # Sai: Chính nó
-            ]
-            goi_y_text = "Căn bậc hai số học của số a không âm là số x không âm sao cho bình phương của x bằng a."
-            goi_y_latex = f"x = \\sqrt{{a}} \\Rightarrow x^2 = a (x \\ge 0)"
+            fake1 = f"-{sqrt_val}"           # Sai: Số âm
+            fake2 = f"$\\pm {sqrt_val}$"     # Sai: Căn bậc hai đại số
+            fake3 = f"{val}"                  # Sai: Chính nó
+            
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            
+            goi_y_text = "Căn bậc hai số học của số a không âm là số x không âm sao cho x bình phương bằng a."
+            goi_y_latex = "x = \\sqrt{a} \\Rightarrow x^2 = a \\quad (x \\ge 0)"
 
         elif "tuyệt đối" in bai_lower:
             val = random.randint(1, 15)
@@ -705,30 +713,30 @@ def tao_de_toan(lop, bai_hoc):
             
             de_latex = f"Giá trị tuyệt đối $|{val_str}|$ bằng bao nhiêu?"
             ans_correct = f"{val}"
-            dap_an = ans_correct
             
-            options = [
-                f"{val}",
-                f"-{val}",
-                "0",
-                f"$\\frac{{1}}{{{val}}}$"
-            ]
+            fake1 = f"-{val}"
+            fake2 = "0"
+            fake3 = f"$\\frac{{1}}{{{val}}}$"
+            
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            
             goi_y_text = "Giá trị tuyệt đối của một số thực x luôn luôn không âm."
-            goi_y_latex = "|x| = x \\text{ (nếu } x \\ge 0); |x| = -x \\text{ (nếu } x < 0)"
+            goi_y_latex = "|x| \\ge 0"
 
         # 4. HÌNH HỌC LỚP 7
         elif "đối đỉnh" in bai_lower:
             angle = random.randint(30, 150)
             de_latex = f"Cho góc $\\widehat{{xOy}} = {angle}^\\circ$. Góc đối đỉnh với $\\widehat{{xOy}}$ có số đo là:"
             ans_correct = f"${angle}^\\circ$"
-            dap_an = ans_correct
             
-            options = [
-                ans_correct,
-                f"${180 - angle}^\\circ$", # Sai: Góc kề bù
-                f"${90 - angle if angle < 90 else angle + 10}^\\circ$",
-                f"${angle * 2}^\\circ$"
-            ]
+            fake1 = f"${180 - angle}^\\circ$" # Kề bù
+            fake2 = f"${90 - angle if angle < 90 else angle + 10}^\\circ$"
+            fake3 = f"${angle * 2}^\\circ$"
+            
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            
             goi_y_text = "Hai góc đối đỉnh thì bằng nhau."
             goi_y_latex = "\\widehat{O_1} = \\widehat{O_3} \\text{ (đối đỉnh)}"
 
@@ -739,19 +747,19 @@ def tao_de_toan(lop, bai_hoc):
             
             de_latex = f"Cho $\\Delta ABC$ có $\\hat{{A}}={goc_A}^\\circ, \\hat{{B}}={goc_B}^\\circ$. Số đo góc C là?"
             ans_correct = f"${goc_C}^\\circ$"
-            dap_an = ans_correct
             
-            options = [
-                ans_correct,
-                f"${180 - goc_A}^\\circ$",
-                f"${goc_A + goc_B}^\\circ$",
-                f"${90}^\\circ$"
-            ]
+            fake1 = f"${180 - goc_A}^\\circ$"
+            fake2 = f"${goc_A + goc_B}^\\circ$"
+            fake3 = f"${90}^\\circ$"
+            
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            
             goi_y_text = "Tổng ba góc trong một tam giác bằng 180 độ."
             goi_y_latex = "\\hat{A} + \\hat{B} + \\hat{C} = 180^\\circ"
 
         elif "bằng nhau" in bai_lower:
-            # Random câu hỏi lý thuyết về 3 trường hợp
+            # Random câu hỏi lý thuyết
             case_type = random.randint(1, 3)
             
             if case_type == 1:
@@ -775,16 +783,16 @@ def tao_de_toan(lop, bai_hoc):
             
             dap_an = ans_correct
             options = [ans_correct, fake1, fake2, fake3]
-            goi_y_text = "Nhớ kỹ: Góc xen giữa 2 cạnh (c.g.c) hoặc Cạnh xen giữa 2 góc (g.c.g)."
+            goi_y_text = "Nhớ kỹ vị trí của các yếu tố: Góc xen giữa 2 cạnh (c.g.c) hoặc Cạnh xen giữa 2 góc (g.c.g)."
 
-        # FALLBACK (DỰ PHÒNG)
+        # FALLBACK (DỰ PHÒNG AN TOÀN)
         else:
             x = random.randint(2, 10)
-            de_latex = f"Tìm x, biết: $x - {x-1} = 1$"
-            ans_correct = "Đúng với mọi x"
+            de_latex = f"Tìm x, biết: $2x - 4 = 0$"
+            ans_correct = "x = 2"
             dap_an = ans_correct
-            options = ["Đúng với mọi x", "x = 0", "x = 1", "Vô nghiệm"]
-            goi_y_text = "Rút gọn biểu thức vế trái."
+            options = ["x = 2", "x = 0", "x = -2", "x = 4"]
+            goi_y_text = "Chuyển vế đổi dấu."
     # --- LỚP 8 ---
     elif "Lớp 8" in lop:
         question_type = "mcq"
