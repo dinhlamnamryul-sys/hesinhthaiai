@@ -128,47 +128,47 @@ def sinh_cau_hoi(bai):
         )
 
     # ---------- BÀI 5 ----------
-elif bai == "Bài 5. Phép nhân và phép chia số tự nhiên":
-    dang = random.choice(["nhan", "chia"])
+    elif bai == "Bài 5. Phép nhân và phép chia số tự nhiên":
+        dang = random.choice(["nhan", "chia"])
 
-    if dang == "nhan":
-        a = random.randint(6, 15)
-        b = random.randint(6, 15)
+        if dang == "nhan":
+            a = random.randint(6, 15)
+            b = random.randint(6, 15)
 
-        cau = (
-            "Kết quả của \n"
-            f"$ {a} \\times {b} $ \n"
-            "là:"
-        )
+            cau = (
+                "Kết quả của \n"
+                f"$ {a} \\times {b} $ \n"
+                "là:"
+            )
 
-        dap_an = a * b
+            dap_an = a * b
+    
+            lua_chon = [
+                dap_an,
+                dap_an + random.choice([-12, -10, 10, 12]),
+                dap_an + random.choice([-8, 8]),
+                dap_an + random.choice([-2, 2])
+            ]
 
-        lua_chon = [
-            dap_an,
-            dap_an + random.choice([-12, -10, 10, 12]),
-            dap_an + random.choice([-8, 8]),
-            dap_an + random.choice([-2, 2])
-        ]
+            goi_y = "Muốn nhân hai số tự nhiên, ta lấy số này nhân với số kia."
 
-        goi_y = "Muốn nhân hai số tự nhiên, ta lấy số này nhân với số kia."
+        else:
+            b = random.randint(6, 15)
+            k = random.randint(6, 15)
+            a = b * k
 
-    else:
-        b = random.randint(6, 15)
-        k = random.randint(6, 15)
-        a = b * k
+            cau = f"$ {a} \\div {b} = $"
 
-        cau = f"$ {a} \\div {b} = $"
+            dap_an = k
 
-        dap_an = k
-
-        lua_chon = [
-            dap_an,
-            dap_an + 1,
-            dap_an - 1,
-            dap_an + 2
-        ]
-
-        goi_y = "Muốn chia hai số tự nhiên, ta lấy số bị chia chia cho số chia."
+            lua_chon = [
+                dap_an,
+                dap_an + 1,
+                dap_an - 1,
+                dap_an + 2
+             ]
+    
+            goi_y = "Muốn chia hai số tự nhiên, ta lấy số bị chia chia cho số chia."
 
     # ---------- BÀI 6 ----------
     elif bai == "Bài 6. Luỹ thừa với số mũ tự nhiên":
