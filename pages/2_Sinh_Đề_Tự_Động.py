@@ -1,10 +1,12 @@
-# file: sinh_de_kntc_lop6_9_dapan_xuongdong.py
 import requests
 import streamlit as st
 from datetime import datetime
+import base64
+from io import BytesIO
 
+# ===============================
 # 🔑 NHẬP GOOGLE API KEY
-# =====================
+# ===============================
 
 with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
     st.markdown("""
@@ -29,7 +31,7 @@ else:
 
 
 # ===============================
-# 📌 HÀM GỌI GEMINI
+# 📌 HÀM GỌI GEMINI (Xử lý ảnh & text)
 # ===============================
 
 def analyze_real_image(api_key, image, prompt):
@@ -66,6 +68,11 @@ def analyze_real_image(api_key, image, prompt):
 
     except Exception as e:
         return f"❌ Lỗi kết nối: {str(e)}"
+
+# ===============================
+# 📚 DỮ LIỆU CHƯƠNG TRÌNH HỌC
+# ===============================
+
 chuong_options_lop = {
     "Lớp 6": [
         "Chương I: Tập hợp các số tự nhiên",
@@ -122,7 +129,7 @@ chuong_options_lop = {
 
 # --- Từng bài chi tiết ---
 bai_options_lop = {
-    "Lớp 6": { # giữ nguyên như cũ
+    "Lớp 6": {
         "Chương I: Tập hợp các số tự nhiên": ["Bài 1","Bài 2","Bài 3","Bài 4","Ôn tập"],
         "Chương II: Tính chia hết trong tập hợp các số tự nhiên": ["Bài 5","Bài 6","Ôn tập"],
         "Chương III: Số nguyên": ["Bài 7","Bài 8","Ôn tập"],
@@ -134,7 +141,7 @@ bai_options_lop = {
         "Chương IX: Dữ liệu và xác suất thực nghiệm": ["Bài 19","Bài 20","Ôn tập"],
         "Hoạt động thực hành trải nghiệm": ["Bài 21","Bài 22","Ôn tập"]
     },
-    "Lớp 7": { # đã hoàn thiện ở bước trước
+    "Lớp 7": {
         "Chương I: Số hữu tỉ": ["Bài 1. Tập hợp các số hữu tỉ","Bài 2. Cộng, trừ, nhân, chia số hữu tỉ","Bài 3. Luỹ thừa với số mũ tự nhiên của một số hữu tỉ","Bài 4. Thứ tự thực hiện các phép tính. Quy tắc chuyển vế","Ôn tập chương I"],
         "Chương II: Số thực": ["Bài 5. Làm quen với số thập phân vô hạn tuần hoàn","Bài 6. Số vô tỉ. Căn bậc hai số học","Bài 7. Tập hợp các số thực","Ôn tập chương II"],
         "Chương III: Góc và đường thẳng song song": ["Bài 8. Góc ở vị trí đặc biệt. Tia phân giác của một góc","Bài 9. Hai đường thẳng song song và dấu hiệu nhận biết","Bài 10. Tiên đề Euclid. Tính chất của hai đường thẳng song song","Bài 11. Định lí và chứng minh định lí","Ôn tập chương III"],
@@ -175,7 +182,10 @@ bai_options_lop = {
     }
 }
 
-# --- Sidebar ---
+# ===============================
+# 🎛️ SIDEBAR VÀ CẤU HÌNH ĐỀ
+# ===============================
+
 with st.sidebar:
     st.header("Thông tin sinh đề")
     lop = st.selectbox("Chọn lớp", ["Lớp 6","Lớp 7","Lớp 8","Lớp 9"], index=0)
@@ -187,6 +197,7 @@ with st.sidebar:
     bai_list_all = []
     for c in chuong:
         bai_list_all.extend(bai_options_lop[lop].get(c, []))
+    
     if bai_list_all:
         bai = st.multiselect("Chọn bài", bai_list_all, default=bai_list_all[0])
     else:
@@ -221,49 +232,58 @@ co_dap_an = st.radio(
     index=0
 )
 
+# ===============================
+# 📝 CÁC HÀM XỬ LÝ CHÍNH
+# ===============================
+
 # --- Hàm tạo prompt ---
 def create_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
                   so_cau_nb, so_cau_th, so_cau_vd, dan_ap):
-       prompt = f"""
-    Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
-    - Chương: {', '.join(chuong)}
-    - Bài: {', '.join(bai)}
-    
-    Yêu cầu:
-    1. Tổng {so_cau} câu, gồm:
-       - NL (4 lựa chọn): {phan_bo_nl} câu
-       - DS (Đúng/Sai): {phan_bo_ds} câu
-       - TL: {phan_bo_tl} câu
-    2. Phân bố nhận thức:
-       - Nhận biết: {so_cau_nb}
-       - Thông hiểu: {so_cau_th}
-       - Vận dụng: {so_cau_vd}
-    3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$.**
-    4. Mỗi câu phải gắn nhãn **Mức độ** và **Loại câu hỏi**.
-    5. **Đáp án NL/DS**: mỗi đáp án A/B/C/D hoặc Đúng/Sai viết **xuống dòng riêng**, không viết liền nhau.
-    6. **Đáp án TL**: đánh số 1,2,3…; mọi công thức toán phải viết dưới dạng LaTeX trong $$...$$.
-    7. {dan_ap}
-    8. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp `st.markdown()`.
-    
-    **Ví dụ định dạng đáp án NL/DS**:
-    
-    A. Đáp án 1  
-    B. Đáp án 2  
-    C. Đáp án 3  
-    D. Đáp án 4
-    
-    **Ví dụ định dạng TL**:
-    
-    1. $$Công thức 1$$  
-    2. $$Công thức 2$$
-    """
+    prompt = f"""
+Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
+- Chương: {', '.join(chuong)}
+- Bài: {', '.join(bai)}
 
+Yêu cầu:
+1. Tổng {so_cau} câu, gồm:
+   - NL (4 lựa chọn): {phan_bo_nl} câu
+   - DS (Đúng/Sai): {phan_bo_ds} câu
+   - TL: {phan_bo_tl} câu
+2. Phân bố nhận thức:
+   - Nhận biết: {so_cau_nb}
+   - Thông hiểu: {so_cau_th}
+   - Vận dụng: {so_cau_vd}
+3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$.**
+4. Mỗi câu phải gắn nhãn **Mức độ** và **Loại câu hỏi**.
+5. **Đáp án NL/DS**: mỗi đáp án A/B/C/D hoặc Đúng/Sai viết **xuống dòng riêng**, không viết liền nhau.
+6. **Đáp án TL**: đánh số 1,2,3…; mọi công thức toán phải viết dưới dạng LaTeX trong $$...$$.
+7. {dan_ap}
+8. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp `st.markdown()`.
+
+**Ví dụ định dạng đáp án NL/DS**:
+
+A. Đáp án 1  
+B. Đáp án 2  
+C. Đáp án 3  
+D. Đáp án 4
+
+**Ví dụ định dạng TL**:
+
+1. $$Công thức 1$$  
+2. $$Công thức 2$$
+"""
     return prompt
+
 # --- Gọi API ---
 def generate_questions(api_key, prompt):
-    MODEL = "models/gemini-2.5-flash"
-    url = f"https://generativelanguage.googleapis.com/v1/{MODEL}:generateContent?key={api_key}"
-    payload = {"contents":[{"role":"user","parts":[{"text":prompt}]}]}
+    MODEL = "gemini-2.5-flash"
+    url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
+    payload = {
+        "contents": [{
+            "role": "user",
+            "parts": [{"text": prompt}]
+        }]
+    }
     headers = {"Content-Type": "application/json"}
     
     try:
@@ -271,22 +291,28 @@ def generate_questions(api_key, prompt):
         if r.status_code != 200:
             return False, f"Lỗi API {r.status_code}: {r.text}"
         j = r.json()
-        if j.get("candidates") and len(j["candidates"])>0:
+        if j.get("candidates") and len(j["candidates"]) > 0:
             text = j["candidates"][0]["content"]["parts"][0]["text"]
             return True, text
         return False, "AI không trả về nội dung hợp lệ."
     except requests.exceptions.Timeout:
         return False, "Lỗi kết nối: Yêu cầu hết thời gian."
 
-# --- Nút bấm sinh đề ---
+# ===============================
+# 🚀 NÚT BẤM SINH ĐỀ
+# ===============================
+
 if st.button("Sinh đề chuẩn + đáp án cách dòng"):
     if not api_key:
         st.warning("Nhập API Key trước khi sinh đề!")
     else:
-        prompt = build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
-                              so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
+        # Gọi đúng tên hàm create_prompt thay vì build_prompt
+        prompt = create_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
+                               so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
+        
         with st.spinner("Đang sinh đề (Markdown + LaTeX + đáp án cách dòng)..."):
             success, result = generate_questions(api_key, prompt)
+            
             if success:
                 st.success("✅ Sinh đề thành công!")
                 st.markdown(result, unsafe_allow_html=True)
