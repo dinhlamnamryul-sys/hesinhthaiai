@@ -312,10 +312,8 @@ def tao_de_toan(lop, bai_hoc):
     
     bai_lower = bai_hoc.lower()
 
-  
-  # --- LỚP 6 ---
-elif "Lớp 6" in lop:
-
+    # --- LỚP 6 ---
+    elif "Lớp 6" in lop:
     def bai_1_dang_1():
         tap = sorted(random.sample(range(1, 10), 5))
         dung = random.choice(tap)
