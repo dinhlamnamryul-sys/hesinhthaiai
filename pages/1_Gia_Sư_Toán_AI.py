@@ -624,63 +624,146 @@ def tao_de_toan(lop, bai_hoc):
 
     # --- LỚP 9 ---
     elif "Lớp 9" in lop:
-        question_type = "mcq"
-        if "căn thức" in bai_lower:
+        question_type = "mcq"  # Đa số lớp 9 dùng trắc nghiệm cho các bài lý thuyết/công thức
+        
+        # 1. CĂN THỨC
+        if "điều kiện" in bai_lower:
+            # Dạng: Căn bậc hai của (x - a) xác định khi nào?
+            a = random.randint(1, 9)
+            sign = random.choice([-1, 1])
+            if sign == 1:
+                de_latex = f"Tìm điều kiện xác định của biểu thức $\\sqrt{{x - {a}}}$"
+                ans_correct = f"$x \\ge {a}$"
+                dap_an = ans_correct
+                options = [ans_correct, f"$x > {a}$", f"$x \\le {a}$", f"$x < {a}$"]
+                goi_y_latex = f"x - {a} \\ge 0 \\Leftrightarrow x \\ge {a}"
+            else:
+                de_latex = f"Tìm điều kiện xác định của biểu thức $\\sqrt{{ {a} - x}}$"
+                ans_correct = f"$x \\le {a}$"
+                dap_an = ans_correct
+                options = [ans_correct, f"$x < {a}$", f"$x \\ge {a}$", f"$x > {a}$"]
+                goi_y_latex = f"{a} - x \\ge 0 \\Leftrightarrow x \\le {a}"
+            goi_y_text = "Biểu thức trong căn bậc hai phải lớn hơn hoặc bằng 0."
+
+        elif "rút gọn" in bai_lower:
+            # Dạng: Rút gọn căn(a^2 * b)
             a = random.randint(2, 5)
-            de_latex = f"Điều kiện xác định của $\\sqrt{{x - {a}}}$ là?"
-            ans_correct = f"$x \\ge {a}$"
+            de_latex = f"Rút gọn biểu thức: $\\sqrt{{{a}^2 x}}$ với $x \\ge 0$"
+            ans_correct = f"${a}\\sqrt{{x}}$"
             dap_an = ans_correct
-            options = [ans_correct, f"$x > {a}$", f"$x \\le {a}$", f"$x < {a}$"]
-            goi_y_text = "Biểu thức trong căn bậc hai phải không âm."
-            goi_y_latex = f"x - {a} \\ge 0 \\Leftrightarrow x \\ge {a}"
+            options = [ans_correct, f"${a}x$", f"${a*a}\\sqrt{{x}}$", f"$\\sqrt{{{a}x}}$"]
+            goi_y_text = "Đưa thừa số ra ngoài dấu căn."
+            goi_y_latex = "\\sqrt{A^2 B} = |A|\\sqrt{B}"
+
+        # 2. HÀM SỐ BẬC NHẤT
+        elif "đồ thị" in bai_lower:
+            # Dạng: Điểm nào thuộc đồ thị?
+            a = random.randint(1, 4) * random.choice([-1, 1])
+            b = random.randint(1, 5)
+            x_val = random.randint(0, 2)
+            y_val = a * x_val + b
+            de_latex = f"Điểm nào sau đây thuộc đồ thị hàm số $y = {a}x + {b}$?"
+            ans_correct = f"$({x_val}; {y_val})$"
+            dap_an = ans_correct
+            fake1 = f"$({x_val}; {y_val + 1})$"
+            fake2 = f"$({x_val + 1}; {y_val})$"
+            fake3 = f"$(0; 0)$"
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Thay toạ độ điểm vào công thức hàm số, nếu hai vế bằng nhau thì điểm đó thuộc đồ thị."
+
+        elif "song song" in bai_lower or "cắt nhau" in bai_lower:
+            a = random.randint(2, 5)
+            b = random.randint(1, 5)
+            de_latex = f"Đường thẳng $y = {a}x - {b}$ song song với đường thẳng nào sau đây?"
+            ans_correct = f"$y = {a}x + 2$"
+            dap_an = ans_correct
+            options = [ans_correct, f"$y = {a+1}x - {b}$", f"$y = -{a}x + 2$", f"$y = x - {b}$"]
+            goi_y_text = "Hai đường thẳng song song có hệ số góc a bằng nhau và tung độ gốc b khác nhau."
+
+        # 3. HỆ PHƯƠNG TRÌNH
         elif "hệ phương trình" in bai_lower:
-            x = random.randint(1, 3)
-            y = random.randint(1, 3)
-            c1 = x + y
-            c2 = x - y
-            de_latex = f"Nghiệm của hệ: $\\begin{{cases}} x+y={c1} \\\\ x-y={c2} \\end{{cases}}$"
-            ans_correct = f"$({x}; {y})$"
+            # Dạng: Tổng hiệu đơn giản
+            x = random.randint(1, 4)
+            y = random.randint(1, 4)
+            s = x + y
+            d = x - y
+            de_latex = f"Giải hệ phương trình: $\\begin{{cases}} x + y = {s} \\\\ x - y = {d} \\end{{cases}}$"
+            ans_correct = f"$(x={x}; y={y})$"
             dap_an = ans_correct
-            options = [ans_correct, f"$({y}; {x})$", f"$({x}; -{y})$", f"$(-{x}; {y})$"]
-            goi_y_text = "Cộng đại số hai phương trình."
-        elif "phương trình bậc hai" in bai_lower or "vi-ét" in bai_lower:
+            options = [ans_correct, f"$(x={y}; y={x})$", f"$(x={x}; y={-y})$", f"$(x={s}; y={d})$"]
+            goi_y_text = "Cộng đại số hai phương trình để tìm x, sau đó thay vào tìm y."
+
+        # 4. PHƯƠNG TRÌNH BẬC HAI
+        elif "công thức nghiệm" in bai_lower or "delta" in bai_lower:
+            # Tính Delta
+            a = random.randint(1, 3)
+            b = random.randint(3, 7)
+            c = random.randint(1, 3)
+            de_latex = f"Tính biệt thức $\\Delta$ của phương trình: ${a}x^2 + {b}x + {c} = 0$"
+            delta = b*b - 4*a*c
+            dap_an = delta
+            question_type = "number" # Chuyển sang nhập số cho bài này
+            goi_y_text = "Công thức tính Delta:"
+            goi_y_latex = "\\Delta = b^2 - 4ac"
+
+        elif "vi-ét" in bai_lower:
+            # Tổng hoặc tích nghiệm
             x1 = random.randint(1, 5)
             x2 = random.randint(1, 5)
             S = x1 + x2
             P = x1 * x2
-            de_latex = f"Phương trình $x^2 - {S}x + {P} = 0$ có tổng hai nghiệm là?"
-            ans_correct = f"{S}"
+            req = random.choice(["tổng", "tích"])
+            de_latex = f"Cho phương trình $x^2 - {S}x + {P} = 0$. Tính {req} hai nghiệm của phương trình."
+            if req == "tổng":
+                dap_an = S
+                goi_y_latex = "x_1 + x_2 = -\\frac{b}{a}"
+            else:
+                dap_an = P
+                goi_y_latex = "x_1 x_2 = \\frac{c}{a}"
+            question_type = "number"
+            goi_y_text = "Sử dụng định lý Vi-ét."
+
+        # 5. HÌNH HỌC (ĐƯỜNG TRÒN & LƯỢNG GIÁC)
+        elif "lượng giác" in bai_lower:
+            # Định nghĩa sin, cos, tan
+            funcs = {
+                "sin": ("Đối", "Huyền"),
+                "cos": ("Kề", "Huyền"),
+                "tan": ("Đối", "Kề"),
+                "cot": ("Kề", "Đối")
+            }
+            chon = random.choice(list(funcs.keys()))
+            canh1, canh2 = funcs[chon]
+            de_latex = f"Trong tam giác vuông, tỉ số lượng giác ${chon} \\alpha$ được tính bằng?"
+            ans_correct = f"$\\frac{{\\text{{{canh1}}}}}{{\\text{{{canh2}}}}}$"
             dap_an = ans_correct
-            options = [f"{S}", f"-{S}", f"{P}", f"-{P}"]
-            goi_y_text = "Theo định lý Vi-ét:"
-            goi_y_latex = "x_1 + x_2 = -\\frac{b}{a}"
-        elif "hàm số" in bai_lower:
-            a = random.randint(2, 5)
-            de_latex = f"Đường thẳng $y = {a}x + 1$ song song với đường thẳng nào?"
-            ans_correct = f"$y = {a}x - 2$"
+            
+            wrong1 = f"$\\frac{{\\text{{{canh2}}}}}{{\\text{{{canh1}}}}}$" # Nghịch đảo
+            wrong2 = "$\\frac{\\text{Đối}}{\\text{Huyền}}$" if chon != "sin" else "$\\frac{\\text{Kề}}{\\text{Huyền}}$"
+            wrong3 = "$\\frac{\\text{Kề}}{\\text{Đối}}$" if chon != "cot" else "$\\frac{\\text{Đối}}{\\text{Kề}}$"
+            
+            options = [ans_correct, wrong1, wrong2, wrong3]
+            # Lọc trùng
+            options = list(set(options))
+            
+            goi_y_text = "Nhớ câu thần chú: Sin đi học, Cos không hư, Tan đoàn kết, Cot kết đoàn."
+
+        elif "nội tiếp" in bai_lower or "đường tròn" in bai_lower:
+            arc = random.randint(40, 120)
+            de_latex = f"Góc nội tiếp chắn cung {arc}$^\\circ$ thì có số đo bằng bao nhiêu?"
+            ans_correct = arc // 2
             dap_an = ans_correct
-            options = [ans_correct, f"$y = {a}x + 1$", f"$y = -{a}x + 2$", f"$y = 2x + 1$"]
-            goi_y_text = "Hai đường thẳng song song có cùng hệ số góc a."
-        elif "lượng giác" in bai_lower or "hình học" in bai_lower:
-            de_latex = "Trong tam giác vuông, $Sin \\alpha$ bằng?"
-            ans_correct = "$\\frac{\\text{Đối}}{\\text{Huyền}}$"
-            dap_an = ans_correct
-            options = [ans_correct, "$\\frac{\\text{Kề}}{\\text{Huyền}}$", "$\\frac{\\text{Đối}}{\\text{Kề}}$", "$\\frac{\\text{Kề}}{\\text{Đối}}$"]
-            goi_y_text = "Công thức Sin:"
-            goi_y_latex = "\\sin = \\frac{\\text{Đối}}{\\text{Huyền}}"
+            question_type = "number"
+            goi_y_text = "Số đo góc nội tiếp bằng một nửa số đo cung bị chắn."
+            goi_y_latex = f"\\alpha = \\frac{{1}}{{2}} \\times {arc}^\\circ"
+
+        # FALLBACK
         else:
             de_latex = "Giải phương trình $x^2 - 4 = 0$"
             ans_correct = "$x = \\pm 2$"
             dap_an = ans_correct
             options = [ans_correct, "$x = 2$", "$x = 4$", "$x = 16$"]
-
-    # --- FALLBACK AN TOÀN ---
-    else:
-        a, b = random.randint(1, 20), random.randint(1, 20)
-        de_latex = f"Tính: ${a} + {b} = ?$"
-        dap_an = a + b
-        goi_y_text = "Thực hiện phép cộng."
-
+            goi_y_text = "Chuyển vế và khai căn."
     if question_type == "mcq" and options: random.shuffle(options)
               
     return de_latex, question_type, dap_an, options, goi_y_text, goi_y_latex
