@@ -55,19 +55,37 @@ def sinh_cau_hoi(bai):
         )
 
     # ---------- BÀI 2 ----------
-    elif bai == "Bài 2. Cách ghi số tự nhiên":
-        a = random.randint(100, 999)
-        cau = f"Số $ {a} $ được viết là:"
-        dap_an = f"${a}$"
-        lua_chon = [
-            dap_an,
-            f"${a + 10}$",
-            f"${a - 10}$",
-            f"${a * 10}$"
-        ]
-        goi_y = (
-            "Viết số theo thứ tự hàng trăm – hàng chục – hàng đơn vị."
-        )
+  elif bai == "Bài 2. Cách ghi số tự nhiên":
+    tram = random.randint(1,9)
+    chuc = random.randint(0,9)
+    donvi = random.randint(0,9)
+
+    so = tram*100 + chuc*10 + donvi
+
+    # Đọc số bằng chữ (chuẩn SGK)
+    doc_so = f"{tram} trăm"
+    if chuc == 0 and donvi != 0:
+        doc_so += " linh"
+    elif chuc != 0:
+        doc_so += f" {chuc} mươi"
+    if donvi != 0:
+        doc_so += f" {donvi}"
+
+    cau = f"Số được đọc là “{doc_so}” được viết là:"
+
+    dap_an = f"${so}$"
+
+    lua_chon = [
+        dap_an,
+        f"${tram*100 + donvi*10 + chuc}$",
+        f"${tram*100 + chuc*10}$",
+        f"${tram*100 + chuc + donvi}$"
+    ]
+
+    goi_y = (
+        "Số tự nhiên có ba chữ số gồm: "
+        "chữ số hàng trăm, hàng chục và hàng đơn vị."
+    )
 
     # ---------- BÀI 3 ----------
     elif bai == "Bài 3. Thứ tự trong tập hợp các số tự nhiên":
