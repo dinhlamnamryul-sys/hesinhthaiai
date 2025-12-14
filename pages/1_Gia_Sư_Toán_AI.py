@@ -322,201 +322,87 @@ def tao_de_toan(lop, bai_hoc):
 
     bai_lower = bai_hoc.lower()
 
-    # ================= LỚP 6 =================
-    if "Lớp 6" in lop:
+# --- HÀM TRỘN ĐÁP ÁN ---
+def tron_dap_an(dung, sai_list):
+    ds = sai_list + [dung]
+    random.shuffle(ds)
+    return ds
 
-        # -------- BÀI 1: TẬP HỢP --------
+
+# --- LOGIC SINH ĐỀ TOÀN DIỆN ---
+def tao_de_toan(lop, bai_hoc):
+    de_latex = ""
+    question_type = "mcq"
+    dap_an = ""
+    options = []
+    goi_y_text = ""
+    goi_y_latex = ""
+
+    bai_lower = bai_hoc.lower()
+
+    # ================= LỚP 6 =================
+    if "lớp 6" in lop.lower():
+
+        # ---- BÀI 1: TẬP HỢP ----
         if "bài 1" in bai_lower or "tập hợp" in bai_lower:
 
-            def bai_1_dang_1():
-                tap = sorted(random.sample(range(1, 10), 5))
-                dung = random.choice(tap)
-                sai = random.choice([x for x in range(1, 12) if x not in tap])
+            tap = sorted(random.sample(range(1, 10), 5))
+            dung = random.choice(tap)
+            sai = random.choice([x for x in range(1, 12) if x not in tap])
 
-                dap_an_dung = f"{dung} ∈ {{{';'.join(map(str, tap))}}}"
+            dap_an = f"{dung} ∈ {{{';'.join(map(str, tap))}}}"
 
-                dap_an_nhieu = [
-                    f"{sai} ∈ {{{';'.join(map(str, tap))}}}",
-                    f"{dung} ∉ {{{';'.join(map(str, tap))}}}",
-                    f"{tap[0]} ⊂ {tap[1]}"
-                ]
+            options = tron_dap_an(dap_an, [
+                f"{sai} ∈ {{{';'.join(map(str, tap))}}}",
+                f"{dung} ∉ {{{';'.join(map(str, tap))}}}",
+                f"{tap[0]} ⊂ {tap[1]}"
+            ])
 
-                return {
-                    "question": "Cách viết nào đúng?",
-                    "answer": dap_an_dung,
-                    "options": tron_dap_an(dap_an_dung, dap_an_nhieu),
-                    "explain": f"{dung} thuộc tập hợp đã cho."
-                }
+            de_latex = "Cách viết nào đúng?"
+            goi_y_text = f"{dung} là phần tử thuộc tập hợp đã cho."
 
-            def bai_1_dang_2():
-                n = random.randint(3, 7)
-
-                dap_an_dung = "{" + ";".join(map(str, range(0, n))) + "}"
-
-                dap_an_nhieu = [
-                    "{" + ";".join(map(str, range(1, n))) + "}",
-                    "{" + ";".join(map(str, range(0, n+1))) + "}",
-                    "{" + ";".join(map(str, range(1, n+1))) + "}"
-                ]
-
-                return {
-                    "question": f"Tập hợp A = {{x | x là số tự nhiên nhỏ hơn {n}}} là:",
-                    "answer": dap_an_dung,
-                    "options": tron_dap_an(dap_an_dung, dap_an_nhieu),
-                    "explain": f"Số tự nhiên nhỏ hơn {n} gồm từ 0 đến {n-1}."
-                }
-
-            cau = random.choice([bai_1_dang_1, bai_1_dang_2])()
-
-            de_latex = cau["question"]
-            dap_an = cau["answer"]
-            options = cau["options"]
-            goi_y_text = cau["explain"]
-
-        # -------- BÀI KHÁC LỚP 6 (TẠM) --------
+        # ---- BÀI KHÁC LỚP 6 (DỰ PHÒNG) ----
         else:
             a, b = random.randint(10, 99), random.randint(10, 99)
-            de_latex = f"Tính: {a} + {b} = ?"
             dap_an = str(a + b)
+            de_latex = f"Tính: {a} + {b} = ?"
             options = tron_dap_an(dap_an, [str(a+b+1), str(a+b-1), str(a+b+2)])
-            goi_y_text = "Thực hiện phép cộng hai số tự nhiên."
+            goi_y_text = "Cộng hai số tự nhiên."
 
-    # ================= LỚP KHÁC =================
+    # ================= LỚP 7 =================
+    elif "lớp 7" in lop.lower():
+        a = random.randint(1, 9)
+        dap_an = str(a * a)
+        de_latex = f"Tính: $(-{a})^2$"
+        options = tron_dap_an(dap_an, [str(a), str(-a), str(a*2)])
+        goi_y_text = "Bình phương của số âm là số dương."
+
+    # ================= LỚP 8 =================
+    elif "lớp 8" in lop.lower():
+        a = random.randint(2, 5)
+        dap_an = f"{a}x"
+        de_latex = f"Rút gọn: $x(x+{a}) - x^2$"
+        options = tron_dap_an(dap_an, [f"-{a}x", "x²", f"{a}"])
+        goi_y_text = "Khai triển rồi rút gọn."
+
+    # ================= LỚP 9 =================
+    elif "lớp 9" in lop.lower():
+        a = random.randint(2, 9)
+        dap_an = f"x ≥ {a}"
+        de_latex = f"Điều kiện xác định của $\\sqrt{{x-{a}}}$ là:"
+        options = tron_dap_an(dap_an, [f"x > {a}", f"x ≤ {a}", f"x < {a}"])
+        goi_y_text = "Biểu thức trong căn phải không âm."
+
+    # ================= FALLBACK =================
     else:
         a, b = random.randint(1, 20), random.randint(1, 20)
-        de_latex = f"Tính: {a} + {b} = ?"
         dap_an = str(a + b)
+        de_latex = f"Tính: {a} + {b}"
         options = tron_dap_an(dap_an, [str(a+b+1), str(a+b-1), str(a+b+2)])
-        goi_y_text = "Cộng hai số tự nhiên."
+        goi_y_text = "Cộng hai số."
 
     return de_latex, question_type, dap_an, options, goi_y_text, goi_y_latex
 
-    # --- LỚP 7 ---
-    elif "Lớp 7" in lop:
-        if "số hữu tỉ" in bai_lower:
-            tu = random.randint(1, 5)
-            de_latex = f"Kết quả của phép tính $\\frac{{{tu}}}{{2}} + \\frac{{{tu}}}{{2}}$ là?"
-            dap_an = tu
-            goi_y_text = "Cộng hai phân số cùng mẫu."
-        elif "căn bậc hai" in bai_lower:
-            sq = random.choice([4, 9, 16, 25, 36, 49, 64, 81, 100])
-            de_latex = f"Tính $\\sqrt{{{sq}}}$"
-            dap_an = int(math.sqrt(sq))
-            goi_y_text = "Tìm số dương bình phương lên bằng số trong căn."
-        elif "tuyệt đối" in bai_lower:
-            val = random.randint(-10, -1)
-            de_latex = f"Tính $|{val}|$"
-            dap_an = abs(val)
-            goi_y_text = "Giá trị tuyệt đối của số âm là số đối của nó."
-        elif "góc" in bai_lower:
-            angle = random.randint(30, 150)
-            de_latex = f"Hai góc đối đỉnh, góc thứ nhất bằng ${angle}^\\circ$. Góc thứ hai bằng bao nhiêu?"
-            dap_an = angle
-            goi_y_text = "Hai góc đối đỉnh thì bằng nhau."
-        elif "tam giác" in bai_lower:
-            a = random.randint(30, 80)
-            b = random.randint(30, 80)
-            de_latex = f"Tam giác ABC có $\\hat{{A}}={a}^\\circ, \\hat{{B}}={b}^\\circ$. Tính $\\hat{{C}}$."
-            dap_an = 180 - a - b
-            goi_y_text = "Tổng ba góc trong tam giác là 180 độ."
-        else:
-             a = random.randint(1, 5)
-             de_latex = f"Tính $(-{a})^2$"
-             dap_an = a**2
-
-    # --- LỚP 8 ---
-    elif "Lớp 8" in lop:
-        question_type = "mcq"
-        if "đa thức" in bai_lower:
-            a = random.randint(2, 5)
-            de_latex = f"Rút gọn biểu thức: $x(x + {a}) - x^2$"
-            ans_correct = f"${a}x$"
-            dap_an = ans_correct
-            options = [f"${a}x$", f"$-{a}x$", f"$2x^2 + {a}x$", f"${a}$"]
-            goi_y_text = "Nhân đơn thức với đa thức rồi thu gọn."
-            goi_y_latex = f"x^2 + {a}x - x^2 = {a}x"
-        elif "hằng đẳng thức" in bai_lower:
-            a = random.randint(1, 5)
-            de_latex = f"Khai triển: $(x - {a})^2$"
-            ans_correct = f"$x^2 - {2*a}x + {a**2}$"
-            dap_an = ans_correct
-            options = [ans_correct, f"$x^2 + {2*a}x + {a**2}$", f"$x^2 - {a**2}$", f"$x^2 + {a**2}$"]
-            goi_y_text = "Bình phương một hiệu:"
-            goi_y_latex = "(A-B)^2 = A^2 - 2AB + B^2"
-        elif "phân thức" in bai_lower:
-            a = random.randint(2, 5)
-            de_latex = f"Rút gọn phân thức: $\\frac{{x^2 - {a**2}}}{{x + {a}}}$"
-            ans_correct = f"$x - {a}$"
-            dap_an = ans_correct
-            options = [f"$x - {a}$", f"$x + {a}$", f"$x^2 - {a}$", f"$1$"]
-            goi_y_text = "Phân tích tử số thành nhân tử:"
-            goi_y_latex = f"x^2 - {a}^2 = (x-{a})(x+{a})"
-        elif "hàm số" in bai_lower:
-            a = random.randint(2, 5)
-            b = random.randint(1, 9)
-            x_val = 2
-            de_latex = f"Cho hàm số $y = {a}x + {b}$. Giá trị của y tại $x={x_val}$ là?"
-            ans_correct = f"{a*x_val + b}"
-            dap_an = ans_correct
-            options = [f"{a*x_val + b}", f"{a*x_val - b}", f"{a + b}", f"{b}"]
-            goi_y_text = "Thay giá trị x vào công thức hàm số."
-        else:
-            de_latex = "Bậc của đa thức $x^2y + xy^3$ là?"
-            dap_an = "4"
-            options = ["4", "3", "2", "5"]
-            goi_y_text = "Bậc của đa thức là bậc của hạng tử có bậc cao nhất."
-
-    # --- LỚP 9 ---
-    elif "Lớp 9" in lop:
-        question_type = "mcq"
-        if "căn thức" in bai_lower:
-            a = random.randint(2, 5)
-            de_latex = f"Điều kiện xác định của $\\sqrt{{x - {a}}}$ là?"
-            ans_correct = f"$x \\ge {a}$"
-            dap_an = ans_correct
-            options = [ans_correct, f"$x > {a}$", f"$x \\le {a}$", f"$x < {a}$"]
-            goi_y_text = "Biểu thức trong căn bậc hai phải không âm."
-            goi_y_latex = f"x - {a} \\ge 0 \\Leftrightarrow x \\ge {a}"
-        elif "hệ phương trình" in bai_lower:
-            x = random.randint(1, 3)
-            y = random.randint(1, 3)
-            c1 = x + y
-            c2 = x - y
-            de_latex = f"Nghiệm của hệ: $\\begin{{cases}} x+y={c1} \\\\ x-y={c2} \\end{{cases}}$"
-            ans_correct = f"$({x}; {y})$"
-            dap_an = ans_correct
-            options = [ans_correct, f"$({y}; {x})$", f"$({x}; -{y})$", f"$(-{x}; {y})$"]
-            goi_y_text = "Cộng đại số hai phương trình."
-        elif "phương trình bậc hai" in bai_lower or "vi-ét" in bai_lower:
-            x1 = random.randint(1, 5)
-            x2 = random.randint(1, 5)
-            S = x1 + x2
-            P = x1 * x2
-            de_latex = f"Phương trình $x^2 - {S}x + {P} = 0$ có tổng hai nghiệm là?"
-            ans_correct = f"{S}"
-            dap_an = ans_correct
-            options = [f"{S}", f"-{S}", f"{P}", f"-{P}"]
-            goi_y_text = "Theo định lý Vi-ét:"
-            goi_y_latex = "x_1 + x_2 = -\\frac{b}{a}"
-        elif "hàm số" in bai_lower:
-            a = random.randint(2, 5)
-            de_latex = f"Đường thẳng $y = {a}x + 1$ song song với đường thẳng nào?"
-            ans_correct = f"$y = {a}x - 2$"
-            dap_an = ans_correct
-            options = [ans_correct, f"$y = {a}x + 1$", f"$y = -{a}x + 2$", f"$y = 2x + 1$"]
-            goi_y_text = "Hai đường thẳng song song có cùng hệ số góc a."
-        elif "lượng giác" in bai_lower or "hình học" in bai_lower:
-            de_latex = "Trong tam giác vuông, $Sin \\alpha$ bằng?"
-            ans_correct = "$\\frac{\\text{Đối}}{\\text{Huyền}}$"
-            dap_an = ans_correct
-            options = [ans_correct, "$\\frac{\\text{Kề}}{\\text{Huyền}}$", "$\\frac{\\text{Đối}}{\\text{Kề}}$", "$\\frac{\\text{Kề}}{\\text{Đối}}$"]
-            goi_y_text = "Công thức Sin:"
-            goi_y_latex = "\\sin = \\frac{\\text{Đối}}{\\text{Huyền}}"
-        else:
-            de_latex = "Giải phương trình $x^2 - 4 = 0$"
-            ans_correct = "$x = \\pm 2$"
-            dap_an = ans_correct
-            options = [ans_correct, "$x = 2$", "$x = 4$", "$x = 16$"]
 
     # --- FALLBACK AN TOÀN ---
     else:
