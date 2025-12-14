@@ -127,66 +127,59 @@ def sinh_cau_hoi_lop_6(bai):
         )
         goi_y_latex = f"{a} + {b} = {a + b}"
 
-    # -------- BÀI 5: NHÂN – CHIA --------
-    elif bai == "Bài 5. Phép nhân và phép chia số tự nhiên":
-        a = random.randint(2, 9)
-        b = random.randint(2, 9)
-        cau_hoi = f"Tính $ {a} \\times {b} $"
-        dap_an = str(a * b)
-        options = [
-            str(a * b),
-            str(a + b),
-            str(a * b + a),
-            str(a * b - b)
-        ]
+   elif bai == "Bài 5. Phép nhân và phép chia số tự nhiên":
+    a = random.randint(2, 9)
+    b = random.randint(2, 9)
 
-        goi_y_viet = (
-            "Phép nhân là phép cộng lặp lại nhiều lần. "
-            f"$ {a} \\times {b} $ nghĩa là cộng {a} với chính nó {b} lần."
-        )
-        goi_y_latex = f"{a} \\times {b} = {a * b}"
+    cau_hoi = f"Tính ${a}\\times{b}$"
+    dap_an = str(a * b)
 
-    # -------- BÀI 6: LŨY THỪA --------
-    elif bai == "Bài 6. Luỹ thừa với số mũ tự nhiên":
-        a = random.randint(2, 4)
-        n = random.randint(2, 3)
-        cau_hoi = f"Tính $ {a}^{n} $"
-        dap_an = str(a ** n)
-        options = [
-            str(a ** n),
-            str(a * n),
-            str(a + n),
-            str(a ** (n + 1))
-        ]
+    options = [
+        str(a * b),
+        str(a + b),
+        str(a * b + a),
+        str(a * b - b)
+    ]
 
-        goi_y_viet = (
-            "Lũy thừa là nhân một số với chính nó nhiều lần."
-        )
-        goi_y_latex = f"{a}^{n} = " + " \\times ".join([str(a)] * n)
+    goi_y_viet = (
+        "Phép nhân là phép cộng lặp lại nhiều lần."
+    )
+    goi_y_latex = f"{a}\\times{b}={a*b}"
 
-    # -------- BÀI 7: THỨ TỰ THỰC HIỆN --------
-    elif bai == "Bài 7. Thứ tự thực hiện các phép tính":
-        a, b, c = random.randint(2, 9), random.randint(2, 9), random.randint(2, 9)
-        cau_hoi = f"Tính $ {a} + {b} \\times {c} $"
-        dap_an = str(a + b * c)
-        options = [
-            str(a + b * c),
-            str((a + b) * c),
-            str(a * b + c),
-            str(a + b + c)
-        ]
+   elif bai == "Bài 6. Luỹ thừa với số mũ tự nhiên":
+    a = random.randint(2, 4)
+    n = random.randint(2, 3)
 
-        goi_y_viet = (
-            "Trong biểu thức không có ngoặc, "
-            "thực hiện phép nhân trước, phép cộng sau."
-        )
-        goi_y_latex = f"{a} + {b} \\times {c} = {a} + {b*c}"
+    cau_hoi = f"Tính ${a}^{{{n}}}$"
+    dap_an = str(a ** n)
 
-    else:
-        return None
+    options = [
+        str(a ** n),
+        str(a * n),
+        str(a + n),
+        str(a ** (n + 1))
+    ]
 
-    random.shuffle(options)
-    return cau_hoi, dap_an, options, goi_y_viet, goi_y_latex
+    goi_y_viet = "Lũy thừa là nhân một số với chính nó nhiều lần."
+    goi_y_latex = f"{a}^{{{n}}}=" + " \\times ".join([str(a)] * n)
+
+   elif bai == "Bài 7. Thứ tự thực hiện các phép tính":
+    a, b, c = random.randint(2, 9), random.randint(2, 9), random.randint(2, 9)
+
+    cau_hoi = f"Tính ${a}+{b}\\times{c}$"
+    dap_an = str(a + b * c)
+
+    options = [
+        str(a + b * c),
+        str((a + b) * c),
+        str(a * b + c),
+        str(a + b + c)
+    ]
+
+    goi_y_viet = (
+        "Trong biểu thức không có ngoặc, thực hiện phép nhân trước, phép cộng sau."
+    )
+    goi_y_latex = f"{a}+{b}\\times{c}={a}+{b*c}"
 
 # ===============================
 # SIDEBAR
