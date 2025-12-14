@@ -68,7 +68,6 @@ CHUONG_TRINH_HOC = {
         "Chủ đề 2: Các phép tính số thập phân": ["Cộng trừ số thập phân", "Nhân chia số thập phân"],
         "Chủ đề 3: Hình học": ["Diện tích hình tam giác", "Chu vi, diện tích hình tròn"]
     },
-   {
   "Lớp 6": {
     "Chương I. Tập hợp các số tự nhiên": [
       "Bài 1. Tập hợp",
