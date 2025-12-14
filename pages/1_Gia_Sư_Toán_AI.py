@@ -41,28 +41,31 @@ def sinh_cau_hoi(bai):
     if bai == "Bài 1. Tập hợp":
         tap = sorted(random.sample(range(1, 10), 5))
         x = random.choice(tap)
+
         cau = "Cách viết nào đúng?"
         dap_an = f"${x} \\in \\{{{';'.join(map(str, tap))}\\}}$"
+
         lua_chon = [
             dap_an,
             f"${x} \\notin \\{{{';'.join(map(str, tap))}\\}}$",
             f"${tap[0]} \\subset {tap[1]}$",
             f"${tap[0]} \\in ({tap[1]};{tap[2]})$"
         ]
+
         goi_y = (
             "Dấu $\\in$ dùng để chỉ phần tử thuộc tập hợp. "
             "Dấu $\\subset$ dùng để chỉ tập hợp con."
         )
 
     # ---------- BÀI 2 ----------
-     elif bai == "Bài 2. Cách ghi số tự nhiên":
+    elif bai == "Bài 2. Cách ghi số tự nhiên":
         tram = random.randint(1, 9)
         chuc = random.randint(0, 9)
         donvi = random.randint(0, 9)
 
         so = tram * 100 + chuc * 10 + donvi
 
-        # Đọc số bằng chữ (chuẩn SGK Toán 6)
+        # Đọc số bằng chữ – chuẩn SGK
         doc_so = f"{tram} trăm"
         if chuc == 0 and donvi != 0:
             doc_so += " linh"
@@ -87,6 +90,14 @@ def sinh_cau_hoi(bai):
             "chữ số hàng trăm, hàng chục và hàng đơn vị."
         )
 
+    else:
+        cau = "Chưa có câu hỏi cho bài này."
+        dap_an = ""
+        lua_chon = []
+        goi_y = ""
+
+    random.shuffle(lua_chon)
+    return cau, dap_an, lua_chon, goi_y
 
     # ---------- BÀI 3 ----------
     elif bai == "Bài 3. Thứ tự trong tập hợp các số tự nhiên":
