@@ -131,18 +131,22 @@ def sinh_cau_hoi(bai):
     elif bai == "Bài 5. Phép nhân và phép chia số tự nhiên":
         a = random.randint(2, 9)
         b = random.randint(2, 9)
-        cau = f"Tính $ {a} \\times {b} $"
-        dap_an = f"${a * b}$"
+
+        cau = (
+            f"Tích của {a} và {b} được viết là:"
+        )
+
+        dap_an = f"${a} \\times {b} = {a*b}$"
 
         lua_chon = [
             dap_an,
-            f"${a + b}$",
-            f"${a * b + 1}$",
-            f"${a * b - 1}$"
+            f"${a} + {b} = {a+b}$",
+            f"${a*b} \\times 1 = {a*b}$",
+            f"${a} \\times {b+1} = {a*(b+1)}$"
         ]
 
         goi_y = (
-            "Phép nhân là phép cộng nhiều lần cùng một số."
+            "Muốn tính tích của hai số tự nhiên, ta lấy số này nhân với số kia."
         )
 
     # ---------- BÀI 6 ----------
