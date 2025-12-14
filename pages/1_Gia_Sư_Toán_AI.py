@@ -150,18 +150,14 @@ elif bai == "Bài 5. Phép nhân và phép chia số tự nhiên":
             dap_an + random.choice([-2, 2])
         ]
 
-        goi_y = (
-            "Muốn nhân hai số tự nhiên, ta lấy số này nhân với số kia."
-        )
+        goi_y = "Muốn nhân hai số tự nhiên, ta lấy số này nhân với số kia."
 
     else:
         b = random.randint(6, 15)
         k = random.randint(6, 15)
         a = b * k
 
-        cau = (
-            f"$ {a} \\div {b} = $"
-        )
+        cau = f"$ {a} \\div {b} = $"
 
         dap_an = k
 
@@ -172,9 +168,7 @@ elif bai == "Bài 5. Phép nhân và phép chia số tự nhiên":
             dap_an + 2
         ]
 
-        goi_y = (
-            "Muốn chia hai số tự nhiên, ta lấy số bị chia chia cho số chia."
-        )
+        goi_y = "Muốn chia hai số tự nhiên, ta lấy số bị chia chia cho số chia."
 
     # ---------- BÀI 6 ----------
     elif bai == "Bài 6. Luỹ thừa với số mũ tự nhiên":
