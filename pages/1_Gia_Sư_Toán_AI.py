@@ -128,25 +128,52 @@ def sinh_cau_hoi(bai):
         )
 
     # ---------- BÀI 5 ----------
-    elif bai == "Bài 5. Phép nhân và phép chia số tự nhiên":
-        a = random.randint(2, 9)
-        b = random.randint(2, 9)
+   elif bai == "Bài 5. Phép nhân và phép chia số tự nhiên":
+    dang = random.choice(["nhan", "chia"])
+
+    if dang == "nhan":
+        a = random.randint(6, 15)
+        b = random.randint(6, 15)
 
         cau = (
-            f"Tích của {a} và {b} được viết là:"
+            "Kết quả của \n"
+            f"$ {a} \\times {b} $ \n"
+            "là:"
         )
 
-        dap_an = f"${a} \\times {b} = {a*b}$"
+        dap_an = a * b
 
         lua_chon = [
             dap_an,
-            f"${a} + {b} = {a+b}$",
-            f"${a*b} \\times 1 = {a*b}$",
-            f"${a} \\times {b+1} = {a*(b+1)}$"
+            dap_an + random.choice([-12, -10, 10, 12]),
+            dap_an + random.choice([-8, 8]),
+            dap_an + random.choice([-2, 2])
         ]
 
         goi_y = (
-            "Muốn tính tích của hai số tự nhiên, ta lấy số này nhân với số kia."
+            "Muốn nhân hai số tự nhiên, ta lấy số này nhân với số kia."
+        )
+
+    else:
+        b = random.randint(6, 15)
+        k = random.randint(6, 15)
+        a = b * k
+
+        cau = (
+            f"$ {a} \\div {b} = $"
+        )
+
+        dap_an = k
+
+        lua_chon = [
+            dap_an,
+            dap_an + 1,
+            dap_an - 1,
+            dap_an + 2
+        ]
+
+        goi_y = (
+            "Muốn chia hai số tự nhiên, ta lấy số bị chia chia cho số chia."
         )
 
     # ---------- BÀI 6 ----------
