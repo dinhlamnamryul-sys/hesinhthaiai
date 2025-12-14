@@ -427,282 +427,512 @@ def tao_de_toan(lop, bai_hoc):
              de_latex = f"Tính: ${a} \\times 10$"
              dap_an = a * 10
 
-  # --- LỚP 6 (CẬP NHẬT THEO MỤC LỤC CHUẨN) ---
+  # --- LỚP 6 (CẬP NHẬT CHI TIẾT THEO MỤC LỤC SGK MỚI) ---
     elif "Lớp 6" in lop:
-        question_type = "mcq" # Chuyển sang trắc nghiệm hoàn toàn
-
-        # --- TẬP 1 ---
-        # CHƯƠNG I: SỐ TỰ NHIÊN
-        if "tập hợp" in bai_lower or "số tự nhiên" in bai_lower:
-            if "lũy thừa" in bai_lower:
-                base = random.randint(2, 5)
-                exp = random.randint(2, 4)
-                de_latex = f"Tính giá trị của lũy thừa: ${base}^{exp}$"
-                ans_correct = f"{base**exp}"
-                
-                fake1 = f"{base*exp}"        # Lỗi: Nhân cơ số với số mũ
-                fake2 = f"{base+exp}"        # Lỗi: Cộng
-                fake3 = f"{base**exp + random.choice([-1, 1])}" 
-                
-                dap_an = ans_correct
-                options = [ans_correct, fake1, fake2, fake3]
-                goi_y_text = "Lũy thừa bậc n của a là tích của n thừa số a."
-                goi_y_latex = "a^n = a \\cdot a \\cdot ... \\cdot a \\text{ (n thừa số)}"
-            elif "thứ tự" in bai_lower: # Thứ tự thực hiện phép tính
-                a = random.randint(2, 5)
-                b = random.randint(2, 5)
-                de_latex = f"Kết quả của phép tính $2 \\cdot {a}^2 - {b}$ là?"
-                val = 2 * (a**2) - b
-                ans_correct = str(val)
-                
-                fake1 = str((2*a)**2 - b) # Lỗi: Nhân trước lũy thừa sau
-                fake2 = str(2 * (a**2 - b)) # Lỗi: Trừ trước nhân sau
-                fake3 = str(val + 10)
-                
-                dap_an = ans_correct
-                options = [ans_correct, fake1, fake2, fake3]
-                goi_y_text = "Thứ tự thực hiện: Lũy thừa -> Nhân/Chia -> Cộng/Trừ."
-            else: # Phép cộng trừ nhân chia cơ bản
-                a = random.randint(10, 50)
-                b = random.randint(10, 50)
-                de_latex = f"Tìm x biết: $x - {a} = {b}$"
-                ans_correct = str(a + b)
-                
-                fake1 = str(abs(a - b))
-                fake2 = str(a + b + 10)
-                fake3 = str(b)
-                
-                dap_an = ans_correct
-                options = [ans_correct, fake1, fake2, fake3]
-                goi_y_text = "Muốn tìm số bị trừ, ta lấy hiệu cộng với số trừ."
-                goi_y_latex = "x - a = b \\Rightarrow x = b + a"
-
-        # CHƯƠNG II: TÍNH CHIA HẾT
-        elif "chia hết" in bai_lower or "ước" in bai_lower or "bội" in bai_lower or "nguyên tố" in bai_lower:
-            if "nguyên tố" in bai_lower:
-                primes = [2, 3, 5, 7, 11, 13, 17, 19]
-                composites = [4, 6, 8, 9, 10, 12, 14, 15]
-                p = random.choice(primes)
-                de_latex = "Số nào sau đây là số nguyên tố?"
-                ans_correct = str(p)
-                options = [ans_correct] + [str(x) for x in random.sample(composites, 3)]
-                dap_an = ans_correct
-                goi_y_text = "Số nguyên tố chỉ có 2 ước là 1 và chính nó."
-            elif "ước chung" in bai_lower or "ucln" in bai_lower:
-                a = random.randint(2, 10) * random.randint(2, 5)
-                b = random.randint(2, 10) * random.randint(2, 5)
-                gcd_val = math.gcd(a, b)
-                de_latex = f"Ước chung lớn nhất của {a} và {b} là?"
-                ans_correct = str(gcd_val)
-                options = [ans_correct, "1", str(min(a,b)), str(gcd_val * 2)]
-                dap_an = ans_correct
-                goi_y_text = "Phân tích ra thừa số nguyên tố để tìm ƯCLN."
-            else: # Dấu hiệu chia hết
-                target = random.choice([2, 3, 5, 9])
-                de_latex = f"Số nào sau đây chia hết cho {target}?"
-                
-                # Tạo số đúng
-                base = random.randint(10, 100)
-                correct_val = base * target
-                if target == 5: correct_val = random.randint(10, 50) * 5
-                
-                ans_correct = str(correct_val)
-                dap_an = ans_correct
-                
-                # Tạo số sai
-                options = [ans_correct]
-                while len(options) < 4:
-                    fake = random.randint(100, 999)
-                    if fake % target != 0:
-                        options.append(str(fake))
-                
-                hints = {2: "Tận cùng là chẵn", 3: "Tổng chữ số chia hết cho 3", 5: "Tận cùng là 0 hoặc 5", 9: "Tổng chữ số chia hết cho 9"}
-                goi_y_text = hints[target]
-
-        # CHƯƠNG III: SỐ NGUYÊN
-        elif "số nguyên" in bai_lower or "dấu ngoặc" in bai_lower:
-            if "cộng" in bai_lower or "trừ" in bai_lower:
-                a = random.randint(1, 10)
-                b = random.randint(1, 10)
-                de_latex = f"Tính: $(-{a}) + (-{b})$"
-                ans_correct = str(-(a+b))
-                
-                fake1 = str(a+b)      # Sai dấu
-                fake2 = str(abs(a-b)) # Trừ thay vì cộng
-                fake3 = str(-(a*b))
-                
-                dap_an = ans_correct
-                options = [ans_correct, fake1, fake2, fake3]
-                goi_y_text = "Muốn cộng hai số nguyên âm, ta cộng hai giá trị tuyệt đối rồi đặt dấu trừ đằng trước."
-                goi_y_latex = "(-a) + (-b) = -(a+b)"
-            elif "nhân" in bai_lower:
-                a = random.randint(2, 9)
-                b = random.randint(2, 9)
-                de_latex = f"Tính: $(-{a}) \\cdot ({b})$"
-                ans_correct = str(-a*b)
-                
-                fake1 = str(a*b)
-                fake2 = str(-(a+b))
-                fake3 = str(a-b)
-                
-                dap_an = ans_correct
-                options = [ans_correct, fake1, fake2, fake3]
-                goi_y_text = "Nhân hai số nguyên khác dấu thì kết quả mang dấu âm."
-            elif "dấu ngoặc" in bai_lower:
-                a = random.randint(1, 9)
-                de_latex = f"Bỏ dấu ngoặc biểu thức: $-(-x + {a})$"
-                ans_correct = f"$x - {a}$"
-                
-                fake1 = f"$x + {a}$"
-                fake2 = f"$-x - {a}$"
-                fake3 = f"$-x + {a}$"
-                
-                dap_an = ans_correct
-                options = [ans_correct, fake1, fake2, fake3]
-                goi_y_text = "Khi bỏ dấu ngoặc có dấu trừ đằng trước, ta đổi dấu các số hạng bên trong."
-
-        # CHƯƠNG IV: HÌNH PHẲNG TRONG THỰC TIỄN
-        elif "hình" in bai_lower and ("chu vi" in bai_lower or "diện tích" in bai_lower or "tam giác" in bai_lower or "vuông" in bai_lower):
-            shape = random.choice(["Hình chữ nhật", "Hình vuông", "Hình thoi"])
-            if shape == "Hình chữ nhật":
-                d = random.randint(5, 10)
-                r = random.randint(2, 4)
-                req = random.choice(["Chu vi", "Diện tích"])
-                de_latex = f"{req} của hình chữ nhật có chiều dài {d}cm, chiều rộng {r}cm là?"
-                if req == "Chu vi":
-                    val = (d+r)*2
-                    goi_y_latex = "C = (a+b) \\cdot 2"
-                else:
-                    val = d*r
-                    goi_y_latex = "S = a \\cdot b"
-                ans_correct = f"{val} $cm^2$" if req == "Diện tích" else f"{val} cm"
-                dap_an = ans_correct
-                options = [ans_correct, f"{val+10}", f"{val*2}", f"{val-2}"]
-                goi_y_text = f"Áp dụng công thức tính {req} hình chữ nhật."
-
-            else: # Hình vuông/Thoi
-                a = random.randint(3, 8)
-                de_latex = f"Diện tích hình vuông có cạnh {a}cm là?"
-                ans_correct = f"{a*a} $cm^2$"
-                dap_an = ans_correct
-                options = [ans_correct, f"{a*4} cm", f"{a*2} $cm^2$", f"{a+a} $cm^2$"]
-                goi_y_text = "Diện tích hình vuông bằng cạnh nhân cạnh."
-                goi_y_latex = "S = a^2"
-
-        # CHƯƠNG V: TÍNH ĐỐI XỨNG
-        elif "đối xứng" in bai_lower:
-            kind = random.choice(["trục", "tâm"])
-            if kind == "trục":
-                de_latex = "Hình nào sau đây có trục đối xứng?"
-                ans_correct = "Hình thang cân"
-                fake1 = "Hình bình hành"
-                fake2 = "Tam giác thường"
-                fake3 = "Hình thang vuông"
-                goi_y_text = "Hình thang cân có trục đối xứng là đường thẳng đi qua trung điểm hai đáy."
-            else:
-                de_latex = "Hình nào sau đây có tâm đối xứng?"
-                ans_correct = "Hình bình hành"
-                fake1 = "Hình thang cân"
-                fake2 = "Tam giác đều"
-                fake3 = "Hình thang vuông"
-                goi_y_text = "Hình bình hành nhận giao điểm hai đường chéo làm tâm đối xứng."
+        question_type = "mcq" # Lớp 6 ưu tiên trắc nghiệm 4 đáp án
+        
+        # === TẬP 1 ===
+        
+        # CHƯƠNG I. TẬP HỢP CÁC SỐ TỰ NHIÊN
+        if "tập hợp" in bai_lower and "số tự nhiên" not in bai_lower: # Bài 1
+            # Hỏi về ký hiệu thuộc/không thuộc
+            val = random.randint(0, 9)
+            set_vals = random.sample(range(10, 20), 4)
+            set_str = "\\{ " + "; ".join(map(str, set_vals)) + " \\}"
             
+            check = random.choice(["thuộc", "không thuộc"])
+            if check == "thuộc":
+                correct_val = random.choice(set_vals)
+                de_latex = f"Cho tập hợp $A = {set_str}$. Khẳng định nào sau đây là ĐÚNG?"
+                ans_correct = f"${correct_val} \\in A$"
+                fake1 = f"${correct_val} \\notin A$"
+                fake2 = f"${val} \\in A$" # val không có trong set
+                fake3 = f"$\\emptyset \\in A$"
+            else:
+                de_latex = f"Cho tập hợp $A = {set_str}$. Số nào sau đây KHÔNG thuộc A?"
+                ans_correct = f"${val}$" # val nằm ngoài
+                fake1 = f"${set_vals[0]}$"
+                fake2 = f"${set_vals[1]}$"
+                fake3 = f"${set_vals[2]}$"
+                
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Ký hiệu $\\in$ là thuộc, $\\notin$ là không thuộc."
+
+        elif "ghi số tự nhiên" in bai_lower: # Bài 2
+            num = random.randint(1000, 9999)
+            digit = str(num)[1] # Lấy chữ số hàng trăm
+            de_latex = f"Giá trị của chữ số {digit} trong số ${num}$ là bao nhiêu?"
+            ans_correct = f"{int(digit) * 100}"
+            options = [ans_correct, digit, f"{int(digit)*10}", f"{int(digit)*1000}"]
+            dap_an = ans_correct
+            goi_y_text = "Xác định hàng của chữ số (đơn vị, chục, trăm...)."
+
+        elif "thứ tự" in bai_lower and "tập hợp" in bai_lower: # Bài 3
+            # Số liền trước, liền sau
+            num = random.randint(10, 100)
+            req = random.choice(["liền trước", "liền sau"])
+            de_latex = f"Số tự nhiên {req} của số {num} là?"
+            if req == "liền trước":
+                ans_correct = str(num - 1)
+                fake = str(num + 1)
+            else:
+                ans_correct = str(num + 1)
+                fake = str(num - 1)
+            options = [ans_correct, fake, str(num), str(num + 2) if req == "liền sau" else str(num - 2)]
+            dap_an = ans_correct
+            goi_y_text = "Số liền sau lớn hơn 1 đơn vị, số liền trước nhỏ hơn 1 đơn vị."
+
+        elif "phép cộng" in bai_lower or "phép trừ" in bai_lower: # Bài 4
+            # Tính nhanh hoặc tìm x
+            a = random.randint(20, 100)
+            b = random.randint(10, 50)
+            if "tìm x" in bai_lower or random.random() > 0.5:
+                de_latex = f"Tìm số tự nhiên x, biết: $(x - {b}) = {a}$"
+                ans_correct = str(a + b)
+                fake1 = str(a - b)
+                fake2 = str(b - a) if b > a else str(a + b + 10)
+                fake3 = str(a)
+                goi_y_text = "Muốn tìm số bị trừ, ta lấy hiệu cộng với số trừ."
+            else:
+                de_latex = f"Tính nhanh: $({a} + 15) + ({b} - 15)$"
+                ans_correct = str(a + b)
+                fake1 = str(a + b + 30)
+                fake2 = str(a - b)
+                fake3 = str(a + b - 30)
+                goi_y_text = "Sử dụng tính chất kết hợp: cộng 15 rồi trừ 15 thì bằng 0."
             dap_an = ans_correct
             options = [ans_correct, fake1, fake2, fake3]
 
-        # --- TẬP 2 ---
-        # CHƯƠNG VI: PHÂN SỐ
-        elif "phân số" in bai_lower or "hỗn số" in bai_lower:
-            if "so sánh" in bai_lower:
-                de_latex = "Điền dấu thích hợp: $\\frac{-3}{5} \\dots \\frac{-4}{5}$"
-                ans_correct = ">"
-                dap_an = ans_correct
-                options = [">", "<", "=", "\\le"]
-                goi_y_text = "Trong hai phân số cùng mẫu dương, phân số nào có tử lớn hơn thì lớn hơn."
-            elif "cộng" in bai_lower or "trừ" in bai_lower:
-                mau = random.randint(2, 5)
-                de_latex = f"Tính: $\\frac{{1}}{{{mau}}} + \\frac{{-2}}{{{mau}}}$"
-                ans_correct = f"$\\frac{{-1}}{{{mau}}}$"
-                dap_an = ans_correct
-                options = [ans_correct, f"$\\frac{{1}}{{{mau}}}$", f"$\\frac{{3}}{{{mau}}}$", f"$\\frac{{-3}}{{{mau}}}$"]
-                goi_y_text = "Cộng tử giữ nguyên mẫu."
-            else: # Nhân chia
-                de_latex = "Kết quả của $\\frac{2}{3} \\cdot \\frac{3}{5}$ là?"
-                ans_correct = "$\\frac{2}{5}$"
-                dap_an = ans_correct
-                options = [ans_correct, "$\\frac{6}{8}$", "$\\frac{5}{8}$", "$\\frac{9}{10}$"]
-                goi_y_text = "Rút gọn chéo trước khi nhân."
-
-        # CHƯƠNG VII: SỐ THẬP PHÂN
-        elif "số thập phân" in bai_lower or "làm tròn" in bai_lower or "tỉ số" in bai_lower:
-            if "làm tròn" in bai_lower:
-                val = round(random.uniform(10, 20), 3)
-                de_latex = f"Làm tròn số {val} đến hàng phần mười."
-                correct_val = round(val, 1)
-                ans_correct = str(correct_val)
-                dap_an = ans_correct
-                options = [ans_correct, str(val), str(int(val)), str(correct_val + 0.1)]
-                goi_y_text = "Nếu chữ số sau hàng quy tròn >= 5 thì cộng 1, ngược lại giữ nguyên."
-            elif "tỉ số phần trăm" in bai_lower:
-                a = random.randint(1, 10)
-                de_latex = f"Tỉ số phần trăm của {a} và {a*2} là?"
-                ans_correct = "50%"
-                dap_an = ans_correct
-                options = ["50%", "20%", "200%", "2%"]
-                goi_y_text = "Lấy a chia b rồi nhân với 100."
-                goi_y_latex = "\\frac{a}{b} \\cdot 100\\%"
-            else: # Tính toán
-                a = 2.5
-                b = 4.0
-                de_latex = f"Tính: ${a} \\cdot {b}$"
-                ans_correct = "10.0"
-                dap_an = ans_correct
-                options = ["10.0", "100.0", "6.5", "8.5"]
-                goi_y_text = "Nhân như số tự nhiên rồi đếm số chữ số thập phân."
-
-        # CHƯƠNG VIII: HÌNH HỌC CƠ BẢN
-        elif "điểm" in bai_lower or "đoạn thẳng" in bai_lower or "góc" in bai_lower or "trung điểm" in bai_lower:
-            if "trung điểm" in bai_lower:
-                ab = random.randint(4, 10) * 2
-                de_latex = f"Cho đoạn thẳng AB = {ab}cm. M là trung điểm của AB. Độ dài đoạn AM là?"
-                ans_correct = f"{ab//2} cm"
-                dap_an = ans_correct
-                options = [ans_correct, f"{ab} cm", f"{ab*2} cm", f"{ab//2 + 1} cm"]
-                goi_y_text = "Trung điểm chia đoạn thẳng thành 2 phần bằng nhau."
-                goi_y_latex = "AM = \\frac{AB}{2}"
-            elif "góc" in bai_lower:
-                deg = random.choice([30, 45, 60, 90, 120])
-                type_angle = "nhọn" if deg < 90 else ("vuông" if deg == 90 else "tù")
-                de_latex = f"Góc có số đo ${deg}^\\circ$ là góc gì?"
-                ans_correct = f"Góc {type_angle}"
-                dap_an = ans_correct
-                options = ["Góc nhọn", "Góc vuông", "Góc tù", "Góc bẹt"]
-                # Xáo trộn options nhưng giữ đáp án đúng
-                options = list(set(options)) 
-                goi_y_text = "< 90: Nhọn, = 90: Vuông, > 90: Tù."
-
-        # CHƯƠNG IX: DỮ LIỆU & XÁC SUẤT
-        elif "xác suất" in bai_lower or "biểu đồ" in bai_lower:
-            if "xác suất" in bai_lower:
-                de_latex = "Gieo một con xúc xắc cân đối. Xác suất thực nghiệm để ra mặt 6 chấm là?"
-                ans_correct = "$\\frac{1}{6}$"
-                dap_an = ans_correct
-                options = [ans_correct, "$\\frac{1}{2}$", "$\\frac{5}{6}$", "1"]
-                goi_y_text = "Có 6 mặt khả năng như nhau."
-            else:
-                de_latex = "Biểu đồ tranh dùng gì để biểu diễn dữ liệu?"
-                ans_correct = "Biểu tượng hoặc hình ảnh"
-                dap_an = ans_correct
-                options = [ans_correct, "Các cột hình chữ nhật", "Các đoạn thẳng", "Hình quạt tròn"]
-                goi_y_text = "Biểu đồ 'tranh' sử dụng hình ảnh."
-
-        # FALLBACK
-        else:
-            de_latex = "Số tự nhiên nhỏ nhất có 3 chữ số là?"
-            ans_correct = "100"
+        elif "phép nhân" in bai_lower or "phép chia" in bai_lower: # Bài 5
+            # Tính chất phân phối
+            common = random.randint(2, 9)
+            a = random.randint(11, 50)
+            b = random.randint(11, 50)
+            de_latex = f"Tính giá trị biểu thức: ${common} \\cdot {a} + {common} \\cdot {b}$"
+            val = common * (a + b)
+            ans_correct = str(val)
+            fake1 = str(common * (a * b))
+            fake2 = str(common + a + b)
+            fake3 = str(val + 10)
             dap_an = ans_correct
-            options = ["100", "101", "999", "111"]
-            goi_y_text = "Số nhỏ nhất có 3 chữ số là 100."
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Áp dụng tính chất phân phối: a.b + a.c = a.(b + c)"
+
+        elif "luỹ thừa" in bai_lower: # Bài 6
+            base = random.randint(2, 6)
+            exp = random.randint(2, 3)
+            de_latex = f"Giá trị của lũy thừa ${base}^{exp}$ là?"
+            ans_correct = str(base ** exp)
+            fake1 = str(base * exp) # Lỗi phổ biến: nhân cơ số với số mũ
+            fake2 = str(base + exp)
+            fake3 = str(int(str(base)+str(exp))) # Ghép số
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Lũy thừa là tích của nhiều thừa số bằng nhau."
+
+        elif "thứ tự thực hiện" in bai_lower: # Bài 7
+            a = random.randint(2, 5)
+            b = random.randint(2, 10)
+            de_latex = f"Kết quả phép tính: $2 \\cdot {a}^2 + {b}$"
+            val = 2 * (a**2) + b
+            ans_correct = str(val)
+            fake1 = str((2*a)**2 + b) # Nhân trước mũ sau (Sai)
+            fake2 = str(2 * (a**2 + b)) # Cộng trước nhân sau (Sai)
+            fake3 = str(2*a*2 + b)
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Thứ tự: Lũy thừa -> Nhân/Chia -> Cộng/Trừ."
+
+        # CHƯƠNG II. TÍNH CHIA HẾT
+        elif "quan hệ chia hết" in bai_lower: # Bài 8
+            a = random.randint(2, 10)
+            mult = random.randint(2, 5)
+            b = a * mult
+            de_latex = f"Khẳng định nào sau đây ĐÚNG?"
+            ans_correct = f"${b} \\vdots {a}$" # b chia hết cho a
+            fake1 = f"${a} \\vdots {b}$"
+            fake2 = f"${b} \\text{{ là ước của }} {a}$"
+            fake3 = f"${a} \\text{{ là bội của }} {b}$"
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Ký hiệu $\\vdots$ nghĩa là chia hết."
+
+        elif "dấu hiệu chia hết" in bai_lower: # Bài 9
+            target = random.choice([2, 3, 5, 9])
+            start = random.randint(10, 50)
+            correct_val = start * target
+            
+            de_latex = f"Trong các số sau, số nào chia hết cho {target}?"
+            ans_correct = str(correct_val)
+            
+            opts = [ans_correct]
+            while len(opts) < 4:
+                chk = random.randint(100, 999)
+                if chk % target != 0:
+                    opts.append(str(chk))
+            
+            dap_an = ans_correct
+            options = opts
+            hints = {
+                2: "Số có chữ số tận cùng là chẵn.",
+                3: "Số có tổng các chữ số chia hết cho 3.",
+                5: "Số có chữ số tận cùng là 0 hoặc 5.",
+                9: "Số có tổng các chữ số chia hết cho 9."
+            }
+            goi_y_text = hints[target]
+
+        elif "số nguyên tố" in bai_lower: # Bài 10
+            primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+            composites = [4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 22, 24, 25, 26, 27]
+            de_latex = "Số nào sau đây là số nguyên tố?"
+            ans_correct = str(random.choice(primes))
+            fakes = [str(x) for x in random.sample(composites, 3)]
+            dap_an = ans_correct
+            options = [ans_correct] + fakes
+            goi_y_text = "Số nguyên tố là số tự nhiên lớn hơn 1, chỉ có 2 ước là 1 và chính nó."
+
+        elif "ước chung" in bai_lower or "ucln" in bai_lower: # Bài 11
+            a = random.randint(2, 6) * 4
+            b = random.randint(2, 6) * 6
+            gcd = math.gcd(a, b)
+            de_latex = f"Ước chung lớn nhất (ƯCLN) của {a} và {b} là?"
+            ans_correct = str(gcd)
+            fake1 = str(1)
+            fake2 = str(min(a, b))
+            fake3 = str(gcd * 2)
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Phân tích ra thừa số nguyên tố, chọn thừa số chung với số mũ nhỏ nhất."
+
+        elif "bội chung" in bai_lower or "bcnn" in bai_lower: # Bài 12
+            a = random.choice([4, 6, 8])
+            b = random.choice([6, 9, 12])
+            lcm = (a * b) // math.gcd(a, b)
+            de_latex = f"Bội chung nhỏ nhất (BCNN) của {a} và {b} là?"
+            ans_correct = str(lcm)
+            fake1 = str(a * b)
+            fake2 = str(max(a, b))
+            fake3 = str(math.gcd(a, b))
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Chọn thừa số chung và riêng với số mũ lớn nhất."
+
+        # CHƯƠNG III. SỐ NGUYÊN
+        elif "tập hợp các số nguyên" in bai_lower: # Bài 13
+            # Số đối
+            val = random.randint(5, 20)
+            de_latex = f"Số đối của số nguyên ${-val}$ là?"
+            ans_correct = str(val)
+            fake1 = str(-val)
+            fake2 = str(0)
+            fake3 = f"$\\frac{{1}}{{{val}}}$"
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Số đối của số âm là số dương tương ứng."
+
+        elif "phép cộng" in bai_lower and "nguyên" in bai_lower: # Bài 14
+            a = random.randint(2, 10)
+            b = random.randint(2, 10)
+            # Cộng hai số âm
+            de_latex = f"Kết quả phép tính $(-{a}) + (-{b})$ là?"
+            val = -(a + b)
+            ans_correct = str(val)
+            fake1 = str(a + b)
+            fake2 = str(abs(a - b))
+            fake3 = str(-(a * b))
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Cộng hai số nguyên âm: Cộng hai giá trị tuyệt đối rồi đặt dấu trừ đằng trước."
+
+        elif "dấu ngoặc" in bai_lower: # Bài 15
+            a = random.randint(1, 9)
+            b = random.randint(1, 9)
+            de_latex = f"Bỏ dấu ngoặc của biểu thức: $-(a - {a} + {b})$"
+            ans_correct = f"$-a + {a} - {b}$"
+            fake1 = f"$-a - {a} + {b}$" # Quên đổi dấu
+            fake2 = f"$a - {a} + {b}$"
+            fake3 = f"$-a + {a} + {b}$"
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Khi bỏ ngoặc có dấu trừ đằng trước, ta phải đổi dấu tất cả các số hạng trong ngoặc."
+
+        elif "phép nhân" in bai_lower and "nguyên" in bai_lower: # Bài 16
+            a = random.randint(2, 9)
+            b = random.randint(2, 9)
+            de_latex = f"Tính: $(-{a}) \\cdot ({b})$"
+            ans_correct = str(-a * b)
+            fake1 = str(a * b)
+            fake2 = str(-(a + b))
+            fake3 = str(b - a)
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Nhân hai số nguyên khác dấu thì tích mang dấu âm."
+
+        elif "phép chia hết" in bai_lower and "nguyên" in bai_lower: # Bài 17
+            val = random.randint(1, 10)
+            de_latex = f"Tập hợp các ước nguyên của {val} là?"
+            divs = []
+            for i in range(1, val + 1):
+                if val % i == 0:
+                    divs.append(i)
+                    divs.append(-i)
+            divs.sort()
+            # Format set
+            ans_str = "\\{" + "; ".join(map(str, divs)) + "\\}"
+            
+            # Fake: chỉ ước dương
+            pos_divs = [d for d in divs if d > 0]
+            fake1 = "\\{" + "; ".join(map(str, pos_divs)) + "\\}"
+            
+            dap_an = ans_str
+            options = [ans_str, fake1, "\\{0\\}", "\\{1\\}"]
+            goi_y_text = "Ước của số nguyên bao gồm cả số dương và số âm."
+
+        # CHƯƠNG IV. HÌNH PHẲNG
+        elif "tam giác đều" in bai_lower or "lục giác" in bai_lower: # Bài 18
+            shape = "Tam giác đều" if "tam giác" in bai_lower else "Lục giác đều"
+            de_latex = f"Khẳng định nào ĐÚNG về {shape}?"
+            if shape == "Tam giác đều":
+                ans_correct = "Ba cạnh bằng nhau, ba góc bằng nhau"
+                fake1 = "Có một góc vuông"
+                fake2 = "Ba cạnh không bằng nhau"
+                fake3 = "Có hai đường chéo bằng nhau"
+            else: # Lục giác đều
+                ans_correct = "Sáu cạnh bằng nhau, sáu góc bằng nhau"
+                fake1 = "Các góc không bằng nhau"
+                fake2 = "Chỉ có các cạnh đối bằng nhau"
+                fake3 = "Bốn cạnh bằng nhau"
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Hình đều là hình có tất cả các cạnh và các góc bằng nhau."
+
+        elif "hình chữ nhật" in bai_lower or "hình thoi" in bai_lower or "bình hành" in bai_lower: # Bài 19
+            if "hình thoi" in bai_lower:
+                de_latex = "Hình thoi có tính chất nào sau đây?"
+                ans_correct = "Hai đường chéo vuông góc với nhau"
+                fake1 = "Hai đường chéo bằng nhau" # Tính chất HCN
+                fake2 = "Bốn góc vuông" # Tính chất Vuông/HCN
+                fake3 = "Hai đường chéo không cắt nhau"
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+                goi_y_text = "Hình thoi có hai đường chéo vuông góc tại trung điểm mỗi đường."
+            elif "hình bình hành" in bai_lower:
+                de_latex = "Diện tích hình bình hành được tính theo công thức nào?"
+                ans_correct = "$S = a \\cdot h$ (cạnh đáy nhân chiều cao)"
+                fake1 = "$S = a \\cdot b$ (tích hai cạnh kề)"
+                fake2 = "$S = \\frac{1}{2} a \\cdot h$"
+                fake3 = "$S = (a+b) \\cdot 2$"
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+                goi_y_text = "Diện tích hình bình hành bằng độ dài đáy nhân với chiều cao tương ứng."
+            else: # HCN
+                de_latex = "Chu vi hình chữ nhật có chiều dài a, chiều rộng b là?"
+                ans_correct = "$C = 2(a + b)$"
+                dap_an = ans_correct
+                options = [ans_correct, "$C = a + b$", "$C = a \\cdot b$", "$C = 4a$"]
+
+        elif "chu vi" in bai_lower or "diện tích" in bai_lower: # Bài 20
+            # Bài toán thực tế
+            side = random.randint(3, 10)
+            de_latex = f"Một mảnh vườn hình vuông có cạnh {side}m. Diện tích mảnh vườn là?"
+            ans_correct = f"{side * side} $m^2$"
+            fake1 = f"{side * 4} m" # Chu vi
+            fake2 = f"{side * 2} $m^2$"
+            fake3 = f"{side * side} cm" # Sai đơn vị
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Diện tích hình vuông: Cạnh nhân cạnh."
+
+        # CHƯƠNG V. TÍNH ĐỐI XỨNG
+        elif "trục đối xứng" in bai_lower: # Bài 21
+            de_latex = "Hình nào sau đây có trục đối xứng?"
+            ans_correct = "Hình thang cân"
+            fake1 = "Hình bình hành"
+            fake2 = "Tam giác thường"
+            fake3 = "Hình thang vuông (không cân)"
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Hình thang cân có trục đối xứng đi qua trung điểm hai đáy."
+
+        elif "tâm đối xứng" in bai_lower: # Bài 22
+            de_latex = "Chữ cái nào sau đây có tâm đối xứng?"
+            ans_correct = "N"
+            fake1 = "M"
+            fake2 = "A"
+            fake3 = "V"
+            dap_an = ans_correct
+            options = [ans_correct, fake1, fake2, fake3]
+            goi_y_text = "Quay hình 180 độ quanh tâm thì hình chồng khít lên chính nó (Ví dụ: N, S, Z, H, O)."
+
+        # === TẬP 2 ===
+        
+        # CHƯƠNG VI. PHÂN SỐ
+        elif "phân số" in bai_lower or "hỗn số" in bai_lower:
+            if "mở rộng" in bai_lower or "bằng nhau" in bai_lower: # Bài 23
+                de_latex = "Cặp phân số nào sau đây bằng nhau?"
+                ans_correct = "$\\frac{1}{2}$ và $\\frac{2}{4}$"
+                fake1 = "$\\frac{1}{2}$ và $\\frac{2}{3}$"
+                fake2 = "$\\frac{-1}{2}$ và $\\frac{1}{2}$"
+                fake3 = "$\\frac{1}{2}$ và $\\frac{1}{-2}$"
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+                goi_y_text = "Nhân chéo: Nếu a.d = b.c thì hai phân số bằng nhau."
+            
+            elif "so sánh" in bai_lower: # Bài 24
+                de_latex = "So sánh hai phân số: $\\frac{-3}{5}$ và $\\frac{-4}{5}$"
+                ans_correct = "$\\frac{-3}{5} > \\frac{-4}{5}$"
+                fake1 = "$\\frac{-3}{5} < \\frac{-4}{5}$"
+                fake2 = "$\\frac{-3}{5} = \\frac{-4}{5}$"
+                fake3 = "Không so sánh được"
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+                goi_y_text = "Hai phân số cùng mẫu dương, tử nào lớn hơn thì phân số đó lớn hơn (-3 > -4)."
+
+            elif "cộng" in bai_lower or "trừ" in bai_lower: # Bài 25
+                tu1 = random.choice([1, -1, 2, -2])
+                tu2 = random.choice([1, -1, 3, -3])
+                mau = random.randint(3, 7)
+                de_latex = f"Tính: $\\frac{{{tu1}}}{{{mau}}} + \\frac{{{tu2}}}{{{mau}}}$"
+                res_tu = tu1 + tu2
+                ans_correct = f"$\\frac{{{res_tu}}}{{{mau}}}$"
+                fake1 = f"$\\frac{{{res_tu}}}{{{mau + mau}}}$" # Cộng mẫu
+                fake2 = f"$\\frac{{{tu1 * tu2}}}{{{mau}}}$"
+                fake3 = f"$\\frac{{{tu1}}}{{{mau}}}$"
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+                goi_y_text = "Cộng tử giữ nguyên mẫu."
+
+            elif "nhân" in bai_lower or "chia" in bai_lower: # Bài 26
+                a = random.randint(1, 3)
+                b = random.randint(4, 5)
+                de_latex = f"Tính: $\\frac{{{a}}}{{{b}}} \\cdot \\frac{{{b}}}{{{a}}}$"
+                ans_correct = "1"
+                fake1 = "0"
+                fake2 = f"$\\frac{{{a}}}{{{b}}}$"
+                fake3 = f"$\\frac{{{a*a}}}{{{b*b}}}$"
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+                goi_y_text = "Tích của một phân số và nghịch đảo của nó luôn bằng 1."
+
+            else: # Bài toán về phân số (Bài 27)
+                val = random.randint(10, 50) * 2
+                de_latex = f"Tìm $\\frac{{1}}{{2}}$ của {val}?"
+                ans_correct = str(val // 2)
+                fake1 = str(val * 2)
+                fake2 = str(val + 2)
+                fake3 = str(1)
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+                goi_y_text = "Muốn tìm m/n của số a, ta lấy a nhân với m/n."
+
+        # CHƯƠNG VII. SỐ THẬP PHÂN
+        elif "số thập phân" in bai_lower or "làm tròn" in bai_lower or "tỉ số" in bai_lower:
+            if "làm tròn" in bai_lower: # Bài 30
+                num = round(random.uniform(1, 10), 2) # Ví dụ 3.45
+                de_latex = f"Làm tròn số {num} đến hàng đơn vị."
+                val = round(num)
+                ans_correct = str(val)
+                fake1 = str(val + 1)
+                fake2 = str(val - 1)
+                fake3 = str(num)
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+                goi_y_text = "Nếu chữ số hàng phần mười >= 5 thì cộng 1 vào hàng đơn vị."
+
+            elif "tỉ số" in bai_lower: # Bài 31
+                a = 2
+                b = 5
+                de_latex = f"Tỉ số phần trăm của {a} và {b} là?"
+                ans_correct = "40%"
+                fake1 = "25%"
+                fake2 = "2.5%"
+                fake3 = "0.4%"
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+                goi_y_text = "Lấy a chia b rồi nhân với 100."
+
+            else: # Tính toán (Bài 29)
+                a = 1.5
+                b = 2.0
+                de_latex = f"Tính: ${a} \\times {b}$"
+                ans_correct = "3.0"
+                fake1 = "30"
+                fake2 = "2.5"
+                fake3 = "3.5"
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+
+        # CHƯƠNG VIII. HÌNH HỌC CƠ BẢN
+        elif "điểm" in bai_lower or "đoạn thẳng" in bai_lower or "góc" in bai_lower:
+            if "trung điểm" in bai_lower: # Bài 35
+                len_ab = random.randint(4, 12) * 2
+                de_latex = f"Cho đoạn thẳng AB dài {len_ab}cm. I là trung điểm của AB. Độ dài AI là?"
+                ans_correct = f"{len_ab // 2}cm"
+                fake1 = f"{len_ab}cm"
+                fake2 = f"{len_ab * 2}cm"
+                fake3 = f"{len_ab // 2 - 1}cm"
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+                goi_y_text = "Trung điểm chia đoạn thẳng làm 2 phần bằng nhau."
+
+            elif "số đo góc" in bai_lower or "góc" in bai_lower: # Bài 36, 37
+                angle = random.choice([30, 45, 90, 120])
+                if angle < 90: kind = "Góc nhọn"
+                elif angle == 90: kind = "Góc vuông"
+                else: kind = "Góc tù"
+                
+                de_latex = f"Góc có số đo ${angle}^\\circ$ là góc gì?"
+                ans_correct = kind
+                fake1 = "Góc bẹt"
+                fake2 = "Góc vuông" if kind != "Góc vuông" else "Góc nhọn"
+                fake3 = "Góc tù" if kind != "Góc tù" else "Góc nhọn"
+                # Đảm bảo unique
+                options = list(set([ans_correct, fake1, fake2, fake3]))
+                while len(options) < 4: options.append("Góc phản")
+                dap_an = ans_correct
+                goi_y_text = "<90: Nhọn; =90: Vuông; >90 và <180: Tù."
+
+            else: # Điểm, đường thẳng (Bài 32, 33)
+                de_latex = "Có bao nhiêu đường thẳng đi qua 2 điểm phân biệt A và B?"
+                ans_correct = "1"
+                fake1 = "2"
+                fake2 = "Vô số"
+                fake3 = "0"
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+                goi_y_text = "Qua 2 điểm phân biệt, chỉ vẽ được duy nhất 1 đường thẳng."
+
+        # CHƯƠNG IX. DỮ LIỆU & XÁC SUẤT
+        elif "xác suất" in bai_lower or "biểu đồ" in bai_lower:
+            if "xác suất" in bai_lower: # Bài 43
+                de_latex = "Gieo một con xúc xắc 6 mặt cân đối. Xác suất xuất hiện mặt 5 chấm là?"
+                ans_correct = "$\\frac{1}{6}$"
+                fake1 = "$\\frac{1}{2}$"
+                fake2 = "$\\frac{5}{6}$"
+                fake3 = "1"
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+                goi_y_text = "Có 6 khả năng xảy ra (1,2,3,4,5,6), khả năng ra mặt 5 chấm chỉ có 1."
+
+            else: # Biểu đồ (Bài 39-41)
+                de_latex = "Biểu đồ nào thích hợp nhất để so sánh số liệu giữa các đối tượng?"
+                ans_correct = "Biểu đồ cột"
+                fake1 = "Biểu đồ tranh"
+                fake2 = "Biểu đồ đoạn thẳng" # Thường dùng cho xu hướng
+                fake3 = "Bảng số liệu"
+                dap_an = ans_correct
+                options = [ans_correct, fake1, fake2, fake3]
+                goi_y_text = "Biểu đồ cột dùng các cột cao thấp để dễ so sánh hơn kém."
+
+        # FALLBACK (DỰ PHÒNG)
+        else:
+            x = random.randint(10, 99)
+            de_latex = f"Số tự nhiên liền sau số {x} là?"
+            ans_correct = str(x + 1)
+            dap_an = ans_correct
+            options = [ans_correct, str(x - 1), str(x), str(x + 2)]
+            goi_y_text = "Số liền sau lớn hơn số đó 1 đơn vị."
  # --- LỚP 7 (ĐÃ SỬA LỖI LOGIC SO SÁNH & HIỂN THỊ) ---
     elif "Lớp 7" in lop:
         question_type = "mcq" # Chuyển toàn bộ sang trắc nghiệm để tránh lỗi nhập liệu
