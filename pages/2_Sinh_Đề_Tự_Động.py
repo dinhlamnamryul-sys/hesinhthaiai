@@ -224,39 +224,39 @@ co_dap_an = st.radio(
 # --- Hàm tạo prompt ---
 def create_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
                   so_cau_nb, so_cau_th, so_cau_vd, dan_ap):
-   prompt = f"""
-Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
-- Chương: {', '.join(chuong)}
-- Bài: {', '.join(bai)}
-
-Yêu cầu:
-1. Tổng {so_cau} câu, gồm:
-   - NL (4 lựa chọn): {phan_bo_nl} câu
-   - DS (Đúng/Sai): {phan_bo_ds} câu
-   - TL: {phan_bo_tl} câu
-2. Phân bố nhận thức:
-   - Nhận biết: {so_cau_nb}
-   - Thông hiểu: {so_cau_th}
-   - Vận dụng: {so_cau_vd}
-3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$.**
-4. Mỗi câu phải gắn nhãn **Mức độ** và **Loại câu hỏi**.
-5. **Đáp án NL/DS**: mỗi đáp án A/B/C/D hoặc Đúng/Sai viết **xuống dòng riêng**, không viết liền nhau.
-6. **Đáp án TL**: đánh số 1,2,3…; mọi công thức toán phải viết dưới dạng LaTeX trong $$...$$.
-7. {dan_ap}
-8. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp `st.markdown()`.
-
-**Ví dụ định dạng đáp án NL/DS**:
-
-A. Đáp án 1  
-B. Đáp án 2  
-C. Đáp án 3  
-D. Đáp án 4
-
-**Ví dụ định dạng TL**:
-
-1. $$Công thức 1$$  
-2. $$Công thức 2$$
-"""
+       prompt = f"""
+    Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
+    - Chương: {', '.join(chuong)}
+    - Bài: {', '.join(bai)}
+    
+    Yêu cầu:
+    1. Tổng {so_cau} câu, gồm:
+       - NL (4 lựa chọn): {phan_bo_nl} câu
+       - DS (Đúng/Sai): {phan_bo_ds} câu
+       - TL: {phan_bo_tl} câu
+    2. Phân bố nhận thức:
+       - Nhận biết: {so_cau_nb}
+       - Thông hiểu: {so_cau_th}
+       - Vận dụng: {so_cau_vd}
+    3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$.**
+    4. Mỗi câu phải gắn nhãn **Mức độ** và **Loại câu hỏi**.
+    5. **Đáp án NL/DS**: mỗi đáp án A/B/C/D hoặc Đúng/Sai viết **xuống dòng riêng**, không viết liền nhau.
+    6. **Đáp án TL**: đánh số 1,2,3…; mọi công thức toán phải viết dưới dạng LaTeX trong $$...$$.
+    7. {dan_ap}
+    8. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp `st.markdown()`.
+    
+    **Ví dụ định dạng đáp án NL/DS**:
+    
+    A. Đáp án 1  
+    B. Đáp án 2  
+    C. Đáp án 3  
+    D. Đáp án 4
+    
+    **Ví dụ định dạng TL**:
+    
+    1. $$Công thức 1$$  
+    2. $$Công thức 2$$
+    """
 
     return prompt
 # --- Gọi API ---
