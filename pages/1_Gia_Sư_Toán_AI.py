@@ -127,49 +127,52 @@ def sinh_cau_hoi(bai):
             "Cộng từ phải sang trái, nhớ nếu tổng lớn hơn 9."
         )
 
-    # ---------- BÀI 5 ----------
+     # ---------- BÀI 5 ----------
     elif bai == "Bài 5. Phép nhân và phép chia số tự nhiên":
         dang = random.choice(["nhan", "chia"])
-
+    
         if dang == "nhan":
             a = random.randint(6, 15)
             b = random.randint(6, 15)
     
-            cau = (
-                "Kết quả của:\n\n"
-                f"$ {a} \\times {b} $\n\n"
-                "là:"
-            )
+            # Hiển thị công thức LaTeX đúng
+            cau = f"Kết quả của: $ {a} \\times {b} $ là:"
     
-            dap_an = a * b
+            dap_an = f"${a * b}$"
     
-            lua_chon = [
-                dap_an,
-                dap_an + random.choice([-12, -10, 10, 12]),
-                dap_an + random.choice([-8, 8]),
-                dap_an + random.choice([-2, 2])
-            ]
+            # Tạo danh sách lựa chọn khác nhau
+            lua_chon = [dap_an]
+            while len(lua_chon) < 4:
+                offset = random.choice([-12, -10, -8, -2, 2, 8, 10, 12])
+                choice = a * b + offset
+                choice_latex = f"${choice}$"
+                if choice_latex not in lua_chon:
+                    lua_chon.append(choice_latex)
+    
+            random.shuffle(lua_chon)
     
             goi_y = "Thực hiện phép nhân hai số tự nhiên."
     
-        else:
+        else:  # phép chia
             b = random.randint(6, 15)
             k = random.randint(6, 15)
             a = b * k
     
-            cau = f"$ {a} \\div {b} = $"
+            cau = f"Tính $ {a} \\div {b} = $"
     
-            dap_an = k
+            dap_an = f"${k}$"
     
-            lua_chon = [
-                dap_an,
-                dap_an + 1,
-                dap_an - 1,
-                dap_an + 2
-            ]
+            lua_chon = [dap_an]
+            while len(lua_chon) < 4:
+                offset = random.choice([-2, -1, 1, 2])
+                choice = k + offset
+                choice_latex = f"${choice}$"
+                if choice_latex not in lua_chon:
+                    lua_chon.append(choice_latex)
+    
+            random.shuffle(lua_chon)
     
             goi_y = "Thực hiện phép chia số tự nhiên."
-
     # ---------- BÀI 6 ----------
     elif bai == "Bài 6. Luỹ thừa với số mũ tự nhiên":
         a = random.randint(2, 5)
