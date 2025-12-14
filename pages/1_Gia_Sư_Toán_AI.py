@@ -506,44 +506,121 @@ def tao_de_toan(lop, bai_hoc):
     # --- LỚP 8 ---
     elif "Lớp 8" in lop:
         question_type = "mcq"
-        if "đa thức" in bai_lower:
-            a = random.randint(2, 5)
-            de_latex = f"Rút gọn biểu thức: $x(x + {a}) - x^2$"
-            ans_correct = f"${a}x$"
+        
+        # 1. ĐA THỨC
+        if "cộng trừ đa thức" in bai_lower:
+            a, b = random.randint(1, 5), random.randint(1, 9)
+            c, d = random.randint(1, 5), random.randint(1, 9)
+            op = random.choice(["+", "-"])
+
+            if op == "+":
+                de_latex = f"Thu gọn đa thức: $({a}x + {b}) + ({c}x + {d})$"
+                res_a = a + c
+                res_b = b + d
+                ans_correct = f"${res_a}x + {res_b}$"
+                options = [ans_correct, f"${res_a}x - {res_b}$", f"${a-c}x + {b-d}$", f"${res_a}x$"]
+                dap_an = ans_correct
+                goi_y_text = "Cộng các hạng tử đồng dạng (có cùng biến x) với nhau."
+            else:
+                de_latex = f"Thu gọn đa thức: $({a}x + {b}) - ({c}x + {d})$"
+                res_a = a - c
+                res_b = b - d
+                sign = "+" if res_b >= 0 else ""
+                ans_correct = f"${res_a}x {sign}{res_b}$"
+                dap_an = ans_correct
+                options = [ans_correct, f"${a+c}x + {b+d}$", f"${res_a}x + {b+d}$", f"${a}x + {res_b}$"]
+                goi_y_text = "Phá ngoặc (đổi dấu nếu có dấu trừ đằng trước) rồi cộng trừ hạng tử đồng dạng."
+
+        elif "nhân đa thức" in bai_lower:
+            # Case: x(x + a)
+            a = random.randint(2, 9)
+            de_latex = f"Thực hiện phép nhân: $x(x + {a})$"
+            ans_correct = f"$x^2 + {a}x$"
             dap_an = ans_correct
-            options = [f"${a}x$", f"$-{a}x$", f"$2x^2 + {a}x$", f"${a}$"]
-            goi_y_text = "Nhân đơn thức với đa thức rồi thu gọn."
-            goi_y_latex = f"x^2 + {a}x - x^2 = {a}x"
-        elif "hằng đẳng thức" in bai_lower:
+            options = [ans_correct, f"$x^2 + {a}$", f"$2x + {a}$", f"$x + {a}x$"]
+            goi_y_text = "Nhân đơn thức với từng hạng tử của đa thức."
+
+        elif "chia đa thức" in bai_lower:
+            # Case: (ax^2 + bx) : x
+            a = random.randint(2, 5)
+            b = random.randint(2, 9)
+            de_latex = f"Thực hiện phép chia: $({a}x^2 + {b}x) : x$"
+            ans_correct = f"${a}x + {b}$"
+            dap_an = ans_correct
+            options = [ans_correct, f"${a}x^2 + {b}$", f"${a}x$", f"${a+b}x$"]
+            goi_y_text = "Chia từng hạng tử của đa thức cho đơn thức."
+
+        # 2. HẰNG ĐẲNG THỨC
+        elif "bình phương" in bai_lower: # của tổng/hiệu
+            a = random.randint(1, 6)
+            sign = random.choice(["+", "-"])
+            op_latex = "+" if sign == "+" else "-"
+            de_latex = f"Khai triển hằng đẳng thức: $(x {op_latex} {a})^2$"
+            mid_val = 2 * a
+            sq_val = a * a
+            if sign == "+":
+                ans_correct = f"$x^2 + {mid_val}x + {sq_val}$"
+                goi_y_latex = "(A+B)^2 = A^2 + 2AB + B^2"
+            else:
+                ans_correct = f"$x^2 - {mid_val}x + {sq_val}$"
+                goi_y_latex = "(A-B)^2 = A^2 - 2AB + B^2"
+            dap_an = ans_correct
+            options = [ans_correct, f"$x^2 {op_latex} {mid_val}x - {sq_val}$", f"$x^2 + {sq_val}$", f"$x^2 - {sq_val}$"]
+            goi_y_text = "Sử dụng hằng đẳng thức đáng nhớ."
+
+        elif "hiệu hai bình phương" in bai_lower:
+            a = random.randint(1, 9)
+            de_latex = f"Khai triển: $(x - {a})(x + {a})$"
+            ans_correct = f"$x^2 - {a*a}$"
+            dap_an = ans_correct
+            options = [ans_correct, f"$x^2 + {a*a}$", f"$x^2 - {2*a}x + {a*a}$", f"$x - {a*a}$"]
+            goi_y_text = "Hằng đẳng thức hiệu hai bình phương:"
+            goi_y_latex = "A^2 - B^2 = (A-B)(A+B)"
+
+        # 3. PHÂN THỨC
+        elif "rút gọn phân thức" in bai_lower:
             a = random.randint(1, 5)
-            de_latex = f"Khai triển: $(x - {a})^2$"
-            ans_correct = f"$x^2 - {2*a}x + {a**2}$"
+            de_latex = f"Rút gọn phân thức: $\\frac{{2x + {2*a}}}{{x + {a}}}$"
+            ans_correct = "2"
             dap_an = ans_correct
-            options = [ans_correct, f"$x^2 + {2*a}x + {a**2}$", f"$x^2 - {a**2}$", f"$x^2 + {a**2}$"]
-            goi_y_text = "Bình phương một hiệu:"
-            goi_y_latex = "(A-B)^2 = A^2 - 2AB + B^2"
-        elif "phân thức" in bai_lower:
-            a = random.randint(2, 5)
-            de_latex = f"Rút gọn phân thức: $\\frac{{x^2 - {a**2}}}{{x + {a}}}$"
-            ans_correct = f"$x - {a}$"
+            options = ["2", f"2(x+{a})", "x", f"{a}"]
+            goi_y_text = "Đặt nhân tử chung ở tử số rồi rút gọn với mẫu số."
+
+        elif "cộng trừ phân thức" in bai_lower:
+            # Simple case same denominator: (x)/(x+1) + (1)/(x+1)
+            de_latex = "Kết quả của phép tính: $\\frac{x}{x+1} + \\frac{1}{x+1}$ (với $x \\ne -1$)"
+            ans_correct = "1"
             dap_an = ans_correct
-            options = [f"$x - {a}$", f"$x + {a}$", f"$x^2 - {a}$", f"$1$"]
-            goi_y_text = "Phân tích tử số thành nhân tử:"
-            goi_y_latex = f"x^2 - {a}^2 = (x-{a})(x+{a})"
-        elif "hàm số" in bai_lower:
-            a = random.randint(2, 5)
+            options = ["1", "$\\frac{x+1}{2x+2}$", "0", "x"]
+            goi_y_text = "Cộng tử số với nhau, giữ nguyên mẫu số."
+
+        # 4. HÀM SỐ BẬC NHẤT
+        elif "hệ số góc" in bai_lower:
+            a = random.randint(2, 9) * random.choice([1, -1])
             b = random.randint(1, 9)
-            x_val = 2
-            de_latex = f"Cho hàm số $y = {a}x + {b}$. Giá trị của y tại $x={x_val}$ là?"
-            ans_correct = f"{a*x_val + b}"
+            de_latex = f"Hệ số góc của đường thẳng $y = {a}x + {b}$ là?"
+            ans_correct = str(a)
             dap_an = ans_correct
-            options = [f"{a*x_val + b}", f"{a*x_val - b}", f"{a + b}", f"{b}"]
+            options = [str(a), str(b), str(-a), f"{a}x"]
+            goi_y_text = "Trong hàm số $y=ax+b$, hệ số góc là a."
+
+        elif "giá trị hàm số" in bai_lower:
+            a = random.randint(2, 5)
+            b = random.randint(1, 5)
+            x_val = random.randint(0, 5)
+            de_latex = f"Cho hàm số $y = {a}x - {b}$. Tính f({x_val})?"
+            res = a * x_val - b
+            ans_correct = str(res)
+            dap_an = ans_correct
+            options = [str(res), str(res+1), str(a), str(b)]
             goi_y_text = "Thay giá trị x vào công thức hàm số."
+
         else:
-            de_latex = "Bậc của đa thức $x^2y + xy^3$ là?"
-            dap_an = "4"
-            options = ["4", "3", "2", "5"]
-            goi_y_text = "Bậc của đa thức là bậc của hạng tử có bậc cao nhất."
+            # Fallback
+            de_latex = "Giải phương trình $2x - 4 = 0$"
+            dap_an = "2"
+            options = ["2", "-2", "4", "0"]
+            goi_y_text = "Chuyển vế đổi dấu."
 
     # --- LỚP 9 ---
     elif "Lớp 9" in lop:
@@ -866,4 +943,3 @@ with col_phai:
 # Footer
 st.markdown("---")
 st.caption("© 2025 Trường PTDTBT TH&THCS Na Ư - Bản Mường.")
-
