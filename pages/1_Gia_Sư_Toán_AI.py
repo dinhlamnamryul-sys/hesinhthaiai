@@ -312,249 +312,60 @@ def tao_de_toan(lop, bai_hoc):
     
     bai_lower = bai_hoc.lower()
 
-    # --- LỚP 1 ---
-    if "Lớp 1" in lop:
-        if "đếm" in bai_lower or "số lượng" in bai_lower:
-            n = random.randint(3, 9)
-            items = ["bông hoa", "con gà", "viên bi", "cái kẹo"]
-            item = random.choice(items)
-            de_latex = f"An có ${n}$ {item}. Hỏi An có mấy {item}?"
-            dap_an = n
-            goi_y_text = "Đếm số lượng đồ vật."
-        elif "so sánh" in bai_lower:
-            a, b = random.randint(0, 10), random.randint(0, 10)
-            while a == b: b = random.randint(0, 10)
-            de_latex = f"Điền dấu thích hợp: ${a} \\dots {b}$"
-            question_type = "mcq"
-            ans_correct = ">" if a > b else "<"
-            dap_an = ans_correct
-            options = [">", "<", "="]
-            goi_y_text = "Số nào đứng sau trong dãy số thì lớn hơn."
-        elif "tách gộp" in bai_lower:
-            total = random.randint(4, 10)
-            part1 = random.randint(1, total - 1)
-            de_latex = f"Gộp ${part1}$ và mấy thì được ${total}$?"
-            dap_an = total - part1
-            goi_y_text = f"Thực hiện phép trừ: ${total} - {part1}$"
-        elif "phép cộng" in bai_lower:
-            a, b = random.randint(1, 5), random.randint(0, 4)
-            de_latex = f"Tính: ${a} + {b} = ?$"
-            dap_an = a + b
-            goi_y_text = "Gộp hai nhóm lại với nhau."
-        elif "phép trừ" in bai_lower:
-            a = random.randint(2, 9)
-            b = random.randint(1, a)
-            de_latex = f"Tính: ${a} - {b} = ?$"
-            dap_an = a - b
-            goi_y_text = "Bớt đi số lượng tương ứng."
-        elif "hình" in bai_lower:
-            question_type = "mcq"
-            de_latex = "Hình nào có 3 cạnh?"
-            dap_an = "Hình tam giác"
-            options = ["Hình tam giác", "Hình vuông", "Hình tròn", "Hình chữ nhật"]
-            goi_y_text = "Đếm số cạnh của hình."
-            
-    # --- LỚP 2 ---
-    elif "Lớp 2" in lop:
-        if "qua 10" in bai_lower:
-            a = random.randint(6, 9)
-            b = random.randint(5, 9)
-            if "cộng" in bai_lower:
-                de_latex = f"Tính nhẩm: ${a} + {b} = ?$"
-                dap_an = a + b
-                goi_y_text = "Gộp cho tròn 10 rồi cộng phần còn lại."
-            else:
-                total = random.randint(11, 18)
-                sub = random.randint(2, 9)
-                de_latex = f"Tính nhẩm: ${total} - {sub} = ?$"
-                dap_an = total - sub
-                goi_y_text = "Tách số bị trừ để trừ cho tròn 10."
-        elif "nhiều hơn" in bai_lower or "ít hơn" in bai_lower:
-            a = random.randint(10, 50)
-            diff = random.randint(5, 20)
-            if "nhiều hơn" in bai_lower:
-                de_latex = f"Bao gạo tẻ nặng ${a}$ kg. Bao gạo nếp nặng hơn gạo tẻ ${diff}$ kg. Hỏi bao gạo nếp nặng bao nhiêu kg?"
-                dap_an = a + diff
-            else:
-                de_latex = f"Lớp 2A có ${a}$ học sinh. Lớp 2B ít hơn 2A ${diff}$ bạn. Hỏi lớp 2B có bao nhiêu học sinh?"
-                dap_an = a - diff
-            goi_y_text = "Nhiều hơn thì cộng, ít hơn thì trừ."
-        elif "ngày giờ" in bai_lower:
-            h = random.randint(1, 11)
-            de_latex = f"Bây giờ là ${h}$ giờ. 2 giờ nữa là mấy giờ?"
-            dap_an = h + 2
-            goi_y_text = "Cộng thêm số giờ."
-        elif "hình" in bai_lower:
-            question_type = "mcq"
-            de_latex = "Hình tứ giác có bao nhiêu cạnh?"
-            dap_an = "4 cạnh"
-            options = ["3 cạnh", "4 cạnh", "5 cạnh", "2 cạnh"]
-            goi_y_text = "Tứ giác là hình có 4 cạnh."
-        else: # Mặc định cộng trừ
-            a, b = random.randint(10, 80), random.randint(10, 80)
-            de_latex = f"Tính: ${a} + {b}$"
-            dap_an = a + b
-            goi_y_text = "Đặt tính rồi tính."
+  
+  # --- LỚP 6 ---
+elif "Lớp 6" in lop:
 
-    # --- LỚP 3 ---
-    elif "Lớp 3" in lop:
-        if "bảng nhân" in bai_lower:
-            base = random.randint(6, 9)
-            mult = random.randint(2, 9)
-            de_latex = f"Tính: ${base} \\times {mult} = ?$"
-            dap_an = base * mult
-            goi_y_text = f"Nhớ lại bảng nhân {base}."
-        elif "chia" in bai_lower and "dư" in bai_lower:
-            b = random.randint(2, 8)
-            a = random.randint(10, 50)
-            while a % b == 0: a += 1 
-            de_latex = f"Tìm số dư trong phép chia: ${a} : {b}$"
-            dap_an = a % b
-            goi_y_text = "Thực hiện phép chia và lấy phần dư."
-        elif "tìm x" in bai_lower:
-            x = random.randint(10, 100)
-            a = random.randint(100, 500)
-            res = a - x
-            de_latex = f"Tìm x biết: ${a} - x = {res}$"
-            dap_an = x
-            goi_y_text = "Muốn tìm số trừ, ta lấy số bị trừ trừ đi hiệu."
-            goi_y_latex = f"x = {a} - {res}"
-        elif "diện tích" in bai_lower:
-            a, b = random.randint(5, 20), random.randint(2, 10)
-            de_latex = f"Tính diện tích hình chữ nhật có chiều dài ${a}$cm, chiều rộng ${b}$cm."
-            dap_an = a * b
-            goi_y_text = "Diện tích = Chiều dài x Chiều rộng."
-        elif "đơn vị" in bai_lower:
-            m = random.randint(2, 9)
-            de_latex = f"Đổi: ${m}$ m = ... cm"
-            dap_an = m * 100
-            goi_y_text = "1 m = 100 cm."
-        else:
-            a, b = random.randint(100, 800), random.randint(100, 800)
-            de_latex = f"Tính: ${a} + {b}$"
-            dap_an = a + b
-            
-    # --- LỚP 4 ---
-    elif "Lớp 4" in lop:
-        if "lớp triệu" in bai_lower or "đọc viết" in bai_lower:
-            trieu = random.randint(1, 100)
-            nghin = random.randint(100, 999)
-            de_latex = f"Số gồm ${trieu}$ triệu và ${nghin}$ nghìn viết là:"
-            question_type = "mcq"
-            ans_correct = f"{trieu}{nghin}000"
-            dap_an = ans_correct
-            options = [f"{trieu}{nghin}000", f"{trieu}000{nghin}", f"{trieu}{nghin}", f"{trieu}0{nghin}00"]
-            goi_y_text = "Viết lần lượt từng lớp số."
-        elif "trung bình cộng" in bai_lower:
-            a, b, c = random.randint(10, 50), random.randint(10, 50), random.randint(10, 50)
-            total = a + b + c
-            rem = total % 3
-            c -= rem
-            de_latex = f"Tìm trung bình cộng của: ${a}, {b}, {c}$"
-            dap_an = (a + b + c) // 3
-            goi_y_text = "Cộng tổng rồi chia cho số các số hạng."
-        elif "phân số" in bai_lower:
-            tu, mau = random.randint(1, 10), random.randint(2, 10)
-            k = random.randint(2, 5)
-            tu_k, mau_k = tu * k, mau * k
-            de_latex = f"Rút gọn phân số: $\\frac{{{tu_k}}}{{{mau_k}}}$ về tối giản (Nhập tử số của phân số tối giản)"
-            dap_an = tu // math.gcd(tu, mau)
-            goi_y_text = "Chia cả tử và mẫu cho ước chung lớn nhất."
-        elif "phép nhân" in bai_lower:
-            a, b = random.randint(100, 999), random.randint(11, 99)
-            de_latex = f"Tính: ${a} \\times {b}$"
-            dap_an = a * b
-            goi_y_text = "Đặt tính rồi nhân lần lượt."
-        else:
-            a, b = random.randint(1000, 9999), random.randint(11, 99)
-            kq = a * b
-            de_latex = f"Tính: ${kq} : {b}$"
-            dap_an = a
+    def bai_1_dang_1():
+        tap = sorted(random.sample(range(1, 10), 5))
+        dung = random.choice(tap)
+        sai = random.choice([x for x in range(1, 12) if x not in tap])
 
-    # --- LỚP 5 ---
-    elif "Lớp 5" in lop:
-        if "số thập phân" in bai_lower and "đọc" in bai_lower:
-            a = random.randint(1, 9)
-            b = random.randint(1, 9)
-            de_latex = f"Số thập phân gồm {a} đơn vị, {b} phần mười viết là:"
-            question_type = "mcq"
-            ans_correct = f"{a},{b}"
-            dap_an = ans_correct
-            options = [f"{a},{b}", f"{b},{a}", f"{a}{b}", f"0,{a}{b}"]
-            goi_y_text = "Phần nguyên đứng trước dấu phẩy, phần thập phân đứng sau."
-        elif "chuyển phân số" in bai_lower:
-            tu = random.choice([1, 2, 3, 4])
-            mau = random.choice([2, 5, 4])
-            de_latex = f"Viết phân số $\\frac{{{tu}}}{{{mau}}}$ dưới dạng số thập phân:"
-            dap_an = tu / mau
-            question_type = "number"
-            goi_y_text = "Lấy tử số chia cho mẫu số."
-        elif "phép tính" in bai_lower or "cộng" in bai_lower:
-            a = round(random.uniform(1, 20), 2)
-            b = round(random.uniform(1, 20), 2)
-            de_latex = f"Tính: ${a} + {b}$"
-            dap_an = round(a + b, 2)
-            goi_y_text = "Đặt dấu phẩy thẳng cột."
-        elif "tam giác" in bai_lower:
-            a = random.randint(5, 20)
-            h = random.randint(5, 20)
-            de_latex = f"Diện tích tam giác có đáy ${a}$cm và chiều cao ${h}$cm là bao nhiêu $cm^2$?"
-            dap_an = (a * h) / 2
-            goi_y_text = "Công thức diện tích tam giác:"
-            goi_y_latex = "S = \\frac{a \\times h}{2}"
-        elif "tròn" in bai_lower:
-            r = random.randint(1, 10)
-            de_latex = f"Chu vi hình tròn bán kính r=${r}$cm là (lấy $\\pi=3.14$):"
-            dap_an = round(r * 2 * 3.14, 2)
-            goi_y_text = "Công thức chu vi hình tròn:"
-            goi_y_latex = "C = r \\times 2 \\times 3.14"
-        else:
-             a = round(random.uniform(1, 10), 1)
-             de_latex = f"Tính: ${a} \\times 10$"
-             dap_an = a * 10
+        question = "Cách viết nào đúng?"
 
-    # --- LỚP 6 ---
-    elif "Lớp 6" in lop:
-        if "lũy thừa" in bai_lower:
-            base = random.randint(2, 5)
-            exp = random.randint(2, 4)
-            de_latex = f"Giá trị của ${base}^{exp}$ là?"
-            dap_an = base ** exp
-            goi_y_text = "Nhân cơ số với chính nó số mũ lần."
-            goi_y_latex = f"{base}^{exp} = " + "\\times".join([str(base)]*exp)
-        elif "chia hết" in bai_lower:
-            question_type = "mcq"
-            val = random.randint(10, 99) * 2
-            de_latex = f"Trong các số sau, số nào chia hết cho 2?"
-            ans_correct = str(val)
-            dap_an = ans_correct
-            options = [str(val), str(val+1), str(val+3), str(val+5)]
-            goi_y_text = "Số chia hết cho 2 có tận cùng là 0, 2, 4, 6, 8."
-        elif "nguyên tố" in bai_lower:
-            primes = [2, 3, 5, 7, 11, 13, 17, 19]
-            composites = [4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20]
-            p = random.choice(primes)
-            de_latex = f"Số nào sau đây là số nguyên tố?"
-            question_type = "mcq"
-            dap_an = str(p)
-            options = [str(p), str(random.choice(composites)), str(random.choice(composites)), "1"]
-            goi_y_text = "Số nguyên tố chỉ có 2 ước là 1 và chính nó."
-        elif "số nguyên" in bai_lower:
-            a = random.randint(-20, -1)
-            b = random.randint(-20, -1)
-            de_latex = f"Tính: ${a} + ({b})$"
-            dap_an = a + b
-            goi_y_text = "Cộng hai số nguyên âm: Cộng hai giá trị tuyệt đối rồi đặt dấu trừ đằng trước."
-        elif "đối xứng" in bai_lower:
-            question_type = "mcq"
-            de_latex = "Hình nào sau đây có tâm đối xứng?"
-            dap_an = "Hình bình hành"
-            options = ["Hình bình hành", "Hình thang cân", "Hình tam giác đều", "Hình thang vuông"]
-            goi_y_text = "Hình bình hành nhận giao điểm hai đường chéo làm tâm đối xứng."
-        else:
-             de_latex = "Tìm ƯCLN(8, 12)"
-             dap_an = 4
-             goi_y_text = "Phân tích ra thừa số nguyên tố."
+        dap_an_dung = f"{dung} ∈ {{{';'.join(map(str, tap))}}}"
+
+        dap_an_nhieu = [
+            f"{sai} ∈ {{{';'.join(map(str, tap))}}}",
+            f"{dung} ∉ {{{';'.join(map(str, tap))}}}",
+            f"{tap[0]} ⊂ {tap[1]}"
+        ]
+
+        return {
+            "question": question,
+            "answer": dap_an_dung,
+            "options": tron_dap_an(dap_an_dung, dap_an_nhieu),
+            "explain": f"{dung} thuộc tập hợp đã cho."
+        }
+
+    def bai_1_dang_2():
+        n = random.randint(3, 6)
+
+        question = f"Tập hợp A = {{x | x là số tự nhiên nhỏ hơn {n}}} là:"
+
+        dap_an_dung = "{" + ";".join(map(str, range(0, n))) + "}"
+
+        dap_an_nhieu = [
+            "{" + ";".join(map(str, range(1, n))) + "}",
+            "{" + ";".join(map(str, range(0, n+1))) + "}",
+            "{" + ";".join(map(str, range(1, n+1))) + "}"
+        ]
+
+        return {
+            "question": question,
+            "answer": dap_an_dung,
+            "options": tron_dap_an(dap_an_dung, dap_an_nhieu),
+            "explain": f"Số tự nhiên nhỏ hơn {n} gồm từ 0 đến {n-1}."
+        }
+
+    # --- CHỌN NGẪU NHIÊN 1 DẠNG BÀI 1 ---
+    cau = random.choice([bai_1_dang_1, bai_1_dang_2])()
+
+    de_latex = cau["question"]
+    question_type = "mcq"
+    dap_an = cau["answer"]
+    options = cau["options"]
+    goi_y_text = cau["explain"]
 
     # --- LỚP 7 ---
     elif "Lớp 7" in lop:
