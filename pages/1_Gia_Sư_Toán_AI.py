@@ -65,28 +65,39 @@ def sinh_cau_hoi(bai):
 
         so = tram * 100 + chuc * 10 + donvi
 
-        doc_so = f"{tram} trăm"
+        # Chuyển số sang chữ (chuẩn SGK)
+        chu_so = {
+            0: "không", 1: "một", 2: "hai", 3: "ba", 4: "bốn",
+            5: "năm", 6: "sáu", 7: "bảy", 8: "tám", 9: "chín"
+        }
+
+        doc_so = chu_so[tram] + " trăm"
+
         if chuc == 0 and donvi != 0:
             doc_so += " linh"
         elif chuc != 0:
-            doc_so += f" {chuc} mươi"
+            doc_so += " " + chu_so[chuc] + " mươi"
+
         if donvi != 0:
-            doc_so += f" {donvi}"
+            if donvi == 5 and chuc != 0:
+                doc_so += " lăm"
+            else:
+                doc_so += " " + chu_so[donvi]
 
         cau = f"Số được đọc là “{doc_so}” được viết là:"
+
         dap_an = f"${so}$"
 
         lua_chon = [
             dap_an,
-            f"${tram*100 + donvi*10 + chuc}$",
-            f"${tram*100 + chuc*10}$",
-            f"${tram*100 + chuc + donvi}$"
+            f"${tram * 100 + donvi * 10 + chuc}$",
+            f"${tram * 100 + chuc * 10}$",
+            f"${tram * 100 + chuc + donvi}$"
         ]
 
         goi_y = (
-            "Xác định lần lượt chữ số hàng trăm, hàng chục và hàng đơn vị."
+            "Xác định chữ số hàng trăm, hàng chục và hàng đơn vị rồi viết số."
         )
-
     # ---------- BÀI 3 ----------
     elif bai == "Bài 3. Thứ tự trong tập hợp các số tự nhiên":
         ds = random.sample(range(100, 999), 4)
