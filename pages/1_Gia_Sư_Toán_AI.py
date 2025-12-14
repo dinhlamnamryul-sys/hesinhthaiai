@@ -3,37 +3,37 @@ import random
 import re
 from deep_translator import GoogleTranslator
 
-# ===============================
+# =========================
 # CẤU HÌNH TRANG
-# ===============================
+# =========================
 st.set_page_config(
     page_title="Gia sư Toán 6 – Bài 1 đến 7",
     layout="wide"
 )
 
 # =================================================
-# DỊCH TIẾNG MÔNG – GIỮ NGUYÊN CÔNG THỨC TOÁN (LaTeX)
+# DỊCH TIẾNG MÔNG – GIỮ NGUYÊN CÔNG THỨC TOÁN
 # =================================================
 def dich_tieng_mong_giu_latex(text):
     parts = re.split(r'(\$.*?\$)', text)
-    ket_qua = []
+    result = []
     for p in parts:
         if p.startswith("$") and p.endswith("$"):
-            ket_qua.append(p)
+            result.append(p)
         else:
             if p.strip():
                 try:
-                    ket_qua.append(
+                    result.append(
                         GoogleTranslator(source="vi", target="hmn").translate(p)
                     )
                 except:
-                    ket_qua.append(p)
+                    result.append(p)
             else:
-                ket_qua.append(p)
-    return "".join(ket_qua)
+                result.append(p)
+    return "".join(result)
 
 # =================================================
-# SINH CÂU HỎI TOÁN 6 – BÀI 1 → 7
+# SINH CÂU HỎI TOÁN 6
 # =================================================
 def sinh_cau_hoi(bai):
 
@@ -53,8 +53,8 @@ def sinh_cau_hoi(bai):
         ]
 
         goi_y = (
-            "Dấu $\\in$ dùng để chỉ phần tử thuộc tập hợp. "
-            "Dấu $\\subset$ dùng để chỉ tập hợp con."
+            "Dấu $\\in$ chỉ phần tử thuộc tập hợp. "
+            "Dấu $\\subset$ chỉ tập hợp con."
         )
 
     # ---------- BÀI 2 ----------
@@ -65,7 +65,6 @@ def sinh_cau_hoi(bai):
 
         so = tram * 100 + chuc * 10 + donvi
 
-        # Đọc số bằng chữ – chuẩn SGK
         doc_so = f"{tram} trăm"
         if chuc == 0 and donvi != 0:
             doc_so += " linh"
@@ -75,38 +74,28 @@ def sinh_cau_hoi(bai):
             doc_so += f" {donvi}"
 
         cau = f"Số được đọc là “{doc_so}” được viết là:"
-
         dap_an = f"${so}$"
 
         lua_chon = [
             dap_an,
-            f"${tram * 100 + donvi * 10 + chuc}$",
-            f"${tram * 100 + chuc * 10}$",
-            f"${tram * 100 + chuc + donvi}$"
+            f"${tram*100 + donvi*10 + chuc}$",
+            f"${tram*100 + chuc*10}$",
+            f"${tram*100 + chuc + donvi}$"
         ]
 
         goi_y = (
-            "Số tự nhiên có ba chữ số gồm: "
-            "chữ số hàng trăm, hàng chục và hàng đơn vị."
+            "Xác định lần lượt chữ số hàng trăm, hàng chục và hàng đơn vị."
         )
-
-    else:
-        cau = "Chưa có câu hỏi cho bài này."
-        dap_an = ""
-        lua_chon = []
-        goi_y = ""
-
-    random.shuffle(lua_chon)
-    return cau, dap_an, lua_chon, goi_y
 
     # ---------- BÀI 3 ----------
     elif bai == "Bài 3. Thứ tự trong tập hợp các số tự nhiên":
-        ds = random.sample(range(100, 600), 4)
+        ds = random.sample(range(100, 999), 4)
         cau = f"Số lớn nhất trong các số $ {ds} $ là:"
         dap_an = f"${max(ds)}$"
         lua_chon = [f"${x}$" for x in ds]
+
         goi_y = (
-            "So sánh các số theo thứ tự: hàng trăm → hàng chục → hàng đơn vị."
+            "So sánh từ hàng trăm, rồi đến hàng chục, hàng đơn vị."
         )
 
     # ---------- BÀI 4 ----------
@@ -115,14 +104,16 @@ def sinh_cau_hoi(bai):
         b = random.randint(100, 999)
         cau = f"Tính $ {a} + {b} $"
         dap_an = f"${a + b}$"
+
         lua_chon = [
             dap_an,
             f"${a + b + 10}$",
             f"${a + b - 10}$",
             f"${a + b + 1}$"
         ]
+
         goi_y = (
-            "Cộng lần lượt từ hàng đơn vị, nhớ nếu tổng lớn hơn 9."
+            "Cộng từ phải sang trái, nhớ nếu tổng lớn hơn 9."
         )
 
     # ---------- BÀI 5 ----------
@@ -131,12 +122,14 @@ def sinh_cau_hoi(bai):
         b = random.randint(2, 9)
         cau = f"Tính $ {a} \\times {b} $"
         dap_an = f"${a * b}$"
+
         lua_chon = [
             dap_an,
             f"${a + b}$",
             f"${a * b + 1}$",
             f"${a * b - 1}$"
         ]
+
         goi_y = (
             "Phép nhân là phép cộng nhiều lần cùng một số."
         )
@@ -146,12 +139,14 @@ def sinh_cau_hoi(bai):
         a = random.randint(2, 5)
         cau = f"Tính $ {a}^2 $"
         dap_an = f"${a * a}$"
+
         lua_chon = [
             dap_an,
             f"${a * 2}$",
             f"${a + 2}$",
             f"${a * a * a}$"
         ]
+
         goi_y = (
             "Luỹ thừa $a^2$ nghĩa là $a \\times a$."
         )
@@ -161,27 +156,33 @@ def sinh_cau_hoi(bai):
         a = random.randint(2, 9)
         b = random.randint(2, 9)
         c = random.randint(2, 9)
+
         cau = f"Tính $ {a} + {b} \\times {c} $"
         dap_an = f"${a + b * c}$"
+
         lua_chon = [
             dap_an,
             f"${(a + b) * c}$",
             f"${a + b + c}$",
             f"${a * b + c}$"
         ]
+
         goi_y = (
-            "Trong biểu thức: nhân và chia làm trước, cộng và trừ làm sau."
+            "Thực hiện phép nhân trước, phép cộng sau."
         )
+
+    else:
+        cau, dap_an, lua_chon, goi_y = "", "", [], ""
 
     random.shuffle(lua_chon)
     return cau, dap_an, lua_chon, goi_y
 
-# ===============================
+# =========================
 # GIAO DIỆN
-# ===============================
-st.title("📘 Gia sư Toán 6 – Bài 1 → 7")
+# =========================
+st.title("📘 Gia sư Toán 6 – Bài 1 đến 7")
 
-BAI_6 = [
+DS_BAI = [
     "Bài 1. Tập hợp",
     "Bài 2. Cách ghi số tự nhiên",
     "Bài 3. Thứ tự trong tập hợp các số tự nhiên",
@@ -191,14 +192,11 @@ BAI_6 = [
     "Bài 7. Thứ tự thực hiện các phép tính"
 ]
 
-bai = st.selectbox("📚 Chọn bài học:", BAI_6)
+bai = st.selectbox("📚 Chọn bài:", DS_BAI)
 
-if st.button("✨ Tạo câu hỏi mới"):
-    cau, dap_an, lua_chon, goi_y = sinh_cau_hoi(bai)
-    st.session_state.cau = cau
-    st.session_state.dap_an = dap_an
-    st.session_state.lua_chon = lua_chon
-    st.session_state.goi_y = goi_y
+if st.button("✨ Tạo câu hỏi"):
+    st.session_state.cau, st.session_state.dap_an, \
+    st.session_state.lua_chon, st.session_state.goi_y = sinh_cau_hoi(bai)
 
 if "cau" in st.session_state:
     st.markdown("### ❓ Câu hỏi")
@@ -206,7 +204,7 @@ if "cau" in st.session_state:
 
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("🌏 Dịch đề sang tiếng Mông"):
+        if st.button("🌏 Dịch sang tiếng Mông"):
             st.info(dich_tieng_mong_giu_latex(st.session_state.cau))
     with col2:
         if st.button("💡 Gợi ý tiếng Mông"):
@@ -216,7 +214,7 @@ if "cau" in st.session_state:
 
     if st.button("✅ Kiểm tra"):
         if chon == st.session_state.dap_an:
-            st.success("🎉 Chính xác! (Yog lawm)")
+            st.success("🎉 Chính xác!")
         else:
             st.error("❌ Chưa đúng")
             st.markdown(f"**Đáp án đúng:** {st.session_state.dap_an}")
