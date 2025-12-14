@@ -129,7 +129,7 @@ def sinh_cau_hoi(bai):
 
     # ---------- BÀI 5 ----------
     elif bai == "Bài 5. Phép nhân và phép chia số tự nhiên":
-    dang = random.choice(["nhan", "chia"])
+        dang = random.choice(["nhan", "chia"])
 
         if dang == "nhan":
             a = random.randint(6, 15)
