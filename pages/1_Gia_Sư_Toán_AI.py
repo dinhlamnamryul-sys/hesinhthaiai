@@ -69,9 +69,66 @@ CHUONG_TRINH_HOC = {
         "Chủ đề 3: Hình học": ["Diện tích hình tam giác", "Chu vi, diện tích hình tròn"]
     },
     "Lớp 6": {
-        "Chương 1: Số tự nhiên": ["Lũy thừa", "Thứ tự thực hiện phép tính", "Dấu hiệu chia hết", "Số nguyên tố, Hợp số"],
-        "Chương 2: Số nguyên": ["Cộng trừ số nguyên", "Nhân chia số nguyên", "Quy tắc dấu ngoặc"],
-        "Chương 3: Hình học trực quan": ["Hình có trục đối xứng", "Hình có tâm đối xứng"]
+        "Tập 1 - Chương I: Số tự nhiên": [
+            "Bài 1. Tập hợp", 
+            "Bài 2. Cách ghi số tự nhiên", 
+            "Bài 3. Thứ tự trong tập hợp các số tự nhiên",
+            "Bài 4. Phép cộng và phép trừ số tự nhiên", 
+            "Bài 5. Phép nhân và phép chia số tự nhiên",
+            "Bài 6. Luỹ thừa với số mũ tự nhiên", 
+            "Bài 7. Thứ tự thực hiện các phép tính"
+        ],
+        "Tập 1 - Chương II: Tính chia hết": [
+            "Bài 8. Quan hệ chia hết và tính chất", 
+            "Bài 9. Dấu hiệu chia hết",
+            "Bài 10. Số nguyên tố", 
+            "Bài 11. Ước chung. Ước chung lớn nhất",
+            "Bài 12. Bội chung. Bội chung nhỏ nhất"
+        ],
+        "Tập 1 - Chương III: Số nguyên": [
+            "Bài 13. Tập hợp các số nguyên", 
+            "Bài 14. Phép cộng và phép trừ số nguyên",
+            "Bài 15. Quy tắc dấu ngoặc", 
+            "Bài 16. Phép nhân số nguyên",
+            "Bài 17. Phép chia hết. Ước và bội của một số nguyên"
+        ],
+        "Tập 1 - Chương IV: Hình phẳng thực tiễn": [
+            "Bài 18. Tam giác đều. Hình vuông. Lục giác đều",
+            "Bài 19. Hình chữ nhật. Hình thoi. Hình bình hành. Hình thang cân",
+            "Bài 20. Chu vi và diện tích của một số tứ giác đã học"
+        ],
+        "Tập 1 - Chương V: Tính đối xứng": [
+            "Bài 21. Hình có trục đối xứng", 
+            "Bài 22. Hình có tâm đối xứng"
+        ],
+        "Tập 2 - Chương VI: Phân số": [
+            "Bài 23. Mở rộng phân số. Phân số bằng nhau",
+            "Bài 24. So sánh phân số. Hỗn số dương",
+            "Bài 25. Phép cộng và phép trừ phân số",
+            "Bài 26. Phép nhân và phép chia phân số",
+            "Bài 27. Hai bài toán về phân số"
+        ],
+        "Tập 2 - Chương VII: Số thập phân": [
+            "Bài 28. Số thập phân",
+            "Bài 29. Tính toán với số thập phân",
+            "Bài 30. Làm tròn và ước lượng",
+            "Bài 31. Một số bài toán về tỉ số và tỉ số phần trăm"
+        ],
+        "Tập 2 - Chương VIII: Hình học cơ bản": [
+            "Bài 32. Điểm và đường thẳng",
+            "Bài 33. Điểm nằm giữa hai điểm. Tia",
+            "Bài 34. Đoạn thẳng. Độ dài đoạn thẳng",
+            "Bài 35. Trung điểm của đoạn thẳng",
+            "Bài 36. Góc",
+            "Bài 37. Số đo góc"
+        ],
+        "Tập 2 - Chương IX: Dữ liệu và Xác suất": [
+            "Bài 38. Dữ liệu và thu thập dữ liệu",
+            "Bài 39. Bảng thống kê và biểu đồ tranh",
+            "Bài 40. Biểu đồ cột",
+            "Bài 41. Kết quả có thể và sự kiện trong trò chơi",
+            "Bài 42. Xác suất thực nghiệm"
+        ]
     },
     "Lớp 7": {
         "Chương 1: Số hữu tỉ": ["Cộng trừ nhân chia số hữu tỉ", "Lũy thừa số hữu tỉ"],
