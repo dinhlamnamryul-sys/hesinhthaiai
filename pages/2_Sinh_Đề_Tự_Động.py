@@ -235,25 +235,35 @@ def build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
          "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng."
 )
     
-    prompt = f"""
-Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
+   prompt = f"""
+Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống làm sao cho học sinh đọc dễ hiểu nhất, cau hỏi đặt phải dạng câu hỏi".
 - Chương: {', '.join(chuong)}
 - Bài: {', '.join(bai)}
 
 Yêu cầu:
 1. Tổng {so_cau} câu, gồm:
    - NL (4 lựa chọn): {phan_bo_nl} câu
-   - DS (Đúng/Sai): {phan_bo_ds} câu
+   - DS (Đúng/Sai): {phan_bo_ds} câu (mỗi câu phải có **tình huống cụ thể**, kèm 4 ý a,b,c,d để chọn Đúng/Sai)
    - TL: {phan_bo_tl} câu
 2. Phân bố nhận thức:
    - Nhận biết: {so_cau_nb}
    - Thông hiểu: {so_cau_th}
    - Vận dụng: {so_cau_vd}
 3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$.**
-4. Mỗi câu phải gắn nhãn Mức độ và Loại câu hỏi.
-5. NL/DS: mỗi đáp án A/B/C/D cách xuống 1 dòng. TL đánh số 1,2,3… mỗi công thức LaTeX.
-6. {dan_ap}
-7. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp `st.markdown()`.
+4. Mỗi câu phải gắn nhãn **Mức độ** và **Loại câu hỏi**.
+5. **Đáp án NL/DS**: mỗi đáp án A/B/C/D hoặc a/b/c/d viết **xuống dòng riêng**, không viết liền nhau.  
+   - **Đối với DS**: dựa trên tình huống, cho 4 ý a,b,c,d; học sinh chọn **Đúng hoặc Sai**.
+6. **Đáp án TL**: đánh số 1,2,3…; mọi công thức toán phải viết dưới dạng LaTeX trong $$...$$.
+7. {dan_ap}
+8. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp `st.markdown()`.
+
+**Ví dụ định dạng DS với tình huống**:
+
+*Tình huống*: Một hình chữ nhật có chiều dài $$a$$ và chiều rộng $$b$$.  
+a. Diện tích của hình chữ nhật là $$a+b$$. (Đúng/Sai)  
+b. Chu vi của hình chữ nhật là $$2(a+b)$$. (Đúng/Sai)  
+c. Hình chữ nhật có 4 cạnh bằng nhau. (Đúng/Sai)  
+d. Diện tích hình chữ nhật là $$a \cdot b$$. (Đúng/Sai)
 """
     return prompt
 
