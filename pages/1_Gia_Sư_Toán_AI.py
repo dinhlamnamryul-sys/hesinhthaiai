@@ -128,47 +128,47 @@ def sinh_cau_hoi(bai):
         )
 
     # ---------- BÀI 5 ----------
-   elif bai == "Bài 5. Phép nhân và phép chia số tự nhiên":
+    elif bai == "Bài 5. Phép nhân và phép chia số tự nhiên":
     dang = random.choice(["nhan", "chia"])
 
-    if dang == "nhan":
-        a = random.randint(6, 15)
-        b = random.randint(6, 15)
-
-        cau = (
-            "Kết quả của:\n\n"
-            f"$ {a} \\times {b} $\n\n"
-            "là:"
-        )
-
-        dap_an = a * b
-
-        lua_chon = [
-            dap_an,
-            dap_an + random.choice([-12, -10, 10, 12]),
-            dap_an + random.choice([-8, 8]),
-            dap_an + random.choice([-2, 2])
-        ]
-
-        goi_y = "Thực hiện phép nhân hai số tự nhiên."
-
-    else:
-        b = random.randint(6, 15)
-        k = random.randint(6, 15)
-        a = b * k
-
-        cau = f"$ {a} \\div {b} = $"
-
-        dap_an = k
-
-        lua_chon = [
-            dap_an,
-            dap_an + 1,
-            dap_an - 1,
-            dap_an + 2
-        ]
-
-        goi_y = "Thực hiện phép chia số tự nhiên."
+        if dang == "nhan":
+            a = random.randint(6, 15)
+            b = random.randint(6, 15)
+    
+            cau = (
+                "Kết quả của:\n\n"
+                f"$ {a} \\times {b} $\n\n"
+                "là:"
+            )
+    
+            dap_an = a * b
+    
+            lua_chon = [
+                dap_an,
+                dap_an + random.choice([-12, -10, 10, 12]),
+                dap_an + random.choice([-8, 8]),
+                dap_an + random.choice([-2, 2])
+            ]
+    
+            goi_y = "Thực hiện phép nhân hai số tự nhiên."
+    
+        else:
+            b = random.randint(6, 15)
+            k = random.randint(6, 15)
+            a = b * k
+    
+            cau = f"$ {a} \\div {b} = $"
+    
+            dap_an = k
+    
+            lua_chon = [
+                dap_an,
+                dap_an + 1,
+                dap_an - 1,
+                dap_an + 2
+            ]
+    
+            goi_y = "Thực hiện phép chia số tự nhiên."
 
     # ---------- BÀI 6 ----------
     elif bai == "Bài 6. Luỹ thừa với số mũ tự nhiên":
