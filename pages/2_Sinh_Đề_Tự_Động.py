@@ -221,22 +221,11 @@ co_dap_an = st.radio(
     index=0
 )
 
-# --- Build prompt chuẩn ---
-def build_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
-                 so_cau_nb, so_cau_th, so_cau_vd, co_dap_an):
-    
-    dan_ap = (
-    "Tạo đáp án chi tiết và lời giải sau mỗi câu hỏi, tất cả công thức bằng LaTeX. "
-    "Với câu NL hoặc DS, mỗi lựa chọn A/B/C/D phải cách nhau 1 dòng, không gộp. "
-    "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng riêng."
-    if co_dap_an == "Có đáp án"
-    else "Không cần đáp án, nhưng tất cả công thức bắt buộc LaTeX. "
-         "Với câu NL hoặc DS, mỗi lựa chọn A/B/C/D phải xuống dòng riêng. "
-         "Với câu TL, đánh số 1,2,3… mỗi công thức LaTeX phải xuống dòng."
-)
-    
-   prompt = f"""
-Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống làm sao cho học sinh đọc dễ hiểu nhất, cau hỏi đặt phải dạng câu hỏi".
+# --- Hàm tạo prompt ---
+def create_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
+                  so_cau_nb, so_cau_th, so_cau_vd, dan_ap):
+    prompt = f"""
+Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
 - Chương: {', '.join(chuong)}
 - Bài: {', '.join(bai)}
 
@@ -255,7 +244,7 @@ Yêu cầu:
    - **Đối với DS**: dựa trên tình huống, cho 4 ý a,b,c,d; học sinh chọn **Đúng hoặc Sai**.
 6. **Đáp án TL**: đánh số 1,2,3…; mọi công thức toán phải viết dưới dạng LaTeX trong $$...$$.
 7. {dan_ap}
-8. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp `st.markdown()`.
+8. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp st.markdown().
 
 **Ví dụ định dạng DS với tình huống**:
 
@@ -266,7 +255,6 @@ c. Hình chữ nhật có 4 cạnh bằng nhau. (Đúng/Sai)
 d. Diện tích hình chữ nhật là $$a \cdot b$$. (Đúng/Sai)
 """
     return prompt
-
 # --- Gọi API ---
 def generate_questions(api_key, prompt):
     MODEL = "models/gemini-2.5-flash"
