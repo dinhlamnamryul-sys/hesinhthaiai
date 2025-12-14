@@ -68,31 +68,118 @@ CHUONG_TRINH_HOC = {
         "Chủ đề 2: Các phép tính số thập phân": ["Cộng trừ số thập phân", "Nhân chia số thập phân"],
         "Chủ đề 3: Hình học": ["Diện tích hình tam giác", "Chu vi, diện tích hình tròn"]
     },
-    "Lớp 6": {
-        "Chương 1: Số tự nhiên": ["Lũy thừa", "Thứ tự thực hiện phép tính", "Dấu hiệu chia hết", "Số nguyên tố, Hợp số"],
-        "Chương 2: Số nguyên": ["Cộng trừ số nguyên", "Nhân chia số nguyên", "Quy tắc dấu ngoặc"],
-        "Chương 3: Hình học trực quan": ["Hình có trục đối xứng", "Hình có tâm đối xứng"]
-    },
-    "Lớp 7": {
-        "Chương 1: Số hữu tỉ": ["Cộng trừ nhân chia số hữu tỉ", "Lũy thừa số hữu tỉ"],
-        "Chương 2: Số thực": ["Căn bậc hai số học", "Giá trị tuyệt đối"],
-        "Chương 3: Hình học": ["Góc đối đỉnh", "Tổng ba góc trong tam giác", "Các trường hợp bằng nhau của tam giác"]
-    },
-    "Lớp 8": {
-        "Chương 1: Đa thức": ["Cộng trừ đa thức", "Nhân đa thức", "Chia đa thức cho đơn thức"],
-        "Chương 2: Hằng đẳng thức": ["Bình phương của tổng/hiệu", "Hiệu hai bình phương"],
-        "Chương 3: Phân thức đại số": ["Rút gọn phân thức", "Cộng trừ phân thức"],
-        "Chương 4: Hàm số bậc nhất": ["Tính giá trị hàm số", "Hệ số góc"]
-    },
-    "Lớp 9": {
-        "Chương 1: Căn thức": ["Điều kiện xác định của căn", "Rút gọn biểu thức chứa căn"],
-        "Chương 2: Hàm số bậc nhất": ["Đồ thị hàm số y=ax+b", "Đường thẳng song song, cắt nhau"],
-        "Chương 3: Hệ phương trình": ["Giải hệ phương trình bậc nhất 2 ẩn"],
-        "Chương 4: Phương trình bậc hai": ["Công thức nghiệm (Delta)", "Định lý Vi-ét"],
-        "Chương 5: Hình học (Đường tròn & Lượng giác)": ["Tỉ số lượng giác", "Góc nội tiếp"]
-    }
-}
+   {
+  "Lớp 6": {
+    "Chương I. Tập hợp các số tự nhiên": [
+      "Bài 1. Tập hợp",
+      "Bài 2. Cách ghi số tự nhiên",
+      "Bài 3. Thứ tự trong tập hợp các số tự nhiên",
+      "Bài 4. Phép cộng và phép trừ số tự nhiên",
+      "Bài 5. Phép nhân và phép chia số tự nhiên",
+      "Bài 6. Luỹ thừa với số mũ tự nhiên",
+      "Bài 7. Thứ tự thực hiện các phép tính"
+    ],
+    "Chương II. Tính chia hết trong tập hợp các số tự nhiên": [
+      "Bài 8. Quan hệ chia hết và tính chất",
+      "Bài 9. Dấu hiệu chia hết",
+      "Bài 10. Số nguyên tố",
+      "Bài 11. Ước chung. Ước chung lớn nhất",
+      "Bài 12. Bội chung. Bội chung nhỏ nhất"
+    ],
+    "Chương III. Số nguyên": [
+      "Bài 13. Tập hợp các số nguyên",
+      "Bài 14. Phép cộng và phép trừ số nguyên",
+      "Bài 15. Quy tắc dấu ngoặc",
+      "Bài 16. Phép nhân số nguyên",
+      "Bài 17. Phép chia hết. Ước và bội của một số nguyên"
+    ],
+    "Chương V. Tính đối xứng của hình phẳng trong tự nhiên": [
+      "Bài 21. Hình có trục đối xứng",
+      "Bài 22. Hình có tâm đối xứng"
+    ]
+  },
 
+  "Lớp 7": {
+    "Chương I. Số hữu tỉ": [
+      "Bài 1. Tập hợp các số hữu tỉ",
+      "Bài 2. Cộng, trừ, nhân, chia số hữu tỉ",
+      "Bài 3. Luỹ thừa với số mũ tự nhiên của một số hữu tỉ",
+      "Bài 4. Thứ tự thực hiện các phép tính. Quy tắc chuyển vế"
+    ],
+    "Chương II. Số thực": [
+      "Bài 5. Làm quen với số thập phân vô hạn tuần hoàn",
+      "Bài 6. Số vô tỉ. Căn bậc hai số học",
+      "Bài 7. Tập hợp các số thực"
+    ],
+    "Chương III. Góc và đường thẳng song song": [
+      "Bài 8. Góc ở vị trí đặc biệt. Tia phân giác của một góc",
+      "Bài 9. Hai đường thẳng song song và dấu hiệu nhận biết",
+      "Bài 10. Tiên đề Euclid. Tính chất của hai đường thẳng song song",
+      "Bài 11. Định lí và chứng minh định lí"
+    ],
+    "Chương IV. Tam giác bằng nhau": [
+      "Bài 12. Tổng các góc trong một tam giác",
+      "Bài 13. Hai tam giác bằng nhau. Trường hợp bằng nhau thứ nhất",
+      "Bài 14. Trường hợp bằng nhau thứ hai và thứ ba",
+      "Bài 15. Các trường hợp bằng nhau của tam giác vuông",
+      "Bài 16. Tam giác cân. Đường trung trực của đoạn thẳng"
+    ]
+  },
+
+  "Lớp 8": {
+    "Chương I. Đa thức": [
+      "Bài 1. Đơn thức",
+      "Bài 2. Đa thức",
+      "Bài 3. Phép cộng và phép trừ đa thức",
+      "Bài 4. Phép nhân đa thức",
+      "Bài 5. Phép chia đa thức cho đơn thức"
+    ],
+    "Chương II. Hằng đẳng thức đáng nhớ và ứng dụng": [
+      "Bài 6. Hiệu hai bình phương. Bình phương của một tổng hay một hiệu",
+      "Bài 7. Lập phương của một tổng. Lập phương của một hiệu",
+      "Bài 8. Tổng và hiệu hai lập phương",
+      "Bài 9. Phân tích đa thức thành nhân tử"
+    ],
+    "Chương VI. Phân thức đại số": [
+      "Bài 21. Phân thức đại số",
+      "Bài 22. Tính chất cơ bản của phân thức đại số",
+      "Bài 23. Phép cộng và phép trừ phân thức đại số",
+      "Bài 24. Phép nhân và phép chia phân thức đại số"
+    ],
+    "Chương VII. Phương trình bậc nhất và hàm số bậc nhất": [
+      "Bài 25. Phương trình bậc nhất một ẩn",
+      "Bài 26. Giải bài toán bằng cách lập phương trình",
+      "Bài 27. Khái niệm hàm số và đồ thị của hàm số",
+      "Bài 28. Hàm số bậc nhất và đồ thị của hàm số",
+      "Bài 29. Hệ số góc của đường thẳng"
+    ]
+  },
+
+  "Lớp 9": {
+    "Chương III. Căn bậc hai và căn bậc ba": [
+      "Bài 7. Căn bậc hai và căn thức bậc hai",
+      "Bài 8. Khai căn bậc hai với phép nhân và phép chia",
+      "Bài 9. Biến đổi đơn giản và rút gọn biểu thức chứa căn thức bậc hai",
+      "Bài 10. Căn bậc ba và căn thức bậc ba"
+    ],
+    "Chương IV. Hệ thức lượng trong tam giác vuông": [
+      "Bài 11. Tỉ số lượng giác của góc nhọn",
+      "Bài 12. Một số hệ thức giữa cạnh, góc trong tam giác vuông và ứng dụng"
+    ],
+    "Chương VI. Hàm số y = ax² (a ≠ 0). Phương trình bậc hai một ẩn": [
+      "Bài 18. Hàm số y = ax² (a ≠ 0)",
+      "Bài 19. Phương trình bậc hai một ẩn",
+      "Bài 20. Định lí Viète và ứng dụng",
+      "Bài 21. Giải bài toán bằng cách lập phương trình"
+    ],
+    "Chương IX. Đường tròn ngoại tiếp và đường tròn nội tiếp": [
+      "Bài 27. Góc nội tiếp",
+      "Bài 28. Đường tròn ngoại tiếp và đường tròn nội tiếp của một tam giác",
+      "Bài 29. Tứ giác nội tiếp",
+      "Bài 30. Đa giác đều"
+    ]
+  }
+}
 # --- CSS PHONG CÁCH THỔ CẨM H'MÔNG ---
 st.markdown("""
 <style>
