@@ -587,37 +587,104 @@ def tao_de_toan(lop, bai_hoc):
             goi_y_text = "Thực hiện phép chia và lấy phần dư."
     # --- LỚP 7 ---
     elif "Lớp 7" in lop:
-        if "số hữu tỉ" in bai_lower:
-            tu = random.randint(1, 5)
-            de_latex = f"Kết quả của phép tính $\\frac{{{tu}}}{{2}} + \\frac{{{tu}}}{{2}}$ là?"
-            dap_an = tu
-            goi_y_text = "Cộng hai phân số cùng mẫu."
+        question_type = "number" # Mặc định
+
+        # 1. SỐ HỮU TỈ
+        if "cộng trừ" in bai_lower or "nhân chia" in bai_lower:
+            # Tạo phân số đơn giản để dễ tính toán
+            a = random.randint(1, 5)
+            b = random.randint(1, 5)
+            op = random.choice(["+", "-", "\\times", ":"])
+            
+            if op == "+":
+                de_latex = f"Tính giá trị biểu thức: $\\frac{{{a}}}{{2}} + \\frac{{{b}}}{{2}}$"
+                dap_an = (a + b) / 2
+                goi_y_text = "Cộng hai phân số cùng mẫu: Cộng tử, giữ nguyên mẫu."
+            elif op == "-":
+                de_latex = f"Tính giá trị biểu thức: $\\frac{{{a+b}}}{{3}} - \\frac{{{b}}}{{3}}$"
+                dap_an = a / 3
+                goi_y_text = "Trừ hai phân số cùng mẫu: Trừ tử, giữ nguyên mẫu."
+            elif op == "\\times":
+                de_latex = f"Tính giá trị biểu thức: $\\frac{{{a}}}{{5}} \\times \\frac{{{5}}}{{2}}$"
+                dap_an = a / 2
+                goi_y_text = "Nhân phân số: Tử nhân tử, mẫu nhân mẫu."
+            else: # Chia
+                de_latex = f"Tính giá trị biểu thức: $\\frac{{{a}}}{{2}} : \\frac{{1}}{{2}}$"
+                dap_an = a
+                goi_y_text = "Chia phân số là nhân với phân số đảo ngược."
+
+        elif "lũy thừa" in bai_lower:
+            # Lũy thừa số hữu tỉ
+            base_tu = random.randint(1, 3)
+            base_mau = random.randint(2, 4)
+            exp = random.randint(2, 3)
+            
+            de_latex = f"Tính giá trị của: $(\\frac{{{base_tu}}}{{{base_mau}}})^{exp}$ (Làm tròn 2 chữ số thập phân)"
+            val = (base_tu / base_mau) ** exp
+            dap_an = val
+            goi_y_text = "Lũy thừa của một thương bằng thương các lũy thừa."
+            goi_y_latex = f"(\\frac{{x}}{{y}})^n = \\frac{{x^n}}{{y^n}}"
+
+        # 2. SỐ THỰC
         elif "căn bậc hai" in bai_lower:
-            sq = random.choice([4, 9, 16, 25, 36, 49, 64, 81, 100])
-            de_latex = f"Tính $\\sqrt{{{sq}}}$"
-            dap_an = int(math.sqrt(sq))
-            goi_y_text = "Tìm số dương bình phương lên bằng số trong căn."
+            # Chọn các số chính phương để ra kết quả đẹp
+            squares = [0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144]
+            val = random.choice(squares)
+            de_latex = f"Tìm căn bậc hai số học của {val}: $\\sqrt{{{val}}}$"
+            dap_an = int(math.sqrt(val))
+            goi_y_text = "Tìm số dương x sao cho x bình phương bằng số trong căn."
+
         elif "tuyệt đối" in bai_lower:
-            val = random.randint(-10, -1)
-            de_latex = f"Tính $|{val}|$"
+            # Giá trị tuyệt đối của số hữu tỉ âm/dương
+            val = round(random.uniform(-10, 10), 1)
+            de_latex = f"Tính giá trị tuyệt đối: $|{val}|$"
             dap_an = abs(val)
-            goi_y_text = "Giá trị tuyệt đối của số âm là số đối của nó."
-        elif "góc" in bai_lower:
+            goi_y_text = "Giá trị tuyệt đối của số dương là chính nó, của số âm là số đối của nó."
+
+        # 3. HÌNH HỌC
+        elif "đối đỉnh" in bai_lower:
             angle = random.randint(30, 150)
-            de_latex = f"Hai góc đối đỉnh, góc thứ nhất bằng ${angle}^\\circ$. Góc thứ hai bằng bao nhiêu?"
+            de_latex = f"Cho biết $\\widehat{{O_1}} = {angle}^\\circ$. Góc đối đỉnh với $\\widehat{{O_1}}$ có số đo là bao nhiêu?"
             dap_an = angle
             goi_y_text = "Hai góc đối đỉnh thì bằng nhau."
-        elif "tam giác" in bai_lower:
-            a = random.randint(30, 80)
-            b = random.randint(30, 80)
-            de_latex = f"Tam giác ABC có $\\hat{{A}}={a}^\\circ, \\hat{{B}}={b}^\\circ$. Tính $\\hat{{C}}$."
-            dap_an = 180 - a - b
-            goi_y_text = "Tổng ba góc trong tam giác là 180 độ."
-        else:
-             a = random.randint(1, 5)
-             de_latex = f"Tính $(-{a})^2$"
-             dap_an = a**2
 
+        elif "tổng ba góc" in bai_lower:
+            a = random.randint(30, 80)
+            b = random.randint(30, 70)
+            de_latex = f"Tam giác ABC có $\\hat{{A}}={a}^\\circ, \\hat{{B}}={b}^\\circ$. Tính số đo $\\hat{{C}}$."
+            dap_an = 180 - a - b
+            goi_y_text = "Tổng ba góc trong một tam giác bằng 180 độ."
+            goi_y_latex = "\\hat{A} + \\hat{B} + \\hat{C} = 180^\\circ"
+
+        elif "bằng nhau" in bai_lower: # Các trường hợp bằng nhau của tam giác
+            question_type = "mcq"
+            case_type = random.choice(["ccc", "cgc", "gcg"])
+            
+            if case_type == "ccc":
+                de_latex = "Nếu $\\Delta ABC$ và $\\Delta DEF$ có: $AB=DE, AC=DF, BC=EF$ thì hai tam giác bằng nhau theo trường hợp nào?"
+                ans_correct = "Cạnh - Cạnh - Cạnh (c.c.c)"
+                dap_an = ans_correct
+                options = [ans_correct, "Cạnh - Góc - Cạnh (c.g.c)", "Góc - Cạnh - Góc (g.c.g)", "Cạnh huyền - Góc nhọn"]
+                goi_y_text = "Ba cặp cạnh tương ứng bằng nhau."
+            elif case_type == "cgc":
+                de_latex = "Nếu $\\Delta ABC$ và $\\Delta DEF$ có: $AB=DE, \\hat{B}=\\hat{E}, BC=EF$ thì hai tam giác bằng nhau theo trường hợp nào?"
+                ans_correct = "Cạnh - Góc - Cạnh (c.g.c)"
+                dap_an = ans_correct
+                options = [ans_correct, "Cạnh - Cạnh - Cạnh (c.c.c)", "Góc - Cạnh - Góc (g.c.g)", "Góc - Góc - Góc"]
+                goi_y_text = "Hai cạnh và góc xen giữa tương ứng bằng nhau."
+            else:
+                de_latex = "Nếu $\\Delta ABC$ và $\\Delta DEF$ có: $\\hat{B}=\\hat{E}, BC=EF, \\hat{C}=\\hat{F}$ thì hai tam giác bằng nhau theo trường hợp nào?"
+                ans_correct = "Góc - Cạnh - Góc (g.c.g)"
+                dap_an = ans_correct
+                options = [ans_correct, "Cạnh - Góc - Cạnh (c.g.c)", "Cạnh - Cạnh - Cạnh (c.c.c)", "Cạnh huyền - Cạnh góc vuông"]
+                goi_y_text = "Một cạnh và hai góc kề cạnh ấy tương ứng bằng nhau."
+
+        # FALLBACK
+        else:
+            a = random.randint(1, 10)
+            de_latex = f"Tính bình phương của {a}: ${a}^2$"
+            dap_an = a*a
+            goi_y_text = "Nhân số đó với chính nó."
     # --- LỚP 8 ---
     elif "Lớp 8" in lop:
         question_type = "mcq"
