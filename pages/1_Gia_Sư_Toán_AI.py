@@ -13,32 +13,41 @@ st.set_page_config(
 )
 
 st.title("🏫 GIA SƯ TOÁN AI – BẢN MƯỜNG")
-st.caption("Hỗ trợ học sinh vùng cao | Hiển thị công thức chuẩn")
+st.caption("Hỗ trợ học sinh vùng cao | Dịch tiếng Mông, giữ nguyên công thức Toán")
 
 # ===============================
-# HÀM DỊCH GIỮ NGUYÊN LaTeX
+# HÀM DỊCH TIẾNG MÔNG (AN TOÀN)
 # ===============================
 def dich_tieng_mong_giu_latex(text):
-    parts = re.split(r'(\$.*?\$)', text)
+    parts = re.split(r'(\$.*?\$)', str(text))
     result = []
 
     for part in parts:
+        # Giữ nguyên công thức LaTeX
         if part.startswith('$') and part.endswith('$'):
-            result.append(part)   # giữ nguyên công thức
+            result.append(str(part))
         else:
             if part.strip():
                 try:
-                    trans = GoogleTranslator(source='vi', target='hmn').translate(part)
-                    result.append(trans)
-                except:
-                    result.append(part)
+                    trans = GoogleTranslator(
+                        source='vi',
+                        target='hmn'
+                    ).translate(part)
+
+                    if trans is None:
+                        result.append(str(part))
+                    else:
+                        result.append(str(trans))
+
+                except Exception:
+                    result.append(str(part))
             else:
-                result.append(part)
+                result.append(str(part))
 
     return "".join(result)
 
 # ===============================
-# SINH CÂU HỎI (LỚP 6 – MẪU)
+# SINH CÂU HỎI LỚP 6 (MẪU)
 # ===============================
 def sinh_cau_hoi_lop_6(bai):
     # -------- BÀI 1: TẬP HỢP --------
@@ -47,7 +56,10 @@ def sinh_cau_hoi_lop_6(bai):
         dung = random.choice(tap)
         sai = random.choice([x for x in range(1, 12) if x not in tap])
 
-        cau_hoi = f"Cách viết nào đúng với tập hợp $A = \\{{{';'.join(map(str, tap))}\\}}$?"
+        cau_hoi = (
+            f"Cách viết nào đúng với tập hợp "
+            f"$A = \\{{{';'.join(map(str, tap))}\\}}$?"
+        )
 
         dap_an_dung = f"${dung} \\in A$"
 
@@ -61,7 +73,8 @@ def sinh_cau_hoi_lop_6(bai):
 
         goi_y_viet = (
             "Dấu $\\in$ có nghĩa là 'thuộc'. "
-            "Một số thuộc tập hợp nếu nó xuất hiện trong danh sách các phần tử."
+            "Một số thuộc tập hợp nếu nó xuất hiện trong danh sách "
+            "các phần tử của tập hợp đó."
         )
 
         goi_y_latex = f"{dung} \\in \\{{{';'.join(map(str, tap))}\\}}"
