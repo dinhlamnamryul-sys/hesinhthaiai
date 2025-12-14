@@ -312,58 +312,84 @@ def tao_de_toan(lop, bai_hoc):
     
     bai_lower = bai_hoc.lower()
 
-    # --- LỚP 6 ---
-    elif "Lớp 6" in lop:
-    def bai_1_dang_1():
-        tap = sorted(random.sample(range(1, 10), 5))
-        dung = random.choice(tap)
-        sai = random.choice([x for x in range(1, 12) if x not in tap])
-
-        question = "Cách viết nào đúng?"
-
-        dap_an_dung = f"{dung} ∈ {{{';'.join(map(str, tap))}}}"
-
-        dap_an_nhieu = [
-            f"{sai} ∈ {{{';'.join(map(str, tap))}}}",
-            f"{dung} ∉ {{{';'.join(map(str, tap))}}}",
-            f"{tap[0]} ⊂ {tap[1]}"
-        ]
-
-        return {
-            "question": question,
-            "answer": dap_an_dung,
-            "options": tron_dap_an(dap_an_dung, dap_an_nhieu),
-            "explain": f"{dung} thuộc tập hợp đã cho."
-        }
-
-    def bai_1_dang_2():
-        n = random.randint(3, 6)
-
-        question = f"Tập hợp A = {{x | x là số tự nhiên nhỏ hơn {n}}} là:"
-
-        dap_an_dung = "{" + ";".join(map(str, range(0, n))) + "}"
-
-        dap_an_nhieu = [
-            "{" + ";".join(map(str, range(1, n))) + "}",
-            "{" + ";".join(map(str, range(0, n+1))) + "}",
-            "{" + ";".join(map(str, range(1, n+1))) + "}"
-        ]
-
-        return {
-            "question": question,
-            "answer": dap_an_dung,
-            "options": tron_dap_an(dap_an_dung, dap_an_nhieu),
-            "explain": f"Số tự nhiên nhỏ hơn {n} gồm từ 0 đến {n-1}."
-        }
-
-    # --- CHỌN NGẪU NHIÊN 1 DẠNG BÀI 1 ---
-    cau = random.choice([bai_1_dang_1, bai_1_dang_2])()
-
-    de_latex = cau["question"]
+   def tao_de_toan(lop, bai_hoc):
+    de_latex = ""
     question_type = "mcq"
-    dap_an = cau["answer"]
-    options = cau["options"]
-    goi_y_text = cau["explain"]
+    dap_an = ""
+    options = []
+    goi_y_text = ""
+    goi_y_latex = ""
+
+    bai_lower = bai_hoc.lower()
+
+    # ================= LỚP 6 =================
+    if "Lớp 6" in lop:
+
+        # -------- BÀI 1: TẬP HỢP --------
+        if "bài 1" in bai_lower or "tập hợp" in bai_lower:
+
+            def bai_1_dang_1():
+                tap = sorted(random.sample(range(1, 10), 5))
+                dung = random.choice(tap)
+                sai = random.choice([x for x in range(1, 12) if x not in tap])
+
+                dap_an_dung = f"{dung} ∈ {{{';'.join(map(str, tap))}}}"
+
+                dap_an_nhieu = [
+                    f"{sai} ∈ {{{';'.join(map(str, tap))}}}",
+                    f"{dung} ∉ {{{';'.join(map(str, tap))}}}",
+                    f"{tap[0]} ⊂ {tap[1]}"
+                ]
+
+                return {
+                    "question": "Cách viết nào đúng?",
+                    "answer": dap_an_dung,
+                    "options": tron_dap_an(dap_an_dung, dap_an_nhieu),
+                    "explain": f"{dung} thuộc tập hợp đã cho."
+                }
+
+            def bai_1_dang_2():
+                n = random.randint(3, 7)
+
+                dap_an_dung = "{" + ";".join(map(str, range(0, n))) + "}"
+
+                dap_an_nhieu = [
+                    "{" + ";".join(map(str, range(1, n))) + "}",
+                    "{" + ";".join(map(str, range(0, n+1))) + "}",
+                    "{" + ";".join(map(str, range(1, n+1))) + "}"
+                ]
+
+                return {
+                    "question": f"Tập hợp A = {{x | x là số tự nhiên nhỏ hơn {n}}} là:",
+                    "answer": dap_an_dung,
+                    "options": tron_dap_an(dap_an_dung, dap_an_nhieu),
+                    "explain": f"Số tự nhiên nhỏ hơn {n} gồm từ 0 đến {n-1}."
+                }
+
+            cau = random.choice([bai_1_dang_1, bai_1_dang_2])()
+
+            de_latex = cau["question"]
+            dap_an = cau["answer"]
+            options = cau["options"]
+            goi_y_text = cau["explain"]
+
+        # -------- BÀI KHÁC LỚP 6 (TẠM) --------
+        else:
+            a, b = random.randint(10, 99), random.randint(10, 99)
+            de_latex = f"Tính: {a} + {b} = ?"
+            dap_an = str(a + b)
+            options = tron_dap_an(dap_an, [str(a+b+1), str(a+b-1), str(a+b+2)])
+            goi_y_text = "Thực hiện phép cộng hai số tự nhiên."
+
+    # ================= LỚP KHÁC =================
+    else:
+        a, b = random.randint(1, 20), random.randint(1, 20)
+        de_latex = f"Tính: {a} + {b} = ?"
+        dap_an = str(a + b)
+        options = tron_dap_an(dap_an, [str(a+b+1), str(a+b-1), str(a+b+2)])
+        goi_y_text = "Cộng hai số tự nhiên."
+
+    return de_latex, question_type, dap_an, options, goi_y_text, goi_y_latex
 
     # --- LỚP 7 ---
     elif "Lớp 7" in lop:
