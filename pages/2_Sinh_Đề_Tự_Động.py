@@ -255,17 +255,17 @@ Yêu cầu:
    - Vận dụng: {so_cau_vd}
 3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$.**
 4. Mỗi câu phải gắn nhãn **Mức độ** và **Loại câu hỏi**.
-5. **Đáp án NL/DS**: mỗi đáp án A/B/C/D hoặc Đúng/Sai viết **xuống dòng riêng**, không viết liền nhau.
+5. **Đáp án NL/DS**: mỗi đáp án A/B/C/D hoặc Đúng/Sai viết **xuống dòng riêng**, không viết liền nhau và phải là câu hỏi có tình huống.
 6. **Đáp án TL**: đánh số 1,2,3…; mọi công thức toán phải viết dưới dạng LaTeX trong $$...$$.
 7. {dan_ap}
 8. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp `st.markdown()`.
 
-**Ví dụ định dạng đáp án NL/DS**:
+**Ví dụ định dạng đáp án NL/DS tất cả các lớp từ 6 đến 9 các chương, các bài phải theo định dạng dưới này**:
 
-A. Đáp án 1  
-B. Đáp án 2  
-C. Đáp án 3  
-D. Đáp án 4
+A. Đáp án 1.  
+B. Đáp án 2.  
+C. Đáp án 3.  
+D. Đáp án 4.
 
 **Ví dụ định dạng TL**:
 
