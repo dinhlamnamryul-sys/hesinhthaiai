@@ -151,17 +151,13 @@ bai_options_lop = {
 def format_fix_final(text):
     """
     Hàm xử lý hậu kỳ bắt buộc xuống dòng bằng Regex.
-    Chạy hàm này trước khi st.markdown để đảm bảo hiển thị đẹp.
     """
     # 1. Xử lý phần Trắc nghiệm (A. B. C. D.)
     text = re.sub(r'(\s)([A-D]\.)', r'\n\n\2', text)
-    
     # 2. Xử lý phần Đúng/Sai (a) b) c) d))
     text = re.sub(r'(\s)([a-d][\)\.])', r'\n\n\2', text)
-    
     # 3. Xử lý khoảng cách giữa các câu hỏi (Câu 1., Câu 2...)
     text = re.sub(r'(\s)(Câu \d+)', r'\n\n\n\2', text)
-    
     return text
 
 def create_math_prompt_v2(lop, chuong, bai, 
@@ -170,8 +166,7 @@ def create_math_prompt_v2(lop, chuong, bai,
                           tlngan_nb, tlngan_th, tlngan_vd,
                           tl_nb, tl_th, tl_vd, 
                           dan_ap_text):
-    """Hàm tạo prompt chi tiết theo ma trận nhận thức"""
-    
+    """Hàm tạo prompt chi tiết"""
     prompt = f"""
 Bạn là giáo viên Toán lớp {lop}, soạn đề kiểm tra theo chương trình GDPT 2018 (Sách Kết nối tri thức).
 - Nội dung kiểm tra: {', '.join(bai)} thuộc các chương {', '.join(chuong)}.
@@ -234,35 +229,33 @@ d) ...
 """
     return prompt
 
-# --- Hàm gọi API (Code được viết lại theo phong cách cũ của bạn dùng REQUESTS) ---
+# --- CẬP NHẬT HÀM GỌI API ĐỂ TRÁNH LỖI 404 ---
 def generate_questions(api_key, prompt):
-    # Sử dụng 1.5 Flash cho ổn định và v1beta để tránh lỗi 404
-    MODEL = "gemini-1.5-flash" 
-    URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={api_key}"
-    
     headers = {"Content-Type": "application/json"}
     payload = {
-        "contents": [{
-            "role": "user",
-            "parts": [{"text": prompt}]
-        }]
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}]
     }
 
-    try:
-        # Gọi trực tiếp bằng requests như code cũ
-        response = requests.post(URL, json=payload, headers=headers, timeout=120)
-        
-        if response.status_code != 200:
-            return False, f"Lỗi API {response.status_code}: {response.text}"
-        
-        data = response.json()
-        if "candidates" in data and len(data["candidates"]) > 0:
-            return True, data["candidates"][0]["content"]["parts"][0]["text"]
-        else:
-            return False, "AI không trả về nội dung."
-            
-    except Exception as e:
-        return False, f"Lỗi kết nối: {str(e)}"
+    # Danh sách model thử lần lượt để tránh lỗi 404
+    models_to_try = [
+        "gemini-1.5-flash", 
+        "gemini-1.5-flash-latest", 
+        "gemini-pro"
+    ]
+
+    for model in models_to_try:
+        # Thử với v1beta trước (thường hỗ trợ model mới)
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        try:
+            r = requests.post(url, json=payload, headers=headers, timeout=60)
+            if r.status_code == 200:
+                j = r.json()
+                if "candidates" in j:
+                    return True, j["candidates"][0]["content"]["parts"][0]["text"]
+        except:
+            continue # Nếu lỗi thì thử model tiếp theo
+
+    return False, "❌ Lỗi: Không tìm thấy Model nào khả dụng với API Key này. Vui lòng kiểm tra lại Key."
 
 # ===============================
 # 🎛️ SIDEBAR VÀ CẤU HÌNH
@@ -366,13 +359,10 @@ if st.button("🚀 Sinh đề theo cấu hình chi tiết", type="primary"):
         )
         
         with st.spinner("Đang kết nối Gemini để sinh đề... (Mất khoảng 10-20 giây)"):
-            # Gọi hàm generate_questions (đã viết lại theo style cũ)
             success, result = generate_questions(api_key, prompt)
             
             if success:
-                # Quan trọng: Gọi hàm sửa lỗi dính dòng
                 result_fixed = format_fix_final(result)
-                
                 st.success("✅ Sinh đề thành công!")
                 st.markdown(result_fixed, unsafe_allow_html=True)
                 
