@@ -81,7 +81,7 @@ bai_options_lop = {
 # 4. HÀM GỌI GEMINI API (ĐÃ SỬA)
 # ===============================
 def generate_with_gemini(api_key, prompt):
-    MODEL = "models/gemini-1.5-pro"  # ✅ MODEL HỢP LỆ
+    MODEL = "models/gemini-1.0-pro"  # ✅ MODEL HỢP LỆ
     url = f"https://generativelanguage.googleapis.com/v1beta/{MODEL}:generateContent?key={api_key}"
 
     headers = {"Content-Type": "application/json"}
