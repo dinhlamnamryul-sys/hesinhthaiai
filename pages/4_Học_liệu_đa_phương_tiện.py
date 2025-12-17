@@ -3,84 +3,75 @@ import re
 import io
 import requests
 from docx import Document
-# ... (giữ các thư viện cũ của bạn)
 
-# 1. DỮ LIỆU MỤC LỤC ĐÃ TÍCH HỢP [cite: 1, 21, 44, 61]
-INDEX_DATA = {
+# --- DỮ LIỆU MỤC LỤC TÍCH HỢP TỪ FILE  ---
+MATH_INDEX = {
     "6": [
-        {"chapter": "CHƯƠNG I. TẬP HỢP CÁC SỐ TỰ NHIÊN", "lessons": ["Bài 1. Tập hợp", "Bài 2. Cách ghi số tự nhiên", "Bài 6. Luỹ thừa với số mũ tự nhiên", "Bài 7. Thứ tự thực hiện các phép tính"]},
-        {"chapter": "CHƯƠNG II. TÍNH CHIA HẾT", "lessons": ["Bài 10. Số nguyên tố", "Bài 11. Ước chung lớn nhất", "Bài 12. Bội chung nhỏ nhất"]},
-        {"chapter": "CHƯƠNG III. SỐ NGUYÊN", "lessons": ["Bài 14. Phép cộng và phép trừ số nguyên", "Bài 16. Phép nhân số nguyên"]},
-        {"chapter": "CHƯƠNG VI. PHÂN SỐ", "lessons": ["Bài 23. Mở rộng phân số", "Bài 25. Phép cộng và trừ phân số"]},
-        {"chapter": "CHƯƠNG VII. SỐ THẬP PHÂN", "lessons": ["Bài 28. Số thập phân", "Bài 31. Tỉ số phần trăm"]}
+        {"chuong": "CHƯƠNG I. TẬP HỢP CÁC SỐ TỰ NHIÊN", "bai": ["Bài 1. Tập hợp", "Bài 6. Luỹ thừa với số mũ tự nhiên", "Bài 7. Thứ tự thực hiện các phép tính"]},
+        {"chuong": "CHƯƠNG II. TÍNH CHIA HẾT", "bai": ["Bài 10. Số nguyên tố", "Bài 11. Ước chung lớn nhất"]},
+        {"chuong": "CHƯƠNG VI. PHÂN SỐ", "bai": ["Bài 25. Phép cộng và phép trừ phân số", "Bài 26. Phép nhân và phép chia phân số"]}
     ],
     "7": [
-        {"chapter": "CHƯƠNG I. SỐ HỮU TỈ", "lessons": ["Bài 1. Tập hợp số hữu tỉ", "Bài 3. Luỹ thừa số hữu tỉ"]},
-        {"chapter": "CHƯƠNG II. SỐ THỰC", "lessons": ["Bài 6. Căn bậc hai số học", "Bài 7. Tập hợp số thực"]},
-        {"chapter": "CHƯƠNG IV. TAM GIÁC BẰNG NHAU", "lessons": ["Bài 12. Tổng các góc trong tam giác", "Bài 16. Tam giác cân"]},
-        {"chapter": "CHƯƠNG VII. BIỂU THỨC ĐẠI SỐ", "lessons": ["Bài 25. Đa thức một biến", "Bài 28. Phép chia đa thức"]}
+        {"chuong": "CHƯƠNG I. SỐ HỮU TỈ", "bai": ["Bài 1. Tập hợp các số hữu tỉ", "Bài 3. Luỹ thừa với số mũ tự nhiên của một số hữu tỉ"]},
+        {"chuong": "CHƯƠNG II. SỐ THỰC", "bai": ["Bài 6. Căn bậc hai số học", "Bài 7. Tập hợp các số thực"]},
+        {"chuong": "CHƯƠNG VII. BIỂU THỨC ĐẠI SỐ", "bai": ["Bài 25. Đa thức một biến", "Bài 28. Phép chia đa thức một biến"]}
     ],
     "8": [
-        {"chapter": "CHƯƠNG I. ĐA THỨC", "lessons": ["Bài 1. Đơn thức", "Bài 2. Đa thức"]},
-        {"chapter": "CHƯƠNG II. HẰNG ĐẲNG THỨC ĐÁNG NHỚ", "lessons": ["Bài 6. Hiệu hai bình phương", "Bài 9. Phân tích đa thức thành nhân tử"]},
-        {"chapter": "CHƯƠNG IX. TAM GIÁC ĐỒNG DẠNG", "lessons": ["Bài 33. Hai tam giác đồng dạng", "Bài 35. Định lí Pythagore"]}
+        {"chuong": "CHƯƠNG I. ĐA THỨC", "bai": ["Bài 1. Đơn thức", "Bài 4. Phép nhân đa thức"]},
+        {"chuong": "CHƯƠNG II. HẰNG ĐẲNG THỨC ĐÁNG NHỚ", "bai": ["Bài 6. Hiệu hai bình phương", "Bài 9. Phân tích đa thức thành nhân tử"]},
+        {"chuong": "CHƯƠNG IX. TAM GIÁC ĐỒNG DẠNG", "bai": ["Bài 35. Định lí Pythagore và ứng dụng"]}
     ],
     "9": [
-        {"chapter": "CHƯƠNG III. CĂN BẬC HAI, CĂN BẬC BA", "lessons": ["Bài 7. Căn bậc hai", "Bài 10. Căn bậc ba"]},
-        {"chapter": "CHƯƠNG IV. HỆ THỨC LƯỢNG TRONG TAM GIÁC VUÔNG", "lessons": ["Bài 11. Tỉ số lượng giác góc nhọn"]},
-        {"chapter": "CHƯƠNG VI. PHƯƠNG TRÌNH BẬC HAI", "lessons": ["Bài 19. Phương trình bậc hai một ẩn", "Bài 20. Định lí Viète"]}
+        {"chuong": "Chương III. CĂN BẬC HAI VÀ CĂN BẬC BA", "bai": ["Bài 7. Căn bậc hai", "Bài 10. Căn bậc ba"]},
+        {"chuong": "Chương VI. HÀM SỐ y = ax^2. PHƯƠNG TRÌNH BẬC HAI", "bai": ["Bài 19. Phương trình bậc hai một ẩn", "Bài 20. Định lí Viète"]}
     ]
 }
 
-# ... (Các hàm call API Gemini và xử lý file của bạn giữ nguyên)
+# --- KHỞI TẠO TABS (Để tránh lỗi NameError) ---
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📘 Tổng hợp Kiến thức", 
+    "📝 Thiết kế Giáo án", 
+    "🎵 Sáng tác Nhạc Toán", 
+    "🎧 Đọc Văn bản"
+])
 
-# 2. GIAO DIỆN CHỌN BÀI HỌC THEO MỤC LỤC
+# --- XỬ LÝ TAB 1: TỔNG HỢP KIẾN THỨC ---
 with tab1:
-    st.subheader("📘 Tổng hợp Kiến thức Toán 6-9")
+    st.subheader("📚 Hệ thống kiến thức Toán học 6-9")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        lop_sel = st.selectbox("Chọn lớp:", ["6", "7", "8", "9"])
-    with col2:
-        # Lấy danh sách chương dựa trên lớp đã chọn [cite: 3, 23, 46, 63]
-        chapters = [c["chapter"] for c in INDEX_DATA[lop_sel]]
-        chapter_sel = st.selectbox("Chọn chương:", chapters)
-
-    # Lấy danh sách bài dựa trên chương đã chọn
-    lessons = []
-    for c in INDEX_DATA[lop_sel]:
-        if c["chapter"] == chapter_sel:
-            lessons = c["lessons"]
+    c1, c2 = st.columns(2)
+    with c1:
+        lop_sel = st.selectbox("Chọn lớp:", list(MATH_INDEX.keys()), format_func=lambda x: f"Toán {x}")
     
-    lesson_sel = st.selectbox("Chọn bài học:", lessons)
+    with c2:
+        chapters = [ch["chuong"] for ch in MATH_INDEX[lop_sel]]
+        chuong_sel = st.selectbox("Chọn chương:", chapters)
+    
+    # Lấy danh sách bài tương ứng
+    lessons = next(ch["bai"] for ch in MATH_INDEX[lop_sel] if ch["chuong"] == chuong_sel)
+    bai_sel = st.selectbox("Chọn bài học:", lessons)
 
-    if st.button("🚀 Tạo nội dung kiến thức"):
-        # PROMPT ÉP AI TRẢ VỀ LATEX CHUẨN
+    if st.button("✨ Tổng hợp nội dung"):
+        # Prompt yêu cầu trả về LaTeX chuẩn [cite: 3, 23, 47, 67, 73]
         prompt = f"""
-        Bạn là chuyên gia Toán học. Hãy soạn nội dung chi tiết cho: {lesson_sel} thuộc {chapter_sel} (Toán lớp {lop_sel}).
-        
-        YÊU CẦU TRÌNH BÀY:
-        1. Khái niệm: Giải thích ngắn gọn.
-        2. Công thức: BẮT BUỘC dùng LaTeX nằm trong cặp $$ $$. 
-           Ví dụ: Với căn bậc hai, viết $$\\sqrt{{a}}$$. Với phân số, viết $$\\frac{{a}}{{b}}$$.
-        3. Ví dụ minh họa: Có lời giải chi tiết.
-        4. Bài tập tự luyện: 3 bài tập từ dễ đến khó.
-        
-        Ngôn ngữ: Tiếng Việt. Đảm bảo các ký hiệu toán học hiển thị đẹp.
+        Bạn là giáo viên Toán. Hãy soạn nội dung cho {bai_sel} - {chuong_sel} (Toán lớp {lop_sel}).
+        Yêu cầu:
+        1. Định dạng công thức TOÀN BỘ bằng LaTeX đặt trong $$ (Ví dụ: $$\\frac{{a}}{{b}}$$, $$\\sqrt{{x}}$$).
+        2. Cấu trúc: Khái niệm -> Công thức -> Ví dụ minh họa -> Bài tập ứng dụng.
+        3. Nội dung phải bám sát chương trình phổ thông.
         """
         
-        with st.spinner("Đang trích xuất kiến thức..."):
-            res = generate_with_gemini(api_key, prompt)
-            if res["ok"]:
-                st.session_state["result"] = res["text"]
-            else:
-                st.error(res["message"])
+        if not api_key:
+            st.error("Vui lòng nhập API Key!")
+        else:
+            with st.spinner("Đang biên soạn..."):
+                res = generate_with_gemini(api_key, prompt)
+                if res["ok"]:
+                    st.session_state["math_result"] = res["text"]
+                else:
+                    st.error(res["message"])
 
-    # HIỂN THỊ KẾT QUẢ
-    if "result" in st.session_state:
-        # Sử dụng container để hiển thị Markdown hỗ trợ LaTeX
+    if "math_result" in st.session_state:
         st.markdown("---")
-        st.markdown(st.session_state["result"])
-        
-        # Nút tải file
-        st.download_button("📥 Tải giáo án (DOCX)", create_docx_bytes(st.session_state["result"]), "BaiHocToan.docx")
+        # Sử dụng st.markdown để render LaTeX tự động
+        st.markdown(st.session_state["math_result"])
