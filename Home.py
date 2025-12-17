@@ -293,7 +293,7 @@ with st.sidebar:
 st.markdown("""
 <div class="running-text-container">
     <div class="running-text">
-        📢 CHÀO MỪNG ĐẾN VỚI CỔNG GIÁO DỤC SỐ NA Ư! SỬ DỤNG AI ĐỂ NÂNG CAO CHẤT LƯỢNG DẠY VÀ HỌC TẠI VÙNG CAO.
+        📢 CHÀO MỪNG ĐẾN VỚI HỆ THỐNG TRỢ LÝ GIÁO DỤC AI NA Ư! SỬ DỤNG AI ĐỂ NÂNG CAO CHẤT LƯỢNG DẠY VÀ HỌC TẠI VÙNG CAO.
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -301,7 +301,7 @@ st.markdown("""
 # HEADER CHÍNH
 st.markdown("""
 <div class="main-header">
-    <h1> CỔNG GIÁO DỤC SỐ NA Ư</h1>
+    <h1> HỆ THỐNG TRỢ LÝ GIÁO DỤC AI NA Ư</h1>
     <h3>"Tri thức - Vươn xa thế giới"</h3>
 </div>
 """, unsafe_allow_html=True)
@@ -348,6 +348,6 @@ with col4:
 st.markdown("""
 <div class="footer">
     <p>👨‍🏫 <b>Nhóm tác giả:</b> Đinh Công Lâm - Lò Văn Hanh - Nguyễn Trọng Dương</p> </b> Trường PTDTBT TH&THCS Na Ư</p>
-    <p style="font-size: 12px; color: #888;">© Năm học 2025 - 2026 - Cổng Giáo Dục Số Na Ư </p>
+    <p style="font-size: 12px; color: #888;">© Năm học 2025 - 2026 - Hệ thống Trợ lý Giáo dục AI Na Ư </p>
 </div>
 """, unsafe_allow_html=True)
