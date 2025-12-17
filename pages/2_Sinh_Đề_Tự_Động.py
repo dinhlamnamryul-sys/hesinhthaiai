@@ -3,45 +3,73 @@ import streamlit as st
 from datetime import datetime
 import base64
 from io import BytesIO
-import re
 
 # ===============================
-# ⚙️ CẤU HÌNH TRANG
-# ===============================
-st.set_page_config(page_title="Math Gen Pro - KNTT", layout="wide", page_icon="🧮")
-
-# ===============================
-# 🔑 CẤU HÌNH API & MODEL (SIDEBAR)
+# 🔑 NHẬP GOOGLE API KEY
 # ===============================
 
-with st.sidebar:
-    st.header("🔑 Cấu hình hệ thống")
-    
-    with st.expander("ℹ️ Hướng dẫn lấy Key"):
-        st.markdown("[Lấy API Key tại đây](https://aistudio.google.com/app/apikey)")
-    
-    api_key = st.text_input("Google API Key:", type="password").strip()
+with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
+    st.markdown("""
+### 👉 Cách lấy Google API Key để dùng ứng dụng:
 
-    # --- CẬP NHẬT DANH SÁCH MODEL MỚI NHẤT (ĐÃ LOẠI BỎ MODEL CŨ GÂY LỖI 404) ---
-    st.markdown("---")
-    st.caption("🛠️ Chọn Model AI (Khuyên dùng Flash):")
-    model_choice = st.selectbox(
-        "Chọn Model AI:",
-        [
-            "gemini-1.5-flash",       # Bản chuẩn, nhanh, ổn định nhất hiện nay
-            "gemini-1.5-flash-8b",    # Bản nhẹ, tốc độ cao
-            "gemini-2.0-flash-exp",   # Bản 2.0 mới nhất (Thông minh hơn)
-            "gemini-1.5-pro"          # Bản Pro (Thông minh nhất nhưng có thể chậm)
-        ],
-        index=0
-    )
-    
-    if api_key:
-        st.success(f"✅ Đang dùng: {model_choice}")
-    else:
-        st.warning("⚠️ Chưa nhập API Key")
-    
-    st.markdown("---")
+1. Truy cập: **https://aistudio.google.com/app/apikey**
+2. Đăng nhập Gmail.
+3. Nhấn **Create API key**.
+4. Copy API Key.
+5. Dán vào ô bên dưới.
+
+⚠️ Không chia sẻ API Key cho người khác.
+""")
+
+st.subheader("🔐 Nhập Google API Key:")
+api_key = st.text_input("Google API Key:", type="password")
+
+if not api_key:
+    st.warning("⚠️ Nhập API Key để tiếp tục.")
+else:
+    st.success("✅ API Key hợp lệ!")
+
+
+# ===============================
+# 📌 HÀM GỌI GEMINI (Xử lý ảnh & text)
+# ===============================
+
+def analyze_real_image(api_key, image, prompt):
+    if image.mode == "RGBA":
+        image = image.convert("RGB")
+
+    buf = BytesIO()
+    image.save(buf, format="JPEG")
+    img_b64 = base64.b64encode(buf.getvalue()).decode()
+
+    MODEL = "gemini-2.5-flash"
+    URL = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
+
+    payload = {
+        "contents": [{
+            "role": "user",
+            "parts": [
+                {"text": prompt},
+                {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
+            ]
+        }]
+    }
+
+    try:
+        res = requests.post(URL, json=payload)
+        if res.status_code != 200:
+            return f"❌ Lỗi API {res.status_code}: {res.text}"
+
+        data = res.json()
+        if "candidates" not in data:
+            return "❌ API trả về rỗng."
+
+        return data["candidates"][0]["content"]["parts"][0]["text"]
+
+    except Exception as e:
+        return f"❌ Lỗi kết nối: {str(e)}"
+
+# ===============================
 
 # ===============================
 # 📚 DỮ LIỆU CHƯƠNG TRÌNH HỌC (FULL)
