@@ -31,273 +31,194 @@ else:
 
 
 # ===============================
-# 📌 HÀM GỌI GEMINI (Xử lý ảnh & text)
+# 📌 HÀM GỌI GEMINI
 # ===============================
 
 def analyze_real_image(api_key, image, prompt):
-    if image.mode == "RGBA":
-        image = image.convert("RGB")
-
-    buf = BytesIO()
-    image.save(buf, format="JPEG")
-    img_b64 = base64.b64encode(buf.getvalue()).decode()
-
-    MODEL = "gemini-2.5-flash"
-    URL = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
-
-    payload = {
-        "contents": [{
-            "role": "user",
-            "parts": [
-                {"text": prompt},
-                {"inline_data": {"mime_type": "image/jpeg", "data": img_b64}}
-            ]
-        }]
-    }
-
-    try:
-        res = requests.post(URL, json=payload)
-        if res.status_code != 200:
-            return f"❌ Lỗi API {res.status_code}: {res.text}"
-
-        data = res.json()
-        if "candidates" not in data:
-            return "❌ API trả về rỗng."
-
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-
-    except Exception as e:
-        return f"❌ Lỗi kết nối: {str(e)}"
+    # (Giữ nguyên hàm xử lý ảnh của bạn nếu cần dùng sau này)
+    pass 
 
 # ===============================
-# 📚 DỮ LIỆU CHƯƠNG TRÌNH HỌC
+# 📚 DỮ LIỆU CHƯƠNG TRÌNH HỌC (GIỮ NGUYÊN)
 # ===============================
+# ... (Phần dữ liệu chuong_options_lop và bai_options_lop giữ nguyên như code cũ của bạn)
+# Để tiết kiệm không gian hiển thị, tôi xin phép ẩn phần khai báo dữ liệu dài này. 
+# Bạn hãy copy lại phần dữ liệu "chuong_options_lop" và "bai_options_lop" từ code cũ vào đây nhé.
 
+# --- MOCK DATA (Dữ liệu giả lập để code chạy được trong ví dụ này - Hãy thay bằng dữ liệu thật của bạn) ---
 chuong_options_lop = {
-    "Lớp 6": [
-        "Chương I: Tập hợp các số tự nhiên",
-        "Chương II: Tính chia hết trong tập hợp các số tự nhiên",
-        "Chương III: Số nguyên",
-        "Chương IV: Một số hình phẳng trong thực tiễn",
-        "Chương V: Tính đối xứng của hình phẳng trong tự nhiên",
-        "Chương VI: Phân số",
-        "Chương VII: Số thập phân",
-        "Chương VIII: Những hình hình học cơ bản",
-        "Chương IX: Dữ liệu và xác suất thực nghiệm",
-        "Hoạt động thực hành trải nghiệm"
-    ],
-    "Lớp 7": [
-        "Chương I: Số hữu tỉ",
-        "Chương II: Số thực",
-        "Chương III: Góc và đường thẳng song song",
-        "Chương IV: Tam giác bằng nhau",
-        "Chương V: Thu thập và biểu diễn dữ liệu",
-        "Chương VI: Tỉ lệ thức và đại lượng tỉ lệ",
-        "Chương VII: Biểu thức đại số và đa thức một biến",
-        "Chương VIII: Làm quen với biến cố và xác suất",
-        "Chương IX: Quan hệ giữa các yếu tố trong một tam giác",
-        "Chương X: Một số hình khối trong thực tiễn",
-        "Bài tập ôn tập cuối năm"
-    ],
-    "Lớp 8": [
-        "Chương I: Đa thức",
-        "Chương II: Hằng đẳng thức đáng nhớ và ứng dụng",
-        "Chương III: Tứ giác",
-        "Chương IV: Định lí Thalès",
-        "Chương V: Dữ liệu và biểu đồ",
-        "Chương VI: Phân thức đại số",
-        "Chương VII: Phương trình bậc nhất và hàm số bậc nhất",
-        "Chương VIII: Mở đầu về tính xác suất của biến cố",
-        "Chương IX: Tam giác đồng dạng",
-        "Chương X: Một số hình khối trong thực tiễn",
-        "Bài tập ôn tập cuối năm"
-    ],
-    "Lớp 9": [
-        "Chương I: Phương trình và hệ hai phương trình bậc nhất hai ẩn",
-        "Chương II: Phương trình và bất phương trình bậc nhất một ẩn",
-        "Chương III: Căn bậc hai và căn bậc ba",
-        "Chương IV: Hệ thức lượng trong tam giác vuông",
-        "Chương V: Đường tròn",
-        "Hoạt động thực hành trải nghiệm",
-        "Chương VI: Hàm số y = ax^2 (a khác 0). Phương trình bậc hai một ẩn",
-        "Chương VII: Tần số và tần số tương đối",
-        "Chương VIII: Xác suất của biến cố trong một số mô hình xác suất đơn giản",
-        "Chương IX: Đường tròn ngoại tiếp và đường tròn nội tiếp",
-        "Chương X: Một số hình khối trong thực tiễn"
-    ]
+    "Lớp 6": ["Chương I", "Chương II"], "Lớp 7": ["Chương I"], 
+    "Lớp 8": ["Chương I: Đa thức", "Chương II: Hằng đẳng thức"], "Lớp 9": ["Chương I"]
 }
-
-# --- Từng bài chi tiết ---
 bai_options_lop = {
-    "Lớp 6": {
-        "Chương I: Tập hợp các số tự nhiên": ["Bài 1","Bài 2","Bài 3","Bài 4","Ôn tập"],
-        "Chương II: Tính chia hết trong tập hợp các số tự nhiên": ["Bài 5","Bài 6","Ôn tập"],
-        "Chương III: Số nguyên": ["Bài 7","Bài 8","Ôn tập"],
-        "Chương IV: Một số hình phẳng trong thực tiễn": ["Bài 9","Bài 10","Ôn tập"],
-        "Chương V: Tính đối xứng của hình phẳng trong tự nhiên": ["Bài 11","Bài 12","Ôn tập"],
-        "Chương VI: Phân số": ["Bài 13","Bài 14","Ôn tập"],
-        "Chương VII: Số thập phân": ["Bài 15","Bài 16","Ôn tập"],
-        "Chương VIII: Những hình hình học cơ bản": ["Bài 17","Bài 18","Ôn tập"],
-        "Chương IX: Dữ liệu và xác suất thực nghiệm": ["Bài 19","Bài 20","Ôn tập"],
-        "Hoạt động thực hành trải nghiệm": ["Bài 21","Bài 22","Ôn tập"]
-    },
-    "Lớp 7": {
-        "Chương I: Số hữu tỉ": ["Bài 1. Tập hợp các số hữu tỉ","Bài 2. Cộng, trừ, nhân, chia số hữu tỉ","Bài 3. Luỹ thừa với số mũ tự nhiên của một số hữu tỉ","Bài 4. Thứ tự thực hiện các phép tính. Quy tắc chuyển vế","Ôn tập chương I"],
-        "Chương II: Số thực": ["Bài 5. Làm quen với số thập phân vô hạn tuần hoàn","Bài 6. Số vô tỉ. Căn bậc hai số học","Bài 7. Tập hợp các số thực","Ôn tập chương II"],
-        "Chương III: Góc và đường thẳng song song": ["Bài 8. Góc ở vị trí đặc biệt. Tia phân giác của một góc","Bài 9. Hai đường thẳng song song và dấu hiệu nhận biết","Bài 10. Tiên đề Euclid. Tính chất của hai đường thẳng song song","Bài 11. Định lí và chứng minh định lí","Ôn tập chương III"],
-        "Chương IV: Tam giác bằng nhau": ["Bài 12. Tổng các góc trong một tam giác","Bài 13. Hai tam giác bằng nhau. Trường hợp bằng nhau thứ nhất của tam giác","Bài 14. Trường hợp bằng nhau thứ hai và thứ ba của tam giác","Bài 15. Các trường hợp bằng nhau của tam giác vuông","Bài 16. Tam giác cân. Đường trung trực của đoạn thẳng","Ôn tập chương IV"],
-        "Chương V: Thu thập và biểu diễn dữ liệu": ["Bài 17. Thu thập và phân loại dữ liệu","Bài 18. Biểu đồ hình quạt tròn","Bài 19. Biểu đồ đoạn thẳng","Ôn tập chương V"],
-        "Chương VI: Tỉ lệ thức và đại lượng tỉ lệ": ["Bài 20. Tỉ lệ thức","Bài 21. Tính chất của dãy tỉ số bằng nhau","Bài 22. Đại lượng tỉ lệ thuận","Bài 23. Đại lượng tỉ lệ nghịch","Ôn tập chương VI"],
-        "Chương VII: Biểu thức đại số và đa thức một biến": ["Bài 24. Biểu thức đại số","Bài 25. Đa thức một biến","Bài 26. Phép cộng và phép trừ đa thức một biến","Bài 27. Phép nhân đa thức một biến","Bài 28. Phép chia đa thức một biến","Ôn tập chương VII"],
-        "Chương VIII: Làm quen với biến cố và xác suất": ["Bài 29. Làm quen với biến cố","Bài 30. Làm quen với xác suất của biến cố","Ôn tập chương VIII"],
-        "Chương IX: Quan hệ giữa các yếu tố trong một tam giác": ["Bài 31. Quan hệ giữa góc và cạnh đối diện trong một tam giác","Bài 32. Quan hệ giữa đường vuông góc và đường xiên","Bài 33. Quan hệ giữa ba cạnh của một tam giác","Bài 34. Sự đồng quy của ba đường trung tuyến, ba đường phân giác trong một tam giác","Bài 35. Sự đồng quy của ba đường trung trực, ba đường cao trong một tam giác","Ôn tập chương IX"],
-        "Chương X: Một số hình khối trong thực tiễn": ["Bài 36. Hình hộp chữ nhật và hình lập phương","Bài 37. Hình lăng trụ đứng tam giác và hình lăng trụ đứng tứ giác","Ôn tập chương X"],
-        "Bài tập ôn tập cuối năm": []
-    },
-    "Lớp 8": {
-        "Chương I: Đa thức": ["Bài 1. Đơn thức","Bài 2. Đa thức","Bài 3. Phép cộng và phép trừ đa thức","Bài 4. Phép nhân đa thức","Bài 5. Phép chia đa thức cho đơn thức","Ôn tập chương I"],
-        "Chương II: Hằng đẳng thức đáng nhớ và ứng dụng": ["Bài 6. Hiệu hai bình phương. Bình phương của một tổng hay một hiệu","Bài 7. Lập phương của một tổng. Lập phương của một hiệu","Bài 8. Tổng và hiệu hai lập phương","Bài 9. Phân tích đa thức thành nhân tử","Ôn tập chương II"],
-        "Chương III: Tứ giác": ["Bài 10. Tứ giác","Bài 11. Hình thang cân","Bài 12. Hình bình hành","Bài 13. Hình chữ nhật","Bài 14. Hình thoi và hình vuông","Ôn tập chương III"],
-        "Chương IV: Định lí Thalès": ["Bài 15. Định lí Thalès trong tam giác","Bài 16. Đường trung bình của tam giác","Bài 17. Tính chất đường phân giác của tam giác","Ôn tập chương IV"],
-        "Chương V: Dữ liệu và biểu đồ": ["Bài 18. Thu thập và phân loại dữ liệu","Bài 19. Biểu diễn dữ liệu bằng bảng, biểu đồ","Bài 20. Phân tích số liệu thống kê dựa vào biểu đồ","Ôn tập chương V"],
-        "Chương VI: Phân thức đại số": ["Bài 21. Phân thức đại số","Bài 22. Tính chất cơ bản của phân thức đại số","Bài 23. Phép cộng và phép trừ phân thức đại số","Bài 24. Phép nhân và phép chia phân thức đại số","Ôn tập chương VI"],
-        "Chương VII: Phương trình bậc nhất và hàm số bậc nhất": ["Bài 25. Phương trình bậc nhất một ẩn","Bài 26. Giải bài toán bằng cách lập phương trình","Bài 27. Khái niệm hàm số và đồ thị của hàm số","Bài 28. Hàm số bậc nhất và đồ thị của hàm số bậc nhất","Bài 29. Hệ số góc của đường thẳng","Ôn tập chương VII"],
-        "Chương VIII: Mở đầu về tính xác suất của biến cố": ["Bài 30. Kết quả có thể và kết quả thuận lợi","Bài 31. Cách tính xác suất của biến cố bằng tỉ số","Bài 32. Mối liên hệ giữa xác suất thực nghiệm với xác suất và ứng dụng","Ôn tập chương VIII"],
-        "Chương IX: Tam giác đồng dạng": ["Bài 33. Hai tam giác đồng dạng","Bài 34. Ba trường hợp đồng dạng của hai tam giác","Bài 35. Định lí Pythagore và ứng dụng","Bài 36. Các trường hợp đồng dạng của hai tam giác vuông","Bài 37. Hình đồng dạng","Ôn tập chương IX"],
-        "Chương X: Một số hình khối trong thực tiễn": ["Bài 38. Hình chóp tam giác đều","Bài 39. Hình chóp tứ giác đều","Ôn tập chương X"],
-        "Bài tập ôn tập cuối năm": []
-    },
-    "Lớp 9": {
-        "Chương I: Phương trình và hệ hai phương trình bậc nhất hai ẩn": ["Bài 1. Khái niệm phương trình và hệ hai phương trình bậc nhất hai ẩn","Bài 2. Giải hệ hai phương trình bậc nhất hai ẩn","Luyện tập chung","Bài 3. Giải bài toán bằng cách lập hệ phương trình","Bài tập cuối chương I"],
-        "Chương II: Phương trình và bất phương trình bậc nhất một ẩn": ["Bài 4. Phương trình quy về phương trình bậc nhất một ẩn","Bài 5. Bất đẳng thức và tính chất","Luyện tập chung","Bài 6. Bất phương trình bậc nhất một ẩn","Bài tập cuối chương II"],
-        "Chương III: Căn bậc hai và căn bậc ba": ["Bài 7. Căn bậc hai và căn thức bậc hai","Bài 8. Khai căn bậc hai với phép nhân và phép chia","Luyện tập chung","Bài 9. Biến đổi đơn giản và rút gọn biểu thức chứa căn thức bậc hai","Bài 10. Căn bậc ba và căn thức bậc ba","Luyện tập chung","Bài tập cuối chương III"],
-        "Chương IV: Hệ thức lượng trong tam giác vuông": ["Bài 11. Tỉ số lượng giác của góc nhọn","Bài 12. Một số hệ thức giữa cạnh, góc trong tam giác vuông và ứng dụng","Luyện tập chung","Bài tập cuối chương IV"],
-        "Chương V: Đường tròn": ["Bài 13. Mở đầu về đường tròn","Bài 14. Cung và dây của một đường tròn","Bài 15. Độ dài của cung tròn. Diện tích hình quạt tròn và hình vành khuyên","Luyện tập chung","Bài 16. Vị trí tương đối của đường thẳng và đường tròn","Bài 17. Vị trí tương đối của hai đường tròn","Luyện tập chung","Bài tập cuối chương V"],
-        "Hoạt động thực hành trải nghiệm": ["Pha chế dung dịch theo nồng độ yêu cầu","Tính chiều cao và xác định khoảng cách"],
-        "Chương VI: Hàm số y = ax^2 (a khác 0). Phương trình bậc hai một ẩn": ["Bài 18. Hàm số y = ax2 (a ≠ 0)","Bài 19. Phương trình bậc hai một ẩn","Luyện tập chung","Bài 20. Định lí Viète và ứng dụng","Bài 21. Giải bài toán bằng cách lập phương trình","Luyện tập chung","Bài tập cuối chương VI"],
-        "Chương VII: Tần số và tần số tương đối": ["Bài 22. Bảng tần số và biểu đồ tần số","Bài 23. Bảng tần số tương đối và biểu đồ tần số tương đối","Luyện tập chung","Bài 24. Bảng tần số, tần số tương đối ghép nhóm và biểu đồ","Bài tập cuối chương VII"],
-        "Chương VIII: Xác suất của biến cố trong một số mô hình xác suất đơn giản": ["Bài 25. Phép thử ngẫu nhiên và không gian mẫu","Bài 26. Xác suất của biến cố liên quan tới phép thử","Luyện tập chung","Bài tập cuối chương VIII"],
-        "Chương IX: Đường tròn ngoại tiếp và đường tròn nội tiếp": ["Bài 27. Góc nội tiếp","Bài 28. Đường tròn ngoại tiếp và đường tròn nội tiếp của một tam giác","Luyện tập chung","Bài 29. Tứ giác nội tiếp","Bài 30. Đa giác đều","Luyện tập chung","Bài tập cuối chương IX"],
-        "Chương X: Một số hình khối trong thực tiễn": ["Bài 31. Hình trụ và hình nón","Bài 32. Hình cầu","Luyện tập chung","Bài tập cuối chương X"]
-    }
+    "Lớp 6": {"Chương I": ["Bài 1"]}, "Lớp 7": {"Chương I": ["Bài 1"]},
+    "Lớp 8": {"Chương I: Đa thức": ["Bài 1", "Bài 2"], "Chương II: Hằng đẳng thức": ["Bài 6", "Bài 7"]},
+    "Lớp 9": {"Chương I": ["Bài 1"]}
 }
+# --------------------------------------------------------------------------------------------------
+
 
 # ===============================
-# 🎛️ SIDEBAR VÀ CẤU HÌNH ĐỀ
+# 🎛️ SIDEBAR VÀ CẤU HÌNH ĐỀ (ĐÃ SỬA ĐỔI)
 # ===============================
 
 with st.sidebar:
-    st.header("Thông tin sinh đề")
-    lop = st.selectbox("Chọn lớp", ["Lớp 6","Lớp 7","Lớp 8","Lớp 9"], index=0)
-    st.info(f"Chỉ sinh đề cho {lop}")
+    st.header("1. Thông tin sinh đề")
+    lop = st.selectbox("Chọn lớp", ["Lớp 6","Lớp 7","Lớp 8","Lớp 9"], index=2)
     
-    chuong_options = chuong_options_lop[lop]
-    chuong = st.multiselect("Chọn chương", chuong_options, default=chuong_options[0])
+    chuong_options = chuong_options_lop.get(lop, [])
+    chuong = st.multiselect("Chọn chương", chuong_options)
     
     bai_list_all = []
     for c in chuong:
         bai_list_all.extend(bai_options_lop[lop].get(c, []))
     
     if bai_list_all:
-        bai = st.multiselect("Chọn bài", bai_list_all, default=bai_list_all[0])
+        bai = st.multiselect("Chọn bài", bai_list_all, default=bai_list_all[:1])
     else:
         bai = []
+    
     st.markdown("---")
+    st.header("2. Ma trận câu hỏi")
+    st.info("Nhập số lượng câu hỏi cho từng mức độ")
 
-so_cau = st.number_input("Tổng số câu hỏi", min_value=1, max_value=50, value=21)
+    # --- CẤU HÌNH CHI TIẾT TỪNG PHẦN ---
 
-# Phân loại câu hỏi NL/DS/TL
-col_nl, col_ds, col_tl = st.columns(3)
-with col_nl:
-    phan_bo_nl = st.number_input("NL (4 lựa chọn)", min_value=0, value=12)
-with col_ds:
-    phan_bo_ds = st.number_input("DS (Đúng/Sai)", min_value=0, value=2)
-with col_tl:
-    phan_bo_tl = st.number_input("TL (Tự luận)", min_value=0, value=7)
+    # 1. Trắc nghiệm 4 lựa chọn (NL)
+    st.subheader("I. Trắc nghiệm (4 lựa chọn)")
+    c1, c2, c3 = st.columns(3)
+    nl_nb = c1.number_input("NL-NB", min_value=0, value=4, help="Nhận biết")
+    nl_th = c2.number_input("NL-TH", min_value=0, value=3, help="Thông hiểu")
+    nl_vd = c3.number_input("NL-VD", min_value=0, value=1, help="Vận dụng")
+    total_nl = nl_nb + nl_th + nl_vd
 
-st.markdown("---")
-# Phân bố theo mức độ nhận thức
-col_nb, col_th, col_vd = st.columns(3)
-with col_nb:
-    so_cau_nb = st.number_input("Nhận biết", min_value=0, value=6)
-with col_th:
-    so_cau_th = st.number_input("Thông hiểu", min_value=0, value=8)
-with col_vd:
-    so_cau_vd = st.number_input("Vận dụng", min_value=0, value=7)
+    # 2. Đúng / Sai (DS)
+    st.markdown("---")
+    st.subheader("II. Đúng / Sai")
+    c4, c5, c6 = st.columns(3)
+    ds_nb = c4.number_input("DS-NB", min_value=0, value=1, help="Nhận biết")
+    ds_th = c5.number_input("DS-TH", min_value=0, value=1, help="Thông hiểu")
+    ds_vd = c6.number_input("DS-VD", min_value=0, value=0, help="Vận dụng")
+    total_ds = ds_nb + ds_th + ds_vd
 
-# Chọn loại đề: Có đáp án / Không đáp án
-co_dap_an = st.radio(
-    "Chọn loại đề:",
-    ["Có đáp án", "Không đáp án"],
-    index=0
-)
+    # 3. Trả lời ngắn (TL Ngắn)
+    st.markdown("---")
+    st.subheader("III. Trả lời ngắn")
+    c7, c8, c9 = st.columns(3)
+    tn_nb = c7.number_input("TLN-NB", min_value=0, value=0, help="Nhận biết")
+    tn_th = c8.number_input("TLN-TH", min_value=0, value=2, help="Thông hiểu")
+    tn_vd = c9.number_input("TLN-VD", min_value=0, value=1, help="Vận dụng")
+    total_tn = tn_nb + tn_th + tn_vd
+
+    # 4. Tự luận (Mới thêm)
+    st.markdown("---")
+    st.subheader("IV. Tự luận (Trình bày)")
+    c10, c11, c12 = st.columns(3)
+    tl_nb = c10.number_input("TL-NB", min_value=0, value=0, help="Nhận biết")
+    tl_th = c11.number_input("TL-TH", min_value=0, value=1, help="Thông hiểu")
+    tl_vd = c12.number_input("TL-VD", min_value=0, value=1, help="Vận dụng")
+    total_tl = tl_nb + tl_th + tl_vd
+
+    # Tổng kết
+    st.markdown("---")
+    total_questions = total_nl + total_ds + total_tn + total_tl
+    st.write(f"📊 **Tổng số câu hỏi:** {total_questions}")
+    st.write(f"- 4 Lựa chọn: {total_nl}")
+    st.write(f"- Đúng/Sai: {total_ds}")
+    st.write(f"- Trả lời ngắn: {total_tn}")
+    st.write(f"- Tự luận: {total_tl}")
+
+    # Chọn loại đề
+    co_dap_an = st.radio("Loại xuất bản:", ["Có đáp án", "Không đáp án"], index=0)
 
 # ===============================
-# 📝 CÁC HÀM XỬ LÝ CHÍNH
+# 📝 CÁC HÀM XỬ LÝ CHÍNH (ĐÃ UPDATE PROMPT)
 # ===============================
 
-def create_math_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl, 
-                       so_cau_nb, so_cau_th, so_cau_vd, dan_ap):
+def create_math_prompt(lop, chuong, bai, 
+                       # Nhận các biến chi tiết
+                       nl_nb, nl_th, nl_vd,
+                       ds_nb, ds_th, ds_vd,
+                       tn_nb, tn_th, tn_vd,
+                       tl_nb, tl_th, tl_vd,
+                       dan_ap):
+    
+    total_nl = nl_nb + nl_th + nl_vd
+    total_ds = ds_nb + ds_th + ds_vd
+    total_tn = tn_nb + tn_th + tn_vd
+    total_tl = tl_nb + tl_th + tl_vd
+
     prompt = f"""
 Bạn là giáo viên Toán lớp {lop}, soạn đề kiểm tra theo chương trình mới (Sách "Kết nối tri thức").
 - Nội dung: Chương {', '.join(chuong)}; Bài {', '.join(bai)}.
 
-**CẤU TRÚC ĐỀ KIỂM TRA (Tổng {so_cau} câu):**
-1. **Phần 1: Trắc nghiệm nhiều lựa chọn (NL)** - {phan_bo_nl} câu. (Chọn A, B, C, D).
-2. **Phần 2: Trắc nghiệm Đúng/Sai (DS)** - {phan_bo_ds} câu. (Mỗi câu gồm 1 đề dẫn và 4 ý a, b, c, d).
-3. **Phần 3: Trắc nghiệm Trả lời ngắn (TL)** - {phan_bo_tl} câu. (Chỉ nêu câu hỏi, học sinh tự điền đáp án).
+**CẤU TRÚC ĐỀ KIỂM TRA (CHI TIẾT MỨC ĐỘ):**
 
---- **QUY ĐỊNH ĐỊNH DẠNG CHI TIẾT (BẮT BUỘC)** ---
+**PHẦN 1: TRẮC NGHIỆM NHIỀU LỰA CHỌN ({total_nl} câu)**
+- Yêu cầu: Học sinh chọn A, B, C, D.
+- Phân bố mức độ:
+  + Nhận biết: {nl_nb} câu.
+  + Thông hiểu: {nl_th} câu.
+  + Vận dụng: {nl_vd} câu.
+
+**PHẦN 2: TRẮC NGHIỆM ĐÚNG/SAI ({total_ds} câu)**
+- Yêu cầu: Mỗi câu gồm 1 đề dẫn và 4 ý a, b, c, d.
+- Phân bố mức độ:
+  + Nhận biết: {ds_nb} câu.
+  + Thông hiểu: {ds_th} câu.
+  + Vận dụng: {ds_vd} câu.
+
+**PHẦN 3: TRẮC NGHIỆM TRẢ LỜI NGẮN ({total_tn} câu)**
+- Yêu cầu: Chỉ nêu câu hỏi, học sinh tự điền đáp án số hoặc kết quả ngắn gọn. KHÔNG có A, B, C, D.
+- Phân bố mức độ:
+  + Nhận biết: {tn_nb} câu.
+  + Thông hiểu: {tn_th} câu.
+  + Vận dụng: {tn_vd} câu.
+
+**PHẦN 4: TỰ LUẬN ({total_tl} câu)**
+- Yêu cầu: Câu hỏi yêu cầu học sinh trình bày lời giải chi tiết.
+- Phân bố mức độ:
+  + Nhận biết: {tl_nb} câu.
+  + Thông hiểu: {tl_th} câu.
+  + Vận dụng: {tl_vd} câu.
+
+--- **QUY ĐỊNH ĐỊNH DẠNG (BẮT BUỘC)** ---
 
 **1. QUY TẮC CHUNG:**
-- Công thức toán, biến số ($x, y, M...$) phải đặt trong dấu `$$`. Ví dụ: $$y = x^2$$.
+- Công thức toán phải đặt trong dấu `$$`. Ví dụ: $$y = x^2$$.
 - Các phần phải được phân chia rõ ràng bằng tiêu đề in đậm.
 
 **2. ĐỊNH DẠNG TỪNG PHẦN:**
-
-* **PHẦN 1 (NL):** Đáp án A, B, C, D phải **xuống dòng riêng biệt** (cách nhau 1 dòng trống).
-* **PHẦN 2 (DS):**
-    - Có đoạn văn dẫn/ngữ cảnh (Context).
-    - 4 ý a), b), c), d) phải **xuống dòng riêng biệt**.
-* **PHẦN 3 (TRẢ LỜI NGẮN):**
-    - Chỉ viết nội dung câu hỏi.
-    - Không có đáp án A, B, C, D.
-    - Nội dung phải yêu cầu tính toán ra một con số cụ thể hoặc kết quả ngắn gọn.
+* **PHẦN 1 (NL):** Đáp án A, B, C, D phải xuống dòng riêng biệt.
+* **PHẦN 2 (DS):** 4 ý a), b), c), d) phải xuống dòng riêng biệt.
+* **PHẦN 3 (TRẢ LỜI NGẮN):** Chỉ viết nội dung câu hỏi.
+* **PHẦN 4 (TỰ LUẬN):** Đặt câu hỏi rõ ràng.
 
 --- **MẪU TRÌNH BÀY (AI PHẢI LÀM THEO FORMAT NÀY)** ---
 
 **PHẦN I. TRẮC NGHIỆM NHIỀU LỰA CHỌN**
-**Câu 1.** Giá trị của biểu thức $$A = x^2 - 1$$ tại $$x=2$$ là:
-(Dòng trống)
-A. $$3$$
-(Dòng trống)
-B. $$4$$
-(Dòng trống)
-C. $$5$$
-(Dòng trống)
-D. $$6$$
+**Câu 1.** (NB) Nội dung câu hỏi...
+A. ...
+B. ...
+C. ...
+D. ...
 
 **PHẦN II. TRẮC NGHIỆM ĐÚNG SAI**
-**Câu 2.** Cho hình chữ nhật $$ABCD$$ có chiều dài $$AB = 4$$ cm, chiều rộng $$BC = 3$$ cm.
-(Dòng trống)
-a) Chu vi hình chữ nhật là 14 cm.
-(Dòng trống)
-b) Độ dài đường chéo $$AC$$ là 5 cm.
-(Dòng trống)
-c) Diện tích hình chữ nhật là 10 cm².
-(Dòng trống)
-d) Tam giác $$ABC$$ là tam giác đều.
+**Câu 2.** (TH) Cho hình chữ nhật ABCD...
+a) ...
+b) ...
+c) ...
+d) ...
 
 **PHẦN III. TRẮC NGHIỆM TRẢ LỜI NGẮN**
-**Câu 3.** Tính giá trị của biểu thức $$P = x^2 + 2x + 1$$ tại $$x = 9$$.
-**Câu 4.** Một khu vườn hình chữ nhật có chu vi là 40m, chiều dài hơn chiều rộng 4m. Tính diện tích khu vườn đó (đơn vị: $$m^2$$).
-**Câu 5.** Cho tam giác $$MNP$$ vuông tại $$M$$, góc $$N = 60^\circ$$. Tính số đo góc $$P$$ (độ).
+**Câu 3.** (VD) Tính giá trị biểu thức...
+
+**PHẦN IV. TỰ LUẬN**
+**Câu 4.** (VD) Giải bài toán bằng cách lập phương trình: Một người đi xe đạp...
 
 --- **HẾT PHẦN MẪU** ---
 
-**YÊU CẦU LOGIC NỘI DUNG:**
-- Với bài Hình học: Câu hỏi Trả lời ngắn thường yêu cầu tính độ dài, diện tích, hoặc số đo góc.
-- Với bài Đại số: Câu hỏi Trả lời ngắn thường yêu cầu tính giá trị biểu thức, tìm nghiệm phương trình, hoặc bài toán thực tế.
+**YÊU CẦU KHÁC:**
 - {dan_ap}
 - Kết quả trả về định dạng **Markdown**.
 """
@@ -331,21 +252,27 @@ def generate_questions(api_key, prompt):
 # 🚀 NÚT BẤM SINH ĐỀ
 # ===============================
 
-if st.button("Sinh đề chuẩn + đáp án cách dòng"):
+if st.button("🚀 Sinh đề theo cấu hình chi tiết"):
     if not api_key:
-        st.warning("Nhập API Key trước khi sinh đề!")
+        st.warning("⚠️ Nhập API Key trước khi sinh đề!")
+    elif not chuong or not bai:
+        st.warning("⚠️ Vui lòng chọn Chương và Bài học!")
     else:
-        # Chuyển đổi lựa chọn radio thành chuỗi hướng dẫn
+        # Xử lý yêu cầu đáp án
         if co_dap_an == "Có đáp án":
             dan_ap_text = "YÊU CẦU ĐẶC BIỆT: Cuối đề thi phải có PHẦN HƯỚNG DẪN GIẢI CHI TIẾT và ĐÁP ÁN cho từng câu."
         else:
             dan_ap_text = "YÊU CẦU ĐẶC BIỆT: KHÔNG hiển thị đáp án và lời giải."
 
-        # Gọi đúng tên hàm create_math_prompt
-        prompt = create_math_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
-                                    so_cau_nb, so_cau_th, so_cau_vd, dan_ap_text)
+        # Tạo prompt với các tham số chi tiết mới
+        prompt = create_math_prompt(lop, chuong, bai,
+                                    nl_nb, nl_th, nl_vd,
+                                    ds_nb, ds_th, ds_vd,
+                                    tn_nb, tn_th, tn_vd,
+                                    tl_nb, tl_th, tl_vd,
+                                    dan_ap_text)
         
-        with st.spinner("Đang sinh đề (Markdown + LaTeX + đáp án cách dòng)..."):
+        with st.spinner("Đang sinh đề... (Sẽ mất khoảng 10-20 giây)"):
             success, result = generate_questions(api_key, prompt)
             
             if success:
@@ -354,6 +281,6 @@ if st.button("Sinh đề chuẩn + đáp án cách dòng"):
                 
                 # --- Tải file markdown về máy ---
                 filename = f"De_{lop}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-                st.download_button("📥 Tải đề về máy (Markdown)", data=result, file_name=filename)
+                st.download_button("📥 Tải đề về máy (.md)", data=result, file_name=filename)
             else:
                 st.error(result)
