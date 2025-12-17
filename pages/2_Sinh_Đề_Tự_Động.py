@@ -42,9 +42,8 @@ def analyze_real_image(api_key, image, prompt):
     image.save(buf, format="JPEG")
     img_b64 = base64.b64encode(buf.getvalue()).decode()
 
-    # SỬA LỖI: Đổi model về bản hiện có để tránh lỗi 404
-    MODEL = "gemini-1.5-flash" 
-    URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={api_key}"
+    MODEL = "gemini-2.5-flash"
+    URL = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
 
     payload = {
         "contents": [{
@@ -128,6 +127,7 @@ chuong_options_lop = {
     ]
 }
 
+# --- Từng bài chi tiết ---
 bai_options_lop = {
     "Lớp 6": {
         "Chương I: Tập hợp các số tự nhiên": ["Bài 1","Bài 2","Bài 3","Bài 4","Ôn tập"],
@@ -188,22 +188,18 @@ bai_options_lop = {
 
 with st.sidebar:
     st.header("Thông tin sinh đề")
-    # SỬA LỖI: Thêm Model choice để biến model_choice được định nghĩa
-    model_choice = st.selectbox("Chọn Model", ["gemini-1.5-flash", "gemini-1.5-pro"], index=0)
-    
     lop = st.selectbox("Chọn lớp", ["Lớp 6","Lớp 7","Lớp 8","Lớp 9"], index=0)
     st.info(f"Chỉ sinh đề cho {lop}")
     
     chuong_options = chuong_options_lop[lop]
-    chuong = st.multiselect("Chọn chương", chuong_options, default=chuong_options[0] if chuong_options else None)
+    chuong = st.multiselect("Chọn chương", chuong_options, default=chuong_options[0])
     
     bai_list_all = []
-    if chuong:
-        for c in chuong:
-            bai_list_all.extend(bai_options_lop[lop].get(c, []))
+    for c in chuong:
+        bai_list_all.extend(bai_options_lop[lop].get(c, []))
     
     if bai_list_all:
-        bai = st.multiselect("Chọn bài", bai_list_all, default=bai_list_all[0] if bai_list_all else None)
+        bai = st.multiselect("Chọn bài", bai_list_all, default=bai_list_all[0])
     else:
         bai = []
     st.markdown("---")
@@ -259,21 +255,29 @@ Yêu cầu:
    - Vận dụng: {so_cau_vd}
 3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$.**
 4. Mỗi câu phải gắn nhãn **Mức độ** và **Loại câu hỏi**.
-5. **Đáp án NL/DS**: mỗi đáp án A/B/C/D hoặc Đúng/Sai viết **xuống dòng riêng**, không viết liền nhau.
+5. **Đáp án NL/DS**: mỗi đáp án A/B/C/D hoặc Đúng/Sai viết **xuống dòng riêng**, không viết liền nhau và phải là câu hỏi có tình huống.
 6. **Đáp án TL**: đánh số 1,2,3…; mọi công thức toán phải viết dưới dạng LaTeX trong $$...$$.
 7. {dan_ap}
-8. Kết quả trả về **Markdown chuẩn**.
+8. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp `st.markdown()`.
 
-**Ví dụ định dạng**:
-A. $$x = 1$$
-B. $$x = 2$$
+**Ví dụ định dạng đáp án NL/DS tất cả các lớp từ 6 đến 9 các chương, các bài phải theo định dạng dưới này**:
+
+A. Đáp án 1.  
+B. Đáp án 2.  
+C. Đáp án 3.  
+D. Đáp án 4.
+
+**Ví dụ định dạng TL**:
+
+1. $$Công thức 1$$  
+2. $$Công thức 2$$
 """
     return prompt
 
 # --- Gọi API ---
-def generate_questions(api_key, prompt, selected_model):
-    # SỬA LỖI: Sử dụng selected_model được truyền vào và đúng endpoint v1beta
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{selected_model}:generateContent?key={api_key}"
+def generate_questions(api_key, prompt):
+    MODEL = "gemini-2.5-flash"
+    url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
     payload = {
         "contents": [{
             "role": "user",
@@ -291,8 +295,8 @@ def generate_questions(api_key, prompt, selected_model):
             text = j["candidates"][0]["content"]["parts"][0]["text"]
             return True, text
         return False, "AI không trả về nội dung hợp lệ."
-    except Exception as e:
-        return False, f"Lỗi kết nối: {str(e)}"
+    except requests.exceptions.Timeout:
+        return False, "Lỗi kết nối: Yêu cầu hết thời gian."
 
 # ===============================
 # 🚀 NÚT BẤM SINH ĐỀ
@@ -301,22 +305,17 @@ def generate_questions(api_key, prompt, selected_model):
 if st.button("Sinh đề chuẩn + đáp án cách dòng"):
     if not api_key:
         st.warning("Nhập API Key trước khi sinh đề!")
-    elif not chuong or not bai:
-        st.error("Vui lòng chọn ít nhất 1 chương và 1 bài!")
     else:
-        # Chuẩn bị chỉ dẫn đáp án
-        dan_ap_text = "Cuối đề thi phải có PHẦN ĐÁP ÁN chi tiết." if co_dap_an == "Có đáp án" else "KHÔNG hiển thị đáp án."
-        
+        # Gọi đúng tên hàm create_prompt thay vì build_prompt
         prompt = create_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
-                               so_cau_nb, so_cau_th, so_cau_vd, dan_ap_text)
+                               so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
         
-        with st.spinner(f"Đang dùng {model_choice} sinh đề..."):
-            # SỬA LỖI: Truyền model_choice vào hàm
-            success, result = generate_questions(api_key, prompt, model_choice)
+        with st.spinner("Đang sinh đề (Markdown + LaTeX + đáp án cách dòng)..."):
+            success, result = generate_questions(api_key, prompt)
             
             if success:
                 st.success("✅ Sinh đề thành công!")
-                st.markdown(result)
+                st.markdown(result, unsafe_allow_html=True)
                 
                 # --- Tải file markdown về máy ---
                 filename = f"De_{lop}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
