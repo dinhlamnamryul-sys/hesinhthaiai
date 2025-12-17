@@ -66,7 +66,7 @@ bai_options_lop = {
 }
 
 # ===============================
-# 4. HÀM GỌI GEMINI API
+# 4. HÀM GỌI GEMINI API (CHUẨN – AN TOÀN)
 # ===============================
 def generate_with_gemini(prompt):
     MODEL = "gemini-1.5-flash-latest"
@@ -81,15 +81,29 @@ def generate_with_gemini(prompt):
 
     try:
         res = requests.post(url, json=payload, timeout=120)
+
+        if res.status_code != 200:
+            return f"❌ Lỗi API {res.status_code}: {res.text}"
+
         data = res.json()
 
-        if "candidates" not in data:
-            return None
+        if (
+            "candidates" in data and
+            len(data["candidates"]) > 0 and
+            "content" in data["candidates"][0] and
+            "parts" in data["candidates"][0]["content"]
+        ):
+            return data["candidates"][0]["content"]["parts"][0].get(
+                "text", "⚠️ Gemini không trả về nội dung."
+            )
 
-        return data["candidates"][0]["content"]["parts"][0]["text"]
+        if "promptFeedback" in data:
+            return "⚠️ Prompt bị Gemini từ chối."
+
+        return "⚠️ Không nhận được phản hồi từ Gemini."
 
     except Exception as e:
-        return f"Lỗi: {e}"
+        return f"❌ Exception: {e}"
 
 # ===============================
 # 5. TẠO FILE WORD
@@ -133,43 +147,51 @@ with tab1:
 Bạn là giáo viên Toán THCS.
 Hãy soạn bài: {bai} – {chuong} ({lop})
 
-Yêu cầu:
+YÊU CẦU:
+1. Trình bày rõ ràng, dễ hiểu
+2. Có:
 - Khái niệm
-- Công thức (LaTeX $$ $$)
-- Ví dụ
+- Công thức (viết LaTeX dạng $$...$$)
+- Ví dụ minh họa
 - Bài tập tự luyện
 """
-        with st.spinner("Đang tạo nội dung..."):
+        with st.spinner("⏳ Đang tạo nội dung..."):
             text = generate_with_gemini(prompt)
-            if text:
-                st.session_state["math_content"] = text
-                st.markdown(text)
-                st.download_button(
-                    "📥 Tải Word",
-                    create_docx_bytes(text),
-                    "Toan_AI.docx"
-                )
+            st.session_state["math_content"] = text
+            st.markdown(text)
+            st.download_button(
+                "📥 Tải file Word",
+                create_docx_bytes(text),
+                file_name="Toan_AI.docx"
+            )
 
 # -------- TAB 2 ----------
 with tab2:
     if "math_content" in st.session_state:
         if st.button("✍️ Soạn giáo án 5 bước"):
-            prompt = f"Soạn giáo án phát triển năng lực từ nội dung sau:\n{st.session_state['math_content']}"
-            st.markdown(generate_with_gemini(prompt))
+            prompt = f"""
+Soạn giáo án Toán theo hướng phát triển năng lực (5 bước)
+dựa trên nội dung sau:
+
+{st.session_state['math_content']}
+"""
+            with st.spinner("Đang soạn giáo án..."):
+                st.markdown(generate_with_gemini(prompt))
     else:
-        st.info("Hãy tạo nội dung ở Tab 1 trước.")
+        st.info("👉 Hãy tạo nội dung ở Tab 1 trước.")
 
 # -------- TAB 3 ----------
 with tab3:
-    style = st.selectbox("Phong cách", ["Rap", "Vè", "Pop"])
-    if st.button("🎤 Sáng tác"):
+    style = st.selectbox("Phong cách bài hát", ["Rap", "Vè", "Pop"])
+    if st.button("🎤 Sáng tác nhạc Toán"):
         prompt = f"Viết lời bài hát Toán học phong cách {style} cho bài {bai}"
-        st.markdown(generate_with_gemini(prompt))
+        with st.spinner("Đang sáng tác..."):
+            st.markdown(generate_with_gemini(prompt))
 
 # -------- TAB 4 ----------
 with tab4:
-    text = st.text_area("Nhập văn bản cần đọc", "Chào các em học sinh!")
-    if st.button("▶️ Đọc"):
-        tts = gTTS(text=text, lang="vi")
+    tts_text = st.text_area("Nhập văn bản cần đọc", "Chào các em học sinh!")
+    if st.button("▶️ Đọc văn bản"):
+        tts = gTTS(text=tts_text, lang="vi")
         tts.save("voice.mp3")
         st.audio("voice.mp3")
