@@ -67,7 +67,7 @@ else:
 
 # --- 1. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
-    page_title="Cổng Giáo Dục Số - Trường Na Ư",
+    page_title="Hệ thống Trợ lý Giáo dục AI Na Ư",
     page_icon=app_icon,
     layout="wide",
     initial_sidebar_state="expanded"
