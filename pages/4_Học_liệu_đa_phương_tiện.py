@@ -1,77 +1,47 @@
-import requests
 import streamlit as st
-from datetime import datetime
+import requests
 from io import BytesIO
 from docx import Document
 from gtts import gTTS
 
 # ===============================
-# 1. CẤU HÌNH TRANG
+# CẤU HÌNH TRANG
 # ===============================
 st.set_page_config(
-    page_title="Trợ lý Giáo dục AI (Gemini)",
-    layout="wide",
-    page_icon="🎓"
+    page_title="Tro ly Giao duc AI",
+    layout="wide"
 )
 
 st.title("🎓 Trợ lý Giáo dục Đa năng (Gemini AI)")
 
 # ===============================
-# 2. NHẬP GOOGLE API KEY
+# NHẬP GOOGLE API KEY
 # ===============================
-with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
-    st.markdown("""
-### 👉 Cách lấy Google API Key:
+with st.expander("Huong dan lay Google API Key"):
+    st.markdown(
+        "1. Truy cap https://aistudio.google.com/app/apikey\n"
+        "2. Dang nhap Gmail\n"
+        "3. Create API key\n"
+        "4. Copy va dan vao ben duoi"
+    )
 
-1. Truy cập: https://aistudio.google.com/app/apikey  
-2. Đăng nhập Gmail  
-3. Nhấn **Create API key**  
-4. Copy API Key  
-5. Dán vào ô bên dưới  
-
-⚠️ **Không chia sẻ API Key cho người khác**
-""")
-
-st.subheader("🔐 Nhập Google API Key:")
-api_key = st.text_input("Google API Key:", type="password")
+api_key = st.text_input("Google API Key", type="password")
 
 if not api_key:
-    st.warning("⚠️ Nhập API Key để tiếp tục.")
+    st.warning("Nhap API Key de tiep tuc")
     st.stop()
-else:
-    st.success("✅ API Key hợp lệ!")
+
+st.success("API Key hop le")
 
 # ===============================
-# 3. DỮ LIỆU CHƯƠNG – BÀI
-# ===============================
-chuong_options_lop = {
-    "Lớp 6": ["Chương VI: Phân số"],
-    "Lớp 7": ["Chương I: Số hữu tỉ"],
-    "Lớp 8": ["Chương IX: Tam giác đồng dạng"],
-    "Lớp 9": ["Chương VI: Phương trình bậc hai"]
-}
-
-bai_options_lop = {
-    "Lớp 6": {
-        "Chương VI: Phân số": ["Bài 13", "Bài 14", "Ôn tập"]
-    },
-    "Lớp 7": {
-        "Chương I: Số hữu tỉ": ["Bài 1", "Bài 2"]
-    },
-    "Lớp 8": {
-        "Chương IX: Tam giác đồng dạng": ["Bài 33", "Bài 34"]
-    },
-    "Lớp 9": {
-        "Chương VI: Phương trình bậc hai": ["Bài 19", "Bài 20"]
-    }
-}
-
-# ===============================
-# 4. HÀM GỌI GEMINI API (CHUẨN v1beta)
+# HAM GOI GEMINI
 # ===============================
 def generate_with_gemini(prompt, api_key):
-    MODEL = "gemini-1.5-flash-001"
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={api_key}"
+    url = (
+        "https://generativelanguage.googleapis.com/v1beta/"
+        "models/gemini-1.5-flash-001:generateContent"
+        "?key=" + api_key
+    )
 
     payload = {
         "contents": [
@@ -82,69 +52,29 @@ def generate_with_gemini(prompt, api_key):
         ]
     }
 
-    try:
-        response = requests.post(url, json=payload, timeout=60)
+    r = requests.post(url, json=payload, timeout=60)
 
-        if response.status_code != 200:
-            return f"❌ Lỗi API {response.status_code}: {response.text}"
+    if r.status_code != 200:
+        return "Loi API: " + r.text
 
-        data = response.json()
-
-        return data["candidates"][0]["content"]["parts"][0]["text"]
-
-    except Exception as e:
-        return f"❌ Exception: {e}"
+    data = r.json()
+    return data["candidates"][0]["content"]["parts"][0]["text"]
 
 # ===============================
-# 5. TẠO FILE WORD
+# TAB
 # ===============================
-def create_docx_bytes(text):
-    doc = Document()
-    doc.add_heading("TÀI LIỆU TOÁN HỌC AI", 0)
-    for line in text.split("\n"):
-        doc.add_paragraph(line)
+tab1, tab2 = st.tabs(["Tong hop kien thuc", "Doc van ban"])
 
-    buf = BytesIO()
-    doc.save(buf)
-    buf.seek(0)
-    return buf
-
-# ===============================
-# 6. GIAO DIỆN TABS
-# ===============================
-tab1, tab2, tab3, tab4 = st.tabs([
-    "📘 Tổng hợp kiến thức",
-    "📝 Thiết kế giáo án",
-    "🎵 Nhạc Toán",
-    "🎧 Đọc văn bản"
-])
-
-# -------- TAB 1 ----------
 with tab1:
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        lop = st.selectbox("Lớp", chuong_options_lop.keys())
-    with c2:
-        chuong = st.selectbox("Chương", chuong_options_lop[lop])
-    with c3:
-        bai = st.selectbox(
-            "Bài",
-            bai_options_lop.get(lop, {}).get(chuong, ["Toàn chương"])
-        )
-
-    if st.button("🚀 Tổng hợp nội dung"):
-        prompt = f"""
-Bạn là giáo viên Toán THCS.
-Hãy soạn bài: {bai} – {chuong} ({lop})
-
-YÊU CẦU:
-- Trình bày dễ hiểu
-- Có:
-  + Khái niệm
-  + Công thức (LaTeX $$...$$)
-  + Ví dụ minh họa
-  + Bài tập tự luyện
-"""
-        with st.spinner("⏳ Đang tạo nội dung..."):
+    if st.button("Tong hop noi dung"):
+        prompt = "Hay giai thich phan so cho hoc sinh lop 6"
+        with st.spinner("Dang xu ly..."):
             text = generate_with_gemini(prompt, api_key)
-            st.session_state["math]()_
+            st.markdown(text)
+
+with tab2:
+    txt = st.text_area("Nhap van ban", "Chao cac em hoc sinh")
+    if st.button("Doc"):
+        tts = gTTS(text=txt, lang="vi")
+        tts.save("voice.mp3")
+        st.audio("voice.mp3")
