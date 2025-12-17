@@ -38,55 +38,31 @@ else:
 
 chuong_options_lop = {
     "Lớp 6": [
-        "Chương I: Tập hợp các số tự nhiên",
-        "Chương II: Tính chia hết trong tập hợp các số tự nhiên",
-        "Chương III: Số nguyên",
-        "Chương IV: Một số hình phẳng trong thực tiễn",
-        "Chương V: Tính đối xứng của hình phẳng trong tự nhiên",
-        "Chương VI: Phân số",
-        "Chương VII: Số thập phân",
-        "Chương VIII: Những hình hình học cơ bản",
-        "Chương IX: Dữ liệu và xác suất thực nghiệm",
-        "Hoạt động thực hành trải nghiệm"
+        "Chương I: Tập hợp các số tự nhiên", "Chương II: Tính chia hết trong tập hợp các số tự nhiên",
+        "Chương III: Số nguyên", "Chương IV: Một số hình phẳng trong thực tiễn",
+        "Chương V: Tính đối xứng của hình phẳng trong tự nhiên", "Chương VI: Phân số",
+        "Chương VII: Số thập phân", "Chương VIII: Những hình hình học cơ bản",
+        "Chương IX: Dữ liệu và xác suất thực nghiệm", "Hoạt động thực hành trải nghiệm"
     ],
     "Lớp 7": [
-        "Chương I: Số hữu tỉ",
-        "Chương II: Số thực",
-        "Chương III: Góc và đường thẳng song song",
-        "Chương IV: Tam giác bằng nhau",
-        "Chương V: Thu thập và biểu diễn dữ liệu",
-        "Chương VI: Tỉ lệ thức và đại lượng tỉ lệ",
-        "Chương VII: Biểu thức đại số và đa thức một biến",
-        "Chương VIII: Làm quen với biến cố và xác suất",
-        "Chương IX: Quan hệ giữa các yếu tố trong một tam giác",
-        "Chương X: Một số hình khối trong thực tiễn",
-        "Bài tập ôn tập cuối năm"
+        "Chương I: Số hữu tỉ", "Chương II: Số thực", "Chương III: Góc và đường thẳng song song",
+        "Chương IV: Tam giác bằng nhau", "Chương V: Thu thập và biểu diễn dữ liệu",
+        "Chương VI: Tỉ lệ thức và đại lượng tỉ lệ", "Chương VII: Biểu thức đại số và đa thức một biến",
+        "Chương VIII: Làm quen với biến cố và xác suất", "Chương IX: Quan hệ giữa các yếu tố trong một tam giác",
+        "Chương X: Một số hình khối trong thực tiễn", "Bài tập ôn tập cuối năm"
     ],
     "Lớp 8": [
-        "Chương I: Đa thức",
-        "Chương II: Hằng đẳng thức đáng nhớ và ứng dụng",
-        "Chương III: Tứ giác",
-        "Chương IV: Định lí Thalès",
-        "Chương V: Dữ liệu và biểu đồ",
-        "Chương VI: Phân thức đại số",
-        "Chương VII: Phương trình bậc nhất và hàm số bậc nhất",
-        "Chương VIII: Mở đầu về tính xác suất của biến cố",
-        "Chương IX: Tam giác đồng dạng",
-        "Chương X: Một số hình khối trong thực tiễn",
-        "Bài tập ôn tập cuối năm"
+        "Chương I: Đa thức", "Chương II: Hằng đẳng thức đáng nhớ và ứng dụng", "Chương III: Tứ giác",
+        "Chương IV: Định lí Thalès", "Chương V: Dữ liệu và biểu đồ", "Chương VI: Phân thức đại số",
+        "Chương VII: Phương trình bậc nhất và hàm số bậc nhất", "Chương VIII: Mở đầu về tính xác suất của biến cố",
+        "Chương IX: Tam giác đồng dạng", "Chương X: Một số hình khối trong thực tiễn", "Bài tập ôn tập cuối năm"
     ],
     "Lớp 9": [
-        "Chương I: Phương trình và hệ hai phương trình bậc nhất hai ẩn",
-        "Chương II: Phương trình và bất phương trình bậc nhất một ẩn",
-        "Chương III: Căn bậc hai và căn bậc ba",
-        "Chương IV: Hệ thức lượng trong tam giác vuông",
-        "Chương V: Đường tròn",
-        "Hoạt động thực hành trải nghiệm",
-        "Chương VI: Hàm số y = ax^2 (a khác 0). Phương trình bậc hai một ẩn",
-        "Chương VII: Tần số và tần số tương đối",
-        "Chương VIII: Xác suất của biến cố trong một số mô hình xác suất đơn giản",
-        "Chương IX: Đường tròn ngoại tiếp và đường tròn nội tiếp",
-        "Chương X: Một số hình khối trong thực tiễn"
+        "Chương I: Phương trình và hệ hai phương trình bậc nhất hai ẩn", "Chương II: Phương trình và bất phương trình bậc nhất một ẩn",
+        "Chương III: Căn bậc hai và căn bậc ba", "Chương IV: Hệ thức lượng trong tam giác vuông", "Chương V: Đường tròn",
+        "Hoạt động thực hành trải nghiệm", "Chương VI: Hàm số y = ax^2 (a khác 0). Phương trình bậc hai một ẩn",
+        "Chương VII: Tần số và tần số tương đối", "Chương VIII: Xác suất của biến cố trong một số mô hình xác suất đơn giản",
+        "Chương IX: Đường tròn ngoại tiếp và đường tròn nội tiếp", "Chương X: Một số hình khối trong thực tiễn"
     ]
 }
 
@@ -151,12 +127,13 @@ bai_options_lop = {
 def format_fix_final(text):
     """
     Hàm xử lý hậu kỳ bắt buộc xuống dòng bằng Regex.
+    Chạy hàm này trước khi st.markdown để đảm bảo hiển thị đẹp.
     """
     # 1. Xử lý phần Trắc nghiệm (A. B. C. D.)
     text = re.sub(r'(\s)([A-D]\.)', r'\n\n\2', text)
     # 2. Xử lý phần Đúng/Sai (a) b) c) d))
     text = re.sub(r'(\s)([a-d][\)\.])', r'\n\n\2', text)
-    # 3. Xử lý khoảng cách giữa các câu hỏi (Câu 1., Câu 2...)
+    # 3. Xử lý khoảng cách giữa các câu hỏi
     text = re.sub(r'(\s)(Câu \d+)', r'\n\n\n\2', text)
     return text
 
@@ -166,7 +143,8 @@ def create_math_prompt_v2(lop, chuong, bai,
                           tlngan_nb, tlngan_th, tlngan_vd,
                           tl_nb, tl_th, tl_vd, 
                           dan_ap_text):
-    """Hàm tạo prompt chi tiết"""
+    """Hàm tạo prompt chi tiết theo ma trận nhận thức"""
+    
     prompt = f"""
 Bạn là giáo viên Toán lớp {lop}, soạn đề kiểm tra theo chương trình GDPT 2018 (Sách Kết nối tri thức).
 - Nội dung kiểm tra: {', '.join(bai)} thuộc các chương {', '.join(chuong)}.
@@ -229,7 +207,7 @@ d) ...
 """
     return prompt
 
-# --- CẬP NHẬT HÀM GỌI API ĐỂ TRÁNH LỖI 404 ---
+# --- GỌI API BẰNG REQUESTS (Xử lý lỗi thông minh) ---
 def generate_questions(api_key, prompt):
     headers = {"Content-Type": "application/json"}
     payload = {
@@ -237,6 +215,7 @@ def generate_questions(api_key, prompt):
     }
 
     # Danh sách model thử lần lượt để tránh lỗi 404
+    # Nếu Flash lỗi -> Tự chuyển sang Pro
     models_to_try = [
         "gemini-1.5-flash", 
         "gemini-1.5-flash-latest", 
@@ -244,7 +223,7 @@ def generate_questions(api_key, prompt):
     ]
 
     for model in models_to_try:
-        # Thử với v1beta trước (thường hỗ trợ model mới)
+        # Sử dụng v1beta để hỗ trợ các model mới nhất
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
         try:
             r = requests.post(url, json=payload, headers=headers, timeout=60)
@@ -253,9 +232,9 @@ def generate_questions(api_key, prompt):
                 if "candidates" in j:
                     return True, j["candidates"][0]["content"]["parts"][0]["text"]
         except:
-            continue # Nếu lỗi thì thử model tiếp theo
+            continue # Nếu lỗi mạng hoặc API thì thử model tiếp theo
 
-    return False, "❌ Lỗi: Không tìm thấy Model nào khả dụng với API Key này. Vui lòng kiểm tra lại Key."
+    return False, "❌ Lỗi: Không thể kết nối với AI. Vui lòng kiểm tra lại API Key."
 
 # ===============================
 # 🎛️ SIDEBAR VÀ CẤU HÌNH
@@ -362,7 +341,9 @@ if st.button("🚀 Sinh đề theo cấu hình chi tiết", type="primary"):
             success, result = generate_questions(api_key, prompt)
             
             if success:
+                # Quan trọng: Gọi hàm sửa lỗi dính dòng
                 result_fixed = format_fix_final(result)
+                
                 st.success("✅ Sinh đề thành công!")
                 st.markdown(result_fixed, unsafe_allow_html=True)
                 
