@@ -281,10 +281,96 @@ Bạn là giáo viên Toán lớp {lop}, soạn đề kiểm tra theo chương t
 - Phân bố: NB: {tl_nb}, TH: {tl_th}, VD: {tl_vd}.
 - Yêu cầu: Trình bày lời giải chi tiết.
 
---- **QUY ĐỊNH ĐỊNH DẠNG (BẮT BUỘC)** ---
-- Công thức toán phải đặt trong dấu `$$`.
+--- **QUY ĐỊNH ĐỊNH DẠNG CHI TIẾT (BẮT BUỘC)** ---
+
+
+
+**1. QUY TẮC CHUNG:**
+
+- Công thức toán, biến số ($x, y, M...$) phải đặt trong dấu `$$`. Ví dụ: $$y = x^2$$.
+
 - Các phần phải được phân chia rõ ràng bằng tiêu đề in đậm.
-- {dan_ap}
+
+
+
+**2. ĐỊNH DẠNG TỪNG PHẦN:**
+
+
+
+* **PHẦN 1 (NL):** Đáp án A, B, C, D phải **xuống dòng riêng biệt** (cách nhau 1 dòng trống).
+
+* **PHẦN 2 (DS):**
+
+    - Có đoạn văn dẫn/ngữ cảnh (Context).
+
+    - 4 ý a), b), c), d) phải **xuống dòng riêng biệt**.
+
+* **PHẦN 3 (TRẢ LỜI NGẮN):**
+
+    - Chỉ viết nội dung câu hỏi.
+
+    - Không có đáp án A, B, C, D.
+
+    - Nội dung phải yêu cầu tính toán ra một con số cụ thể hoặc kết quả ngắn gọn.
+
+
+
+--- **MẪU TRÌNH BÀY (AI PHẢI LÀM THEO FORMAT NÀY)** ---
+
+
+
+**PHẦN I. TRẮC NGHIỆM NHIỀU LỰA CHỌN**
+
+**Câu 1.** Giá trị của biểu thức $$A = x^2 - 1$$ tại $$x=2$$ là:
+
+(Dòng trống)
+
+A. $$3$$
+
+(Dòng trống)
+
+B. $$4$$
+
+(Dòng trống)
+
+C. $$5$$
+
+(Dòng trống)
+
+D. $$6$$
+
+
+
+**PHẦN II. TRẮC NGHIỆM ĐÚNG SAI**
+
+**Câu 2.** Cho hình chữ nhật $$ABCD$$ có chiều dài $$AB = 4$$ cm, chiều rộng $$BC = 3$$ cm.
+
+(Dòng trống)
+
+a) Chu vi hình chữ nhật là 14 cm.
+
+(Dòng trống)
+
+b) Độ dài đường chéo $$AC$$ là 5 cm.
+
+(Dòng trống)
+
+c) Diện tích hình chữ nhật là 10 cm².
+
+(Dòng trống)
+
+d) Tam giác $$ABC$$ là tam giác đều.
+
+
+
+**PHẦN III. TRẮC NGHIỆM TRẢ LỜI NGẮN**
+
+**Câu 3.** Tính giá trị của biểu thức $$P = x^2 + 2x + 1$$ tại $$x = 9$$.
+
+**Câu 4.** Một khu vườn hình chữ nhật có chu vi là 40m, chiều dài hơn chiều rộng 4m. Tính diện tích khu vườn đó (đơn vị: $$m^2$$).
+
+**Câu 5.** Cho tam giác $$MNP$$ vuông tại $$M$$, góc $$N = 60^\circ$$. Tính số đo góc $$P$$ (độ).
+
 - Kết quả trả về định dạng **Markdown**.
 """
     return prompt
