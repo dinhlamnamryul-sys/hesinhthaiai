@@ -69,7 +69,7 @@ bai_options_lop = {
 # 4. HÀM GỌI GEMINI API (CHUẨN – AN TOÀN)
 # ===============================
 def generate_with_gemini(prompt):
-    MODEL = "gemini-1.5-flash-latest"
+    MODEL = "gemini-1.5-flash"
     url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
 
     payload = {
