@@ -78,35 +78,59 @@ bai_options_lop = {
 }
 
 # ===============================
-# 4. HÀM GỌI GEMINI API (ĐÃ SỬA)
+# 4. HÀM GỌI GEMINI API (CHUẨN – KHÔNG LỖI)
 # ===============================
 def generate_with_gemini(api_key, prompt):
-    MODEL = "models/gemini-1.0-pro"  # ✅ MODEL HỢP LỆ
-    url = f"https://generativelanguage.googleapis.com/v1beta/{MODEL}:generateContent?key={api_key}"
+    MODEL = "gemini-1.5-flash-latest"   # ✅ MODEL ĐÚNG
+    url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
 
-    headers = {"Content-Type": "application/json"}
+    headers = {
+        "Content-Type": "application/json"
+    }
+
     payload = {
         "contents": [
-            {"parts": [{"text": prompt}]}
+            {
+                "role": "user",
+                "parts": [
+                    {"text": prompt}
+                ]
+            }
         ]
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=60)
+        response = requests.post(
+            url,
+            headers=headers,
+            json=payload,
+            timeout=120
+        )
+
+        if response.status_code != 200:
+            return {
+                "ok": False,
+                "message": f"Lỗi API {response.status_code}: {response.text}"
+            }
+
         data = response.json()
 
-        if "candidates" in data:
+        if "candidates" in data and len(data["candidates"]) > 0:
             return {
                 "ok": True,
                 "text": data["candidates"][0]["content"]["parts"][0]["text"]
             }
-        else:
-            return {
-                "ok": False,
-                "message": data.get("error", {}).get("message", "Lỗi không xác định")
-            }
+
+        return {
+            "ok": False,
+            "message": "Gemini không trả về nội dung."
+        }
+
     except Exception as e:
-        return {"ok": False, "message": str(e)}
+        return {
+            "ok": False,
+            "message": str(e)
+        }
 
 def create_docx_bytes(text):
     doc = Document()
@@ -173,7 +197,10 @@ with tab2:
         if st.button("✍️ Soạn giáo án 5 bước"):
             prompt = f"Soạn giáo án phát triển năng lực từ nội dung sau:\n{st.session_state['math_content']}"
             res = generate_with_gemini(api_key, prompt)
-            st.markdown(res["text"])
+            if res["ok"]:
+                st.markdown(res["text"])
+            else:
+                st.error(res["message"])
     else:
         st.info("Hãy tạo nội dung ở Tab 1 trước.")
 
@@ -181,9 +208,12 @@ with tab2:
 with tab3:
     style = st.selectbox("Phong cách:", ["Rap", "Vè", "Pop"])
     if st.button("🎤 Sáng tác"):
-        prompt = f"Viết lời bài hát {style} giúp nhớ kiến thức Toán: {bai_sel}"
+        prompt = f"Viết lời bài hát phong cách {style} giúp nhớ kiến thức Toán: {bai_sel}"
         res = generate_with_gemini(api_key, prompt)
-        st.success(res["text"])
+        if res["ok"]:
+            st.success(res["text"])
+        else:
+            st.error(res["message"])
 
 # -------- TAB 4 ----------
 with tab4:
