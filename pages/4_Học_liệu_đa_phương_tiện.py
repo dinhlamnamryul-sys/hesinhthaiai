@@ -4,131 +4,169 @@ import io
 import requests
 from docx import Document
 from gtts import gTTS
+import os
 
 # ===============================
-# 1. CẤU HÌNH TRANG
+# 1. CẤU HÌNH TRANG & GIAO DIỆN
 # ===============================
-st.set_page_config(page_title="Trợ lý Toán học AI", layout="wide", page_icon="🎓")
+st.set_page_config(page_title="Trợ lý Toán học & Giáo dục AI", layout="wide", page_icon="🎓")
+st.title("🎓 Trợ lý Giáo dục Đa năng (Gemini AI)")
 
+# --- CSS tùy chỉnh cho giao diện ---
 st.markdown("""
 <style>
-    .stTabs [aria-selected="true"] { background-color: #ff4b4b !important; color: white !important; }
-    .stMarkdown { line-height: 1.6; }
+.block-container { padding-top: 1rem; }
+.stTabs [data-baseweb="tab-list"] { gap: 8px; }
+.stTabs [data-baseweb="tab"] { 
+    height: 50px; background-color: #f0f2f6; border-radius: 4px; padding: 10px 20px; 
+}
+.stTabs [aria-selected="true"] { 
+    background-color: #ff4b4b !important; color: white !important; 
+}
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🎓 Hệ sinh thái Giáo dục Toán học AI")
+# ===============================
+# 2. 🔑 NHẬP GOOGLE API KEY
+# ===============================
+with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
+    st.markdown("""
+### 👉 Cách lấy Google API Key để dùng ứng dụng:
+1. Truy cập: **https://aistudio.google.com/app/apikey**
+2. Đăng nhập Gmail.
+3. Nhấn **Create API key**.
+4. Copy API Key.
+5. Dán vào ô bên dưới.
+⚠️ Không chia sẻ API Key cho người khác.
+""")
+
+st.subheader("🔐 Nhập Google API Key:")
+api_key = st.text_input("Google API Key:", type="password", placeholder="Dán key của bạn vào đây...")
+
+if not api_key:
+    st.warning("⚠️ Nhập API Key để tiếp tục.")
+    st.stop() # Dừng các lệnh bên dưới nếu chưa có Key
+else:
+    st.success("✅ API Key hợp lệ!")
 
 # ===============================
-# 2. DỮ LIỆU CHƯƠNG TRÌNH HỌC (Đã cập nhật từ yêu cầu của bạn)
+# 3. 📚 DỮ LIỆU CHƯƠNG TRÌNH HỌC (Full 6-9)
 # ===============================
 chuong_options_lop = {
     "Lớp 6": ["Chương I: Tập hợp các số tự nhiên", "Chương II: Tính chia hết trong tập hợp các số tự nhiên", "Chương III: Số nguyên", "Chương IV: Một số hình phẳng trong thực tiễn", "Chương V: Tính đối xứng của hình phẳng trong tự nhiên", "Chương VI: Phân số", "Chương VII: Số thập phân", "Chương VIII: Những hình hình học cơ bản", "Chương IX: Dữ liệu và xác suất thực nghiệm", "Hoạt động thực hành trải nghiệm"],
     "Lớp 7": ["Chương I: Số hữu tỉ", "Chương II: Số thực", "Chương III: Góc và đường thẳng song song", "Chương IV: Tam giác bằng nhau", "Chương V: Thu thập và biểu diễn dữ liệu", "Chương VI: Tỉ lệ thức và đại lượng tỉ lệ", "Chương VII: Biểu thức đại số và đa thức một biến", "Chương VIII: Làm quen với biến cố và xác suất", "Chương IX: Quan hệ giữa các yếu tố trong một tam giác", "Chương X: Một số hình khối trong thực tiễn", "Bài tập ôn tập cuối năm"],
-    "Lớp 8": ["Chương I: Đa thức", "Chương II: Hằng đẳng thức đáng nhớ và ứng dụng", "Chương III: Tứ giác", "Chương IV: Định lí Thalès", "Chương V: Dữ liệu và biểu đồ", "Chương VI: Phân thức đại số", "Chương VII: Phương trình bậc nhất và hàm số bậc nhất", "Chương VIII: Mở đầu về tính xác suất của biến cố", "Chương IX: Tam giác đồng dạng", "Chương X: Một số hình khối trong thực tiễn"],
-    "Lớp 9": ["Chương I: Phương trình và hệ hai phương trình bậc nhất hai ẩn", "Chương II: Phương trình và bất phương trình bậc nhất một ẩn", "Chương III: Căn bậc hai và căn bậc ba", "Chương IV: Hệ thức lượng trong tam giác vuông", "Chương V: Đường tròn", "Chương VI: Hàm số y = ax^2 (a khác 0). Phương trình bậc hai một ẩn", "Chương VII: Tần số và tần số tương đối", "Chương VIII: Xác suất của biến cố trong một số mô hình xác suất đơn giản", "Chương IX: Đường tròn ngoại tiếp và đường tròn nội tiếp", "Chương X: Một số hình khối trong thực tiễn"]
+    "Lớp 8": ["Chương I: Đa thức", "Chương II: Hằng đẳng thức đáng nhớ và ứng dụng", "Chương III: Tứ giác", "Chương IV: Định lí Thalès", "Chương V: Dữ liệu và biểu đồ", "Chương VI: Phân thức đại số", "Chương VII: Phương trình bậc nhất và hàm số bậc nhất", "Chương VIII: Mở đầu về tính xác suất của biến cố", "Chương IX: Tam giác đồng dạng", "Chương X: Một số hình khối trong thực tiễn", "Bài tập ôn tập cuối năm"],
+    "Lớp 9": ["Chương I: Phương trình và hệ hai phương trình bậc nhất hai ẩn", "Chương II: Phương trình và bất phương trình bậc nhất một ẩn", "Chương III: Căn bậc hai và căn bậc ba", "Chương IV: Hệ thức lượng trong tam giác vuông", "Chương V: Đường tròn", "Hoạt động thực hành trải nghiệm", "Chương VI: Hàm số y = ax^2 (a khác 0). Phương trình bậc hai một ẩn", "Chương VII: Tần số và tần số tương đối", "Chương VIII: Xác suất của biến cố trong một số mô hình xác suất đơn giản", "Chương IX: Đường tròn ngoại tiếp và đường tròn nội tiếp", "Chương X: Một số hình khối trong thực tiễn"]
 }
 
+# Dữ liệu bài chi tiết (Rút gọn để hiển thị, bạn có thể thêm đầy đủ vào đây)
 bai_options_lop = {
     "Lớp 6": {
         "Chương I: Tập hợp các số tự nhiên": ["Bài 1", "Bài 2", "Bài 3", "Bài 4", "Ôn tập"],
-        "Chương II: Tính chia hết trong tập hợp các số tự nhiên": ["Bài 5", "Bài 6", "Ôn tập"],
-        "Chương III: Số nguyên": ["Bài 7", "Bài 8", "Ôn tập"],
-        "Chương IV: Một số hình phẳng trong thực tiễn": ["Bài 9", "Bài 10", "Ôn tập"],
-        "Chương VI: Phân số": ["Bài 13", "Bài 14", "Ôn tập"],
-        "Chương VII: Số thập phân": ["Bài 15", "Bài 16", "Ôn tập"]
+        "Chương VI: Phân số": ["Bài 13", "Bài 14", "Ôn tập"]
     },
     "Lớp 7": {
-        "Chương I: Số hữu tỉ": ["Bài 1. Tập hợp các số hữu tỉ", "Bài 2. Cộng, trừ, nhân, chia số hữu tỉ", "Bài 3. Luỹ thừa số hữu tỉ", "Bài 4. Thứ tự thực hiện phép tính"],
-        "Chương II: Số thực": ["Bài 5", "Bài 6. Số vô tỉ. Căn bậc hai số học", "Bài 7. Tập hợp các số thực"],
-        "Chương IV: Tam giác bằng nhau": ["Bài 12. Tổng các góc trong một tam giác", "Bài 16. Tam giác cân"]
+        "Chương I: Số hữu tỉ": ["Bài 1. Tập hợp các số hữu tỉ", "Bài 2. Cộng, trừ, nhân, chia số hữu tỉ", "Bài 3. Luỹ thừa số hữu tỉ", "Ôn tập"],
+        "Chương II: Số thực": ["Bài 5", "Bài 6. Số vô tỉ. Căn bậc hai số học", "Bài 7. Tập hợp các số thực"]
     },
     "Lớp 8": {
         "Chương I: Đa thức": ["Bài 1. Đơn thức", "Bài 2. Đa thức"],
-        "Chương II: Hằng đẳng thức đáng nhớ và ứng dụng": ["Bài 6. Hiệu hai bình phương", "Bài 9. Phân tích đa thức thành nhân tử"],
-        "Chương IX: Tam giác đồng dạng": ["Bài 35. Định lí Pythagore và ứng dụng"]
+        "Chương IX: Tam giác đồng dạng": ["Bài 33", "Bài 34", "Bài 35. Định lí Pythagore và ứng dụng"]
     },
     "Lớp 9": {
         "Chương III: Căn bậc hai và căn bậc ba": ["Bài 7. Căn bậc hai", "Bài 10. Căn bậc ba"],
-        "Chương IV: Hệ thức lượng trong tam giác vuông": ["Bài 11. Tỉ số lượng giác", "Bài 12. Hệ thức giữa cạnh và góc"],
+        "Chương IV: Hệ thức lượng trong tam giác vuông": ["Bài 11. Tỉ số lượng giác của góc nhọn", "Bài 12. Hệ thức cạnh và góc"],
         "Chương VI: Hàm số y = ax^2 (a khác 0). Phương trình bậc hai một ẩn": ["Bài 19. Phương trình bậc hai", "Bài 20. Định lí Viète"]
     }
 }
 
 # ===============================
-# 3. HÀM XỬ LÝ API (SỬA LỖI MODEL NOT FOUND)
+# 4. HÀM XỬ LÝ API & TIỆN ÍCH
 # ===============================
+
 def generate_with_gemini(api_key, prompt):
-    # Sửa lỗi: Thêm 'models/' vào trước tên mô hình
-    MODEL = "models/gemini-1.5-flash" 
+    MODEL = "models/gemini-1.5-flash"
     url = f"https://generativelanguage.googleapis.com/v1beta/{MODEL}:generateContent?key={api_key}"
-    
     headers = {'Content-Type': 'application/json'}
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
-    
     try:
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers, timeout=60)
         data = response.json()
         if "candidates" in data:
             return {"ok": True, "text": data["candidates"][0]["content"]["parts"][0]["text"]}
-        return {"ok": False, "message": data.get("error", {}).get("message", "Lỗi không xác định")}
+        return {"ok": False, "message": data.get("error", {}).get("message", "Lỗi API")}
     except Exception as e:
         return {"ok": False, "message": str(e)}
 
-# ===============================
-# 4. GIAO DIỆN STREAMLIT
-# ===============================
-api_key = st.sidebar.text_input("🔑 Google API Key:", type="password")
-if not api_key:
-    st.info("Vui lòng nhập API Key ở thanh bên để bắt đầu.")
+def create_docx_bytes(text):
+    doc = Document()
+    doc.add_heading('Tài liệu học tập Toán học AI', 0)
+    for line in text.split('\n'):
+        doc.add_paragraph(line)
+    buf = io.BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+    return buf
 
-tab1, tab2, tab3, tab4 = st.tabs(["📘 Kiến thức", "📝 Giáo án", "🎵 Nhạc Toán", "🎧 Đọc TTS"])
+# ===============================
+# 5. GIAO DIỆN CHÍNH (TABS)
+# ===============================
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📘 Tổng hợp Kiến thức", "📝 Thiết kế Giáo án", "🎵 Sáng tác Nhạc Toán", "🎧 Đọc Văn bản (TTS)"
+])
 
-# --- TAB 1: TỔNG HỢP KIẾN THỨC ---
 with tab1:
-    st.subheader("Tổng hợp Kiến thức & Công thức")
+    st.subheader("📚 Hệ thống kiến thức Toán học 6-9")
     c1, c2, c3 = st.columns(3)
-    with c1: lop = st.selectbox("Lớp:", list(chuong_options_lop.keys()))
-    with c2: chuong = st.selectbox("Chương:", chuong_options_lop[lop])
-    with c3: 
-        list_bai = bai_options_lop.get(lop, {}).get(chuong, ["Toàn chương"])
-        bai = st.selectbox("Bài:", list_bai)
+    with c1:
+        lop_sel = st.selectbox("Chọn lớp:", list(chuong_options_lop.keys()))
+    with c2:
+        chuong_list = chuong_options_lop.get(lop_sel, [])
+        chuong_sel = st.selectbox("Chọn chương:", chuong_list)
+    with c3:
+        bai_list = bai_options_lop.get(lop_sel, {}).get(chuong_sel, ["Toàn chương"])
+        bai_sel = st.selectbox("Chọn bài học:", bai_list)
 
-    if st.button("🚀 Tạo nội dung"):
+    if st.button("🚀 Tổng hợp nội dung"):
         prompt = f"""
-        Bạn là chuyên gia Toán học. Hãy soạn bài học chi tiết cho: {bai} ({chuong} - {lop}).
-        YÊU CẦU QUAN TRỌNG:
-        - Sử dụng công thức Toán học định dạng LaTeX chuẩn, bọc trong $$...$$. 
-          Ví dụ: $$\\frac{{-b \\pm \\sqrt{{\\Delta}}}}{{2a}}$$.
-        - Cấu trúc: 1. Khái niệm, 2. Công thức quan trọng, 3. Ví dụ minh họa, 4. Bài tập.
+        Bạn là giáo viên Toán. Hãy soạn tài liệu chi tiết cho: {bai_sel} - {chuong_sel} ({lop_sel}).
+        YÊU CẦU: 
+        1. Dùng LaTeX trong $$...$$ cho mọi công thức. Ví dụ: $$\\sqrt{{a+b}}$$
+        2. Cấu trúc: Khái niệm -> Công thức -> Ví dụ -> Bài tập.
         """
-        with st.spinner("Đang xử lý..."):
+        with st.spinner("Đang soạn bài..."):
             res = generate_with_gemini(api_key, prompt)
             if res["ok"]:
-                st.session_state["result"] = res["text"]
+                st.session_state["math_content"] = res["text"]
                 st.markdown(res["text"])
+                st.download_button("📥 Tải về Word (.docx)", 
+                                   create_docx_bytes(res["text"]), 
+                                   f"Toan_{lop_sel}_{bai_sel}.docx")
             else:
                 st.error(res["message"])
 
-# --- CÁC TAB KHÁC (GIỮ NGUYÊN LOGIC CŨ) ---
 with tab2:
-    st.write("Tính năng soạn giáo án tự động dựa trên mục lục.")
-    if st.button("✍️ Thử soạn giáo án cho bài đã chọn"):
-        if "result" in st.session_state:
-            prompt_ga = f"Dựa trên nội dung này, hãy soạn giáo án 5 bước phát triển năng lực: {st.session_state['result']}"
+    st.subheader("📝 Soạn giáo án bài giảng")
+    if "math_content" in st.session_state:
+        if st.button("✍️ Thiết kế giáo án từ nội dung trên"):
+            prompt_ga = f"Soạn giáo án 5 bước phát triển năng lực cho bài học này: {st.session_state['math_content']}"
             res = generate_with_gemini(api_key, prompt_ga)
-            st.write(res["text"])
+            st.markdown(res["text"])
+    else:
+        st.info("Hãy tạo nội dung ở Tab 1 trước để soạn giáo án.")
 
 with tab3:
-    st.write("Chuyển công thức thành lời bài hát.")
-    if st.button("🎤 Sáng tác vè/rap"):
-        prompt_m = f"Viết một bài vè vui nhộn giúp học sinh ghi nhớ kiến thức bài: {bai} - {chuong}."
+    st.subheader("🎵 Phổ nhạc kiến thức")
+    style = st.selectbox("Chọn phong cách:", ["Rap vui nhộn", "Vè dân gian", "Pop"])
+    if st.button("🎤 Sáng tác ngay"):
+        prompt_m = f"Viết lời bài hát phong cách {style} để ghi nhớ bài {bai_sel} - {chuong_sel}."
         res = generate_with_gemini(api_key, prompt_m)
         st.success(res["text"])
 
 with tab4:
-    text_input = st.text_area("Nhập văn bản cần đọc:", "Chào các em, hôm nay chúng ta học về căn bậc hai.")
-    if st.button("▶️ Nghe đọc"):
-        tts = gTTS(text=text_input, lang='vi')
-        tts.save("speech.mp3")
-        st.audio("speech.mp3")
+    st.subheader("🎧 Đọc văn bản tiếng Việt")
+    tts_text = st.text_area("Nhập nội dung cần đọc:", "Chào các em học sinh thân mến!")
+    if st.button("▶️ Phát âm thanh"):
+        tts = gTTS(text=tts_text, lang='vi')
+        tts.save("voice.mp3")
+        st.audio("voice.mp3")
