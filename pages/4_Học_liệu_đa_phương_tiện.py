@@ -1,10 +1,7 @@
-# ===============================
-# 0. IMPORT THƯ VIỆN
-# ===============================
-import streamlit as st
 import requests
-import io
-import os
+import streamlit as st
+from datetime import datetime
+from io import BytesIO
 from docx import Document
 from gtts import gTTS
 
@@ -22,23 +19,27 @@ st.title("🎓 Trợ lý Giáo dục Đa năng (Gemini AI)")
 # ===============================
 # 2. NHẬP GOOGLE API KEY
 # ===============================
-with st.expander("🔑 Hướng dẫn lấy Google API Key"):
+with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
     st.markdown("""
+### 👉 Cách lấy Google API Key:
+
 1. Truy cập: https://aistudio.google.com/app/apikey  
 2. Đăng nhập Gmail  
 3. Nhấn **Create API key**  
-4. Copy và dán vào bên dưới  
-⚠️ Không chia sẻ key cho người khác
+4. Copy API Key  
+5. Dán vào ô bên dưới  
+
+⚠️ **Không chia sẻ API Key cho người khác**
 """)
 
-api_key = st.text_input("🔐 Google API Key", type="password")
+st.subheader("🔐 Nhập Google API Key:")
+api_key = st.text_input("Google API Key:", type="password")
 
 if not api_key:
-    st.warning("⚠️ Vui lòng nhập API Key để tiếp tục")
+    st.warning("⚠️ Nhập API Key để tiếp tục.")
     st.stop()
-
-os.environ["GOOGLE_API_KEY"] = api_key
-st.success("✅ API Key đã sẵn sàng")
+else:
+    st.success("✅ API Key hợp lệ!")
 
 # ===============================
 # 3. DỮ LIỆU CHƯƠNG – BÀI
@@ -66,41 +67,30 @@ bai_options_lop = {
 }
 
 # ===============================
-# 4. HÀM GỌI GEMINI API (CHUẨN – AN TOÀN)
+# 4. HÀM GỌI GEMINI API (CHUẨN v1beta)
 # ===============================
-def generate_with_gemini(prompt):
-    MODEL = "gemini-1.5-flash"
-    url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
+def generate_with_gemini(prompt, api_key):
+    MODEL = "gemini-1.5-flash-001"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={api_key}"
 
     payload = {
-        "contents": [{
-            "role": "user",
-            "parts": [{"text": prompt}]
-        }]
+        "contents": [
+            {
+                "role": "user",
+                "parts": [{"text": prompt}]
+            }
+        ]
     }
 
     try:
-        res = requests.post(url, json=payload, timeout=120)
+        response = requests.post(url, json=payload, timeout=60)
 
-        if res.status_code != 200:
-            return f"❌ Lỗi API {res.status_code}: {res.text}"
+        if response.status_code != 200:
+            return f"❌ Lỗi API {response.status_code}: {response.text}"
 
-        data = res.json()
+        data = response.json()
 
-        if (
-            "candidates" in data and
-            len(data["candidates"]) > 0 and
-            "content" in data["candidates"][0] and
-            "parts" in data["candidates"][0]["content"]
-        ):
-            return data["candidates"][0]["content"]["parts"][0].get(
-                "text", "⚠️ Gemini không trả về nội dung."
-            )
-
-        if "promptFeedback" in data:
-            return "⚠️ Prompt bị Gemini từ chối."
-
-        return "⚠️ Không nhận được phản hồi từ Gemini."
+        return data["candidates"][0]["content"]["parts"][0]["text"]
 
     except Exception as e:
         return f"❌ Exception: {e}"
@@ -114,7 +104,7 @@ def create_docx_bytes(text):
     for line in text.split("\n"):
         doc.add_paragraph(line)
 
-    buf = io.BytesIO()
+    buf = BytesIO()
     doc.save(buf)
     buf.seek(0)
     return buf
@@ -148,50 +138,13 @@ Bạn là giáo viên Toán THCS.
 Hãy soạn bài: {bai} – {chuong} ({lop})
 
 YÊU CẦU:
-1. Trình bày rõ ràng, dễ hiểu
-2. Có:
-- Khái niệm
-- Công thức (viết LaTeX dạng $$...$$)
-- Ví dụ minh họa
-- Bài tập tự luyện
+- Trình bày dễ hiểu
+- Có:
+  + Khái niệm
+  + Công thức (LaTeX $$...$$)
+  + Ví dụ minh họa
+  + Bài tập tự luyện
 """
         with st.spinner("⏳ Đang tạo nội dung..."):
-            text = generate_with_gemini(prompt)
-            st.session_state["math_content"] = text
-            st.markdown(text)
-            st.download_button(
-                "📥 Tải file Word",
-                create_docx_bytes(text),
-                file_name="Toan_AI.docx"
-            )
-
-# -------- TAB 2 ----------
-with tab2:
-    if "math_content" in st.session_state:
-        if st.button("✍️ Soạn giáo án 5 bước"):
-            prompt = f"""
-Soạn giáo án Toán theo hướng phát triển năng lực (5 bước)
-dựa trên nội dung sau:
-
-{st.session_state['math_content']}
-"""
-            with st.spinner("Đang soạn giáo án..."):
-                st.markdown(generate_with_gemini(prompt))
-    else:
-        st.info("👉 Hãy tạo nội dung ở Tab 1 trước.")
-
-# -------- TAB 3 ----------
-with tab3:
-    style = st.selectbox("Phong cách bài hát", ["Rap", "Vè", "Pop"])
-    if st.button("🎤 Sáng tác nhạc Toán"):
-        prompt = f"Viết lời bài hát Toán học phong cách {style} cho bài {bai}"
-        with st.spinner("Đang sáng tác..."):
-            st.markdown(generate_with_gemini(prompt))
-
-# -------- TAB 4 ----------
-with tab4:
-    tts_text = st.text_area("Nhập văn bản cần đọc", "Chào các em học sinh!")
-    if st.button("▶️ Đọc văn bản"):
-        tts = gTTS(text=tts_text, lang="vi")
-        tts.save("voice.mp3")
-        st.audio("voice.mp3")
+            text = generate_with_gemini(prompt, api_key)
+            st.session_state["math]()_
