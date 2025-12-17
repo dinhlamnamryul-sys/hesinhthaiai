@@ -11,26 +11,37 @@ import re
 st.set_page_config(page_title="Math Gen Pro - KNTT", layout="wide", page_icon="🧮")
 
 # ===============================
-# 🔑 NHẬP GOOGLE API KEY
+# 🔑 CẤU HÌNH API & MODEL (SIDEBAR)
 # ===============================
 
-with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
-    st.markdown("""
-### 👉 Cách lấy Google API Key:
-1. Truy cập: **https://aistudio.google.com/app/apikey**
-2. Đăng nhập Gmail.
-3. Nhấn **Create API key**.
-4. Copy API Key.
-5. Dán vào ô bên dưới.
-""")
+with st.sidebar:
+    st.header("🔑 Cấu hình hệ thống")
+    
+    with st.expander("ℹ️ Hướng dẫn lấy Key"):
+        st.markdown("[Lấy API Key tại đây](https://aistudio.google.com/app/apikey)")
+    
+    api_key = st.text_input("Google API Key:", type="password").strip()
 
-st.subheader("🔐 Nhập Google API Key:")
-api_key = st.text_input("Google API Key:", type="password")
-
-if not api_key:
-    st.warning("⚠️ Vui lòng nhập API Key để tiếp tục.")
-else:
-    st.success("✅ API Key hợp lệ!")
+    # --- TÍNH NĂNG MỚI: CHỌN MODEL ---
+    st.markdown("---")
+    st.caption("🛠️ Nếu lỗi, hãy đổi Model bên dưới:")
+    model_choice = st.selectbox(
+        "Chọn Model AI:",
+        [
+            "gemini-1.5-flash",       # Nhanh, chuẩn (Khuyên dùng)
+            "gemini-1.5-flash-8b",    # Bản siêu nhẹ, ít lỗi
+            "gemini-1.5-pro",         # Thông minh nhất (nhưng chậm)
+            "gemini-pro"              # Bản cũ (Ổn định nhất nếu các cái trên lỗi)
+        ],
+        index=0
+    )
+    
+    if api_key:
+        st.success(f"✅ Đang dùng: {model_choice}")
+    else:
+        st.warning("⚠️ Chưa nhập API Key")
+    
+    st.markdown("---")
 
 # ===============================
 # 📚 DỮ LIỆU CHƯƠNG TRÌNH HỌC (FULL)
@@ -125,15 +136,12 @@ bai_options_lop = {
 # ===============================
 
 def format_fix_final(text):
-    """
-    Hàm xử lý hậu kỳ bắt buộc xuống dòng bằng Regex.
-    Chạy hàm này trước khi st.markdown để đảm bảo hiển thị đẹp.
-    """
-    # 1. Xử lý phần Trắc nghiệm (A. B. C. D.)
+    """Xử lý hậu kỳ bắt buộc xuống dòng."""
+    # 1. Trắc nghiệm (A. B. C. D.)
     text = re.sub(r'(\s)([A-D]\.)', r'\n\n\2', text)
-    # 2. Xử lý phần Đúng/Sai (a) b) c) d))
+    # 2. Đúng/Sai (a) b) c) d))
     text = re.sub(r'(\s)([a-d][\)\.])', r'\n\n\2', text)
-    # 3. Xử lý khoảng cách giữa các câu hỏi
+    # 3. Khoảng cách câu hỏi
     text = re.sub(r'(\s)(Câu \d+)', r'\n\n\n\2', text)
     return text
 
@@ -143,8 +151,7 @@ def create_math_prompt_v2(lop, chuong, bai,
                           tlngan_nb, tlngan_th, tlngan_vd,
                           tl_nb, tl_th, tl_vd, 
                           dan_ap_text):
-    """Hàm tạo prompt chi tiết theo ma trận nhận thức"""
-    
+    """Hàm tạo prompt chi tiết"""
     prompt = f"""
 Bạn là giáo viên Toán lớp {lop}, soạn đề kiểm tra theo chương trình GDPT 2018 (Sách Kết nối tri thức).
 - Nội dung kiểm tra: {', '.join(bai)} thuộc các chương {', '.join(chuong)}.
@@ -207,34 +214,31 @@ d) ...
 """
     return prompt
 
-# --- GỌI API BẰNG REQUESTS (Xử lý lỗi thông minh) ---
-def generate_questions(api_key, prompt):
+# --- HÀM GỌI API (QUAN TRỌNG: DÙNG MODEL ĐƯỢC CHỌN TỪ SIDEBAR) ---
+def generate_questions(api_key, prompt, selected_model):
+    # Sử dụng v1beta cho độ tương thích cao nhất
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{selected_model}:generateContent?key={api_key}"
+    
     headers = {"Content-Type": "application/json"}
     payload = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}]
     }
 
-    # Danh sách model thử lần lượt để tránh lỗi 404
-    # Nếu Flash lỗi -> Tự chuyển sang Pro
-    models_to_try = [
-        "gemini-1.5-flash", 
-        "gemini-1.5-flash-latest", 
-        "gemini-pro"
-    ]
-
-    for model in models_to_try:
-        # Sử dụng v1beta để hỗ trợ các model mới nhất
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-        try:
-            r = requests.post(url, json=payload, headers=headers, timeout=60)
-            if r.status_code == 200:
-                j = r.json()
-                if "candidates" in j:
-                    return True, j["candidates"][0]["content"]["parts"][0]["text"]
-        except:
-            continue # Nếu lỗi mạng hoặc API thì thử model tiếp theo
-
-    return False, "❌ Lỗi: Không thể kết nối với AI. Vui lòng kiểm tra lại API Key."
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=60)
+        
+        if response.status_code != 200:
+            # Trả về mã lỗi cụ thể từ Google để dễ debug
+            return False, f"❌ Google API Error {response.status_code}: {response.text}"
+        
+        data = response.json()
+        if "candidates" in data and len(data["candidates"]) > 0:
+            return True, data["candidates"][0]["content"]["parts"][0]["text"]
+        else:
+            return False, "⚠️ AI không trả về nội dung (Response rỗng)."
+            
+    except Exception as e:
+        return False, f"❌ Lỗi kết nối mạng: {str(e)}"
 
 # ===============================
 # 🎛️ SIDEBAR VÀ CẤU HÌNH
@@ -337,11 +341,12 @@ if st.button("🚀 Sinh đề theo cấu hình chi tiết", type="primary"):
             dan_ap
         )
         
-        with st.spinner("Đang kết nối Gemini để sinh đề... (Mất khoảng 10-20 giây)"):
-            success, result = generate_questions(api_key, prompt)
+        with st.spinner("Đang kết nối Gemini để sinh đề..."):
+            # Gọi hàm với model được chọn từ Sidebar
+            success, result = generate_questions(api_key, prompt, model_choice)
             
             if success:
-                # Quan trọng: Gọi hàm sửa lỗi dính dòng
+                # Sửa lỗi dính dòng
                 result_fixed = format_fix_final(result)
                 
                 st.success("✅ Sinh đề thành công!")
@@ -350,4 +355,5 @@ if st.button("🚀 Sinh đề theo cấu hình chi tiết", type="primary"):
                 filename = f"De_{lop}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
                 st.download_button("📥 Tải đề về máy (Markdown)", result_fixed, file_name=filename)
             else:
+                # Hiển thị lỗi chi tiết để bạn biết model nào hỏng
                 st.error(result)
