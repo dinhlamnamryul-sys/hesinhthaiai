@@ -245,46 +245,31 @@ Bạn là giáo viên Toán {lop}, soạn đề kiểm tra theo sách "Kết n�
 - Bài: {', '.join(bai)}
 
 Yêu cầu:
-1. Tổng {so_cau} câu, gồm:
-   - NL (4 lựa chọn): {phan_bo_nl} câu
-   - DS (Đúng/Sai): {phan_bo_ds} câu
-   - TL: {phan_bo_tl} câu
-2. Phân bố nhận thức:
-   - Nhận biết: {so_cau_nb}
-   - Thông hiểu: {so_cau_th}
-   - Vận dụng: {so_cau_vd}
-3. **ĐỊNH DẠNG TOÁN HỌC:** Tất cả công thức toán, biến số ($x, y, z...$) BẮT BUỘC phải viết dưới dạng LaTeX và đặt trong dấu $$. Ví dụ: $$2x^2 - y = 5$$.
-4. Mỗi câu phải gắn nhãn **Mức độ** và **Loại câu hỏi**.
-5. **ĐỊNH DẠNG ĐÁP ÁN TRẮC NGHIỆM (RẤT QUAN TRỌNG):**
-   - Với câu hỏi trắc nghiệm (NL/DS), các phương án A, B, C, D (hoặc mệnh đề a, b, c, d) **BẮT BUỘC PHẢI XUỐNG DÒNG RIÊNG BIỆT**.
-   - **TUYỆT ĐỐI KHÔNG** viết các đáp án trên cùng một dòng (ví dụ: KHÔNG ĐƯỢC viết "A. ... B. ...").
-   - Sau mỗi đáp án phải xuống dòng ngay lập tức.
-   - Câu hỏi phải có tính huống/ngữ cảnh cụ thể.
+1. Tổng {so_cau} câu: {phan_bo_nl} NL, {phan_bo_ds} DS, {phan_bo_tl} TL.
+2. Phân bố mức độ: NB {so_cau_nb}, TH {so_cau_th}, VD {so_cau_vd}.
+3. **LATEX:** Mọi công thức toán phải đặt trong $$. Ví dụ: $$x^2 - 4 = 0$$.
+4. **CẤU TRÚC ĐÁP ÁN (QUAN TRỌNG NHẤT):**
+   - Markdown yêu cầu phải có dòng trống mới xuống dòng được.
+   - Vì vậy, **TRƯỚC mỗi đáp án A, B, C, D phải là một dòng trống (xuống dòng 2 lần)**.
+   - Không được viết A, B, C, D dính liền nhau.
 
-6. **Đáp án Tự luận (TL)**: đánh số 1,2,3...; công thức toán viết dạng LaTeX trong $$.
-7. {dan_ap}
-8. Kết quả trả về **Markdown chuẩn**, trình bày thoáng, dễ đọc để dùng trực tiếp `st.markdown()`.
+5. **MẪU TRÌNH BÀY BẮT BUỘC (Hãy làm y hệt khoảng cách dòng như mẫu này):**
 
-**VÍ DỤ MẪU VỀ ĐỊNH DẠNG HIỂN THỊ (Hãy làm chính xác theo mẫu này):**
-
-**Câu 1.** Nội dung câu hỏi 1? Mức độ: Nhận biết Loại câu hỏi: NL
+**Câu 1.** Nội dung câu hỏi 1...
+(Dòng trống)
 A. $$x = 1$$
+(Dòng trống)
 B. $$x = 2$$
+(Dòng trống)
 C. $$x = 3$$
+(Dòng trống)
 D. $$x = 4$$
 
-**Câu 2.** Nội dung câu hỏi 2? Mức độ: Thông hiểu Loại câu hỏi: NL
-A. Nội dung đáp án A dài...
-B. Nội dung đáp án B dài...
-C. Nội dung đáp án C dài...
-D. Nội dung đáp án D dài...
-
-**Ví dụ định dạng TL**:
-1. $$S = a + b$$
-2. $$P = x \cdot y$$
+6. Đáp án TL: đánh số 1, 2, 3... công thức LaTeX chuẩn.
+7. {dan_ap}
+8. Trả về Markdown.
 """
     return prompt
-
 # --- Gọi API ---
 def generate_questions(api_key, prompt):
     MODEL = "gemini-2.5-flash"
