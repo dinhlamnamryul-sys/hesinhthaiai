@@ -236,38 +236,68 @@ co_dap_an = st.radio(
 # 📝 CÁC HÀM XỬ LÝ CHÍNH
 # ===============================
 
-# --- Hàm tạo prompt ---
-def create_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
-                  so_cau_nb, so_cau_th, so_cau_vd, dan_ap):
-    prompt = f"""
-Bạn là giáo viên Toán {lop}, soạn đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
-- Chương: {', '.join(chuong)}
-- Bài: {', '.join(bai)}
+prompt = f"""
+Bạn là giáo viên Toán lớp {lop}, soạn đề kiểm tra theo chương trình mới (Sách "Kết nối tri thức").
+- Nội dung: Chương {', '.join(chuong)}; Bài {', '.join(bai)}.
 
-Yêu cầu:
-1. Tổng {so_cau} câu: {phan_bo_nl} NL, {phan_bo_ds} DS, {phan_bo_tl} TL.
-2. Phân bố mức độ: NB {so_cau_nb}, TH {so_cau_th}, VD {so_cau_vd}.
-3. **LATEX:** Mọi công thức toán phải đặt trong $$. Ví dụ: $$x^2 - 4 = 0$$.
-4. **CẤU TRÚC ĐÁP ÁN (QUAN TRỌNG NHẤT):**
-   - Markdown yêu cầu phải có dòng trống mới xuống dòng được.
-   - Vì vậy, **TRƯỚC mỗi đáp án A, B, C, D phải là một dòng trống (xuống dòng 2 lần)**.
-   - Không được viết A, B, C, D dính liền nhau.
+**CẤU TRÚC ĐỀ KIỂM TRA (Tổng {so_cau} câu):**
+1. **Phần 1: Trắc nghiệm nhiều lựa chọn (NL)** - {phan_bo_nl} câu. (Chọn A, B, C, D).
+2. **Phần 2: Trắc nghiệm Đúng/Sai (DS)** - {phan_bo_ds} câu. (Mỗi câu gồm 1 đề dẫn và 4 ý a, b, c, d).
+3. **Phần 3: Trắc nghiệm Trả lời ngắn (TL)** - {phan_bo_tl} câu. (Chỉ nêu câu hỏi, học sinh tự điền đáp án).
 
-5. **MẪU TRÌNH BÀY BẮT BUỘC (Hãy làm y hệt khoảng cách dòng như mẫu này):**
+--- **QUY ĐỊNH ĐỊNH DẠNG CHI TIẾT (BẮT BUỘC)** ---
 
-**Câu 1.** Nội dung câu hỏi 1...
-(Dòng trống)
-A. $$x = 1$$
-(Dòng trống)
-B. $$x = 2$$
-(Dòng trống)
-C. $$x = 3$$
-(Dòng trống)
-D. $$x = 4$$
+**1. QUY TẮC CHUNG:**
+- Công thức toán, biến số ($x, y, M...$) phải đặt trong dấu `$$`. Ví dụ: $$y = x^2$$.
+- Các phần phải được phân chia rõ ràng bằng tiêu đề in đậm.
 
-6. Đáp án TL: đánh số 1, 2, 3... công thức LaTeX chuẩn.
-7. {dan_ap}
-8. Trả về Markdown.
+**2. ĐỊNH DẠNG TỪNG PHẦN:**
+
+* **PHẦN 1 (NL):** Đáp án A, B, C, D phải **xuống dòng riêng biệt** (cách nhau 1 dòng trống).
+* **PHẦN 2 (DS):**
+    - Có đoạn văn dẫn/ngữ cảnh (Context).
+    - 4 ý a), b), c), d) phải **xuống dòng riêng biệt**.
+* **PHẦN 3 (TRẢ LỜI NGẮN):**
+    - Chỉ viết nội dung câu hỏi.
+    - Không có đáp án A, B, C, D.
+    - Nội dung phải yêu cầu tính toán ra một con số cụ thể hoặc kết quả ngắn gọn.
+
+--- **MẪU TRÌNH BÀY (AI PHẢI LÀM THEO FORMAT NÀY)** ---
+
+**PHẦN I. TRẮC NGHIỆM NHIỀU LỰA CHỌN**
+**Câu 1.** Giá trị của biểu thức $$A = x^2 - 1$$ tại $$x=2$$ là:
+(Dòng trống)
+A. $$3$$
+(Dòng trống)
+B. $$4$$
+(Dòng trống)
+C. $$5$$
+(Dòng trống)
+D. $$6$$
+
+**PHẦN II. TRẮC NGHIỆM ĐÚNG SAI**
+**Câu 2.** Cho hình chữ nhật $$ABCD$$ có chiều dài $$AB = 4$$ cm, chiều rộng $$BC = 3$$ cm.
+(Dòng trống)
+a) Chu vi hình chữ nhật là 14 cm.
+(Dòng trống)
+b) Độ dài đường chéo $$AC$$ là 5 cm.
+(Dòng trống)
+c) Diện tích hình chữ nhật là 10 cm².
+(Dòng trống)
+d) Tam giác $$ABC$$ là tam giác đều.
+
+**PHẦN III. TRẮC NGHIỆM TRẢ LỜI NGẮN**
+**Câu 3.** Tính giá trị của biểu thức $$P = x^2 + 2x + 1$$ tại $$x = 9$$.
+**Câu 4.** Một khu vườn hình chữ nhật có chu vi là 40m, chiều dài hơn chiều rộng 4m. Tính diện tích khu vườn đó (đơn vị: $$m^2$$).
+**Câu 5.** Cho tam giác $$MNP$$ vuông tại $$M$$, góc $$N = 60^\circ$$. Tính số đo góc $$P$$ (độ).
+
+--- **HẾT PHẦN MẪU** ---
+
+**YÊU CẦU LOGIC NỘI DUNG:**
+- Với bài Hình học: Câu hỏi Trả lời ngắn thường yêu cầu tính độ dài, diện tích, hoặc số đo góc.
+- Với bài Đại số: Câu hỏi Trả lời ngắn thường yêu cầu tính giá trị biểu thức, tìm nghiệm phương trình, hoặc bài toán thực tế.
+- {dan_ap}
+- Kết quả trả về định dạng **Markdown**.
 """
     return prompt
 # --- Gọi API ---
