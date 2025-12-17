@@ -22,16 +22,16 @@ with st.sidebar:
     
     api_key = st.text_input("Google API Key:", type="password").strip()
 
-    # --- TÍNH NĂNG MỚI: CHỌN MODEL ---
+    # --- CẬP NHẬT DANH SÁCH MODEL MỚI NHẤT (ĐÃ LOẠI BỎ MODEL CŨ GÂY LỖI 404) ---
     st.markdown("---")
-    st.caption("🛠️ Nếu lỗi, hãy đổi Model bên dưới:")
+    st.caption("🛠️ Chọn Model AI (Khuyên dùng Flash):")
     model_choice = st.selectbox(
         "Chọn Model AI:",
         [
-            "gemini-1.5-flash",       # Nhanh, chuẩn (Khuyên dùng)
-            "gemini-1.5-flash-8b",    # Bản siêu nhẹ, ít lỗi
-            "gemini-1.5-pro",         # Thông minh nhất (nhưng chậm)
-            "gemini-pro"              # Bản cũ (Ổn định nhất nếu các cái trên lỗi)
+            "gemini-1.5-flash",       # Bản chuẩn, nhanh, ổn định nhất hiện nay
+            "gemini-1.5-flash-8b",    # Bản nhẹ, tốc độ cao
+            "gemini-2.0-flash-exp",   # Bản 2.0 mới nhất (Thông minh hơn)
+            "gemini-1.5-pro"          # Bản Pro (Thông minh nhất nhưng có thể chậm)
         ],
         index=0
     )
