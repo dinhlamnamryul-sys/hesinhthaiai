@@ -6,7 +6,7 @@ from io import BytesIO
 import re
 
 # ===============================
-# ⚙️ CẤU HÌNH TRANG (Phải để đầu tiên)
+# ⚙️ CẤU HÌNH TRANG
 # ===============================
 st.set_page_config(page_title="Math Gen Pro - KNTT", layout="wide", page_icon="🧮")
 
@@ -33,7 +33,7 @@ else:
     st.success("✅ API Key hợp lệ!")
 
 # ===============================
-# 📚 DỮ LIỆU CHƯƠNG TRÌNH HỌC (ĐÃ CẬP NHẬT FULL)
+# 📚 DỮ LIỆU CHƯƠNG TRÌNH HỌC (FULL)
 # ===============================
 
 chuong_options_lop = {
@@ -154,14 +154,12 @@ def format_fix_final(text):
     Chạy hàm này trước khi st.markdown để đảm bảo hiển thị đẹp.
     """
     # 1. Xử lý phần Trắc nghiệm (A. B. C. D.)
-    # Tìm A., B., C., D. đứng đầu dòng hoặc sau khoảng trắng -> Thêm 2 dấu xuống dòng
     text = re.sub(r'(\s)([A-D]\.)', r'\n\n\2', text)
     
     # 2. Xử lý phần Đúng/Sai (a) b) c) d))
-    # Tìm a), b)... hoặc a., b. -> Thêm 2 dấu xuống dòng
     text = re.sub(r'(\s)([a-d][\)\.])', r'\n\n\2', text)
     
-    # 3. Xử lý khoảng cách giữa các câu hỏi (Câu 1., Câu 2...) để đề thoáng hơn
+    # 3. Xử lý khoảng cách giữa các câu hỏi (Câu 1., Câu 2...)
     text = re.sub(r'(\s)(Câu \d+)', r'\n\n\n\2', text)
     
     return text
@@ -236,30 +234,33 @@ d) ...
 """
     return prompt
 
+# --- Hàm gọi API (Code được viết lại theo phong cách cũ của bạn dùng REQUESTS) ---
 def generate_questions(api_key, prompt):
-    """Hàm gọi API Gemini để sinh text"""
-    MODEL = "gemini-2.0-flash-exp" # Dùng model mới hoặc fallback
-    url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={api_key}"
-    payload = {
-        "contents": [{"role": "user", "parts": [{"text": prompt}]}]
-    }
-    headers = {"Content-Type": "application/json"}
+    # Sử dụng 1.5 Flash cho ổn định và v1beta để tránh lỗi 404
+    MODEL = "gemini-1.5-flash" 
+    URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={api_key}"
     
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "contents": [{
+            "role": "user",
+            "parts": [{"text": prompt}]
+        }]
+    }
+
     try:
-        r = requests.post(url, json=payload, headers=headers, timeout=120)
+        # Gọi trực tiếp bằng requests như code cũ
+        response = requests.post(URL, json=payload, headers=headers, timeout=120)
         
-        # Fallback logic
-        if r.status_code != 200:
-             url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
-             r = requests.post(url, json=payload, headers=headers, timeout=120)
+        if response.status_code != 200:
+            return False, f"Lỗi API {response.status_code}: {response.text}"
+        
+        data = response.json()
+        if "candidates" in data and len(data["candidates"]) > 0:
+            return True, data["candidates"][0]["content"]["parts"][0]["text"]
+        else:
+            return False, "AI không trả về nội dung."
             
-        if r.status_code != 200:
-            return False, f"Lỗi API: {r.text}"
-            
-        j = r.json()
-        if j.get("candidates"):
-            return True, j["candidates"][0]["content"]["parts"][0]["text"]
-        return False, "Không có dữ liệu trả về."
     except Exception as e:
         return False, f"Lỗi kết nối: {str(e)}"
 
@@ -271,15 +272,12 @@ with st.sidebar:
     st.header("1. Chọn nội dung")
     lop = st.selectbox("Chọn lớp", ["Lớp 6","Lớp 7","Lớp 8","Lớp 9"], index=3)
     
-    # Lấy danh sách chương theo lớp
     chuong_options = chuong_options_lop.get(lop, [])
     chuong = st.multiselect("Chọn chương", chuong_options, default=[chuong_options[0]] if chuong_options else None)
     
-    # Lấy danh sách bài học dựa trên các chương đã chọn
     bai_list_all = []
     if chuong:
         for c in chuong:
-            # Lấy bài của từng chương và thêm vào list chung
             bai_trong_chuong = bai_options_lop.get(lop, {}).get(c, [])
             bai_list_all.extend(bai_trong_chuong)
     
@@ -293,16 +291,14 @@ with st.sidebar:
     co_dap_an = st.radio("Chế độ đáp án:", ["Có đáp án chi tiết", "Không đáp án"], index=0)
 
 # ===============================
-# 🎚️ CẤU HÌNH MA TRẬN ĐỀ (GIAO DIỆN MỚI)
+# 🎚️ CẤU HÌNH MA TRẬN ĐỀ
 # ===============================
 
 st.header("🛠️ 2. Cấu hình Ma trận đề thi")
 st.markdown("Chỉnh số lượng câu hỏi theo mức độ nhận thức cho từng phần:")
 
-# Tạo 4 Tabs cho 4 loại câu hỏi
 tab1, tab2, tab3, tab4 = st.tabs(["1. TN Nhiều lựa chọn", "2. TN Đúng/Sai", "3. TN Trả lời ngắn", "4. Tự luận"])
 
-# 1. TRẮC NGHIỆM NHIỀU LỰA CHỌN (NL)
 with tab1:
     st.subheader("Phần 1: Trắc nghiệm (4 lựa chọn A,B,C,D)")
     c1, c2, c3 = st.columns(3)
@@ -312,7 +308,6 @@ with tab1:
     total_nl = nl_nb + nl_th + nl_vd
     st.info(f"👉 Tổng phần này: **{total_nl}** câu")
 
-# 2. TRẮC NGHIỆM ĐÚNG SAI (DS)
 with tab2:
     st.subheader("Phần 2: Trắc nghiệm Đúng/Sai (4 ý a,b,c,d)")
     c1, c2, c3 = st.columns(3)
@@ -320,11 +315,10 @@ with tab2:
     ds_th = c2.number_input("Số câu Thông hiểu (DS)", min_value=0, value=2, key="ds_th")
     ds_vd = c3.number_input("Số câu Vận dụng (DS)", min_value=0, value=1, key="ds_vd")
     total_ds = ds_nb + ds_th + ds_vd
-    st.info(f"👉 Tổng phần này: **{total_ds}** câu (Mỗi câu gồm 4 ý nhỏ)")
+    st.info(f"👉 Tổng phần này: **{total_ds}** câu")
 
-# 3. TRẮC NGHIỆM TRẢ LỜI NGẮN (TNTL)
 with tab3:
-    st.subheader("Phần 3: Trắc nghiệm Trả lời ngắn (Điền số/kết quả)")
+    st.subheader("Phần 3: Trắc nghiệm Trả lời ngắn")
     c1, c2, c3 = st.columns(3)
     tlngan_nb = c1.number_input("Số câu Nhận biết (TL ngắn)", min_value=0, value=1, key="tlngan_nb")
     tlngan_th = c2.number_input("Số câu Thông hiểu (TL ngắn)", min_value=0, value=2, key="tlngan_th")
@@ -332,9 +326,8 @@ with tab3:
     total_tlngan = tlngan_nb + tlngan_th + tlngan_vd
     st.info(f"👉 Tổng phần này: **{total_tlngan}** câu")
 
-# 4. TỰ LUẬN (TL)
 with tab4:
-    st.subheader("Phần 4: Bài tập Tự luận (Trình bày chi tiết)")
+    st.subheader("Phần 4: Bài tập Tự luận")
     c1, c2, c3 = st.columns(3)
     tl_nb = c1.number_input("Số câu Nhận biết (Tự luận)", min_value=0, value=0, key="tl_nb")
     tl_th = c2.number_input("Số câu Thông hiểu (Tự luận)", min_value=0, value=1, key="tl_th")
@@ -358,13 +351,11 @@ if st.button("🚀 Sinh đề theo cấu hình chi tiết", type="primary"):
     elif not bai:
         st.warning("Vui lòng chọn bài học cần kiểm tra!")
     else:
-        # Xử lý text hướng dẫn chấm
         if co_dap_an == "Có đáp án chi tiết":
             dan_ap = "Cuối đề thi phải có PHẦN ĐÁP ÁN (Bảng đáp án cho TN) và HƯỚNG DẪN GIẢI CHI TIẾT cho từng câu."
         else:
             dan_ap = "KHÔNG hiển thị đáp án và lời giải."
 
-        # 1. Tạo prompt
         prompt = create_math_prompt_v2(
             lop, chuong, bai,
             nl_nb, nl_th, nl_vd,
@@ -375,18 +366,16 @@ if st.button("🚀 Sinh đề theo cấu hình chi tiết", type="primary"):
         )
         
         with st.spinner("Đang kết nối Gemini để sinh đề... (Mất khoảng 10-20 giây)"):
+            # Gọi hàm generate_questions (đã viết lại theo style cũ)
             success, result = generate_questions(api_key, prompt)
             
             if success:
-                # 2. QUAN TRỌNG: Gọi hàm sửa lỗi dính dòng
+                # Quan trọng: Gọi hàm sửa lỗi dính dòng
                 result_fixed = format_fix_final(result)
                 
                 st.success("✅ Sinh đề thành công!")
-                
-                # 3. Hiển thị kết quả
                 st.markdown(result_fixed, unsafe_allow_html=True)
                 
-                # 4. Nút tải về
                 filename = f"De_{lop}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
                 st.download_button("📥 Tải đề về máy (Markdown)", result_fixed, file_name=filename)
             else:
