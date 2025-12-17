@@ -1,8 +1,35 @@
-import streamlit as st
-import pandas as pd
-from docx import Document
-from io import BytesIO
-import math
+# ===============================
+# 🔑 NHẬP GOOGLE API KEY
+# ===============================
+
+with st.expander("🔑 Hướng dẫn lấy Google API Key (bấm để xem)"):
+    st.markdown("""
+### 👉 Cách lấy Google API Key để dùng ứng dụng:
+
+1. Truy cập: **https://aistudio.google.com/app/apikey**
+2. Đăng nhập Gmail.
+3. Nhấn **Create API key**.
+4. Copy API Key.
+5. Dán vào ô bên dưới.
+
+⚠️ Không chia sẻ API Key cho người khác.
+""")
+
+st.subheader("🔐 Nhập Google API Key:")
+api_key = st.text_input("Google API Key:", type="password")
+
+if not api_key:
+    st.warning("⚠️ Nhập API Key để tiếp tục.")
+else:
+    st.success("✅ API Key hợp lệ!")
+
+
+# ===============================
+# 📌 HÀM GỌI GEMINI (GIỮ NGUYÊN)
+# ===============================
+def analyze_real_image(api_key, image, prompt):
+    pass 
+
 
 st.set_page_config(page_title="Tạo đề Toán 6-9 (Tối giản & Chuẩn Output)", page_icon="📝", layout="wide")
 st.title("📝 Tạo đề kiểm tra môn Toán (Tối giản - Theo CV 7991 & Format Mẫu)")
