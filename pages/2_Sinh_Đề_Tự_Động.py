@@ -236,7 +236,7 @@ co_dap_an = st.radio(
 # 📝 CÁC HÀM XỬ LÝ CHÍNH
 # ===============================
 
-  def create_math_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl, 
+def create_math_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl, 
                        so_cau_nb, so_cau_th, so_cau_vd, dan_ap):
     prompt = f"""
 Bạn là giáo viên Toán lớp {lop}, soạn đề kiểm tra theo chương trình mới (Sách "Kết nối tri thức").
@@ -302,6 +302,7 @@ d) Tam giác $$ABC$$ là tam giác đều.
 - Kết quả trả về định dạng **Markdown**.
 """
     return prompt
+
 # --- Gọi API ---
 def generate_questions(api_key, prompt):
     MODEL = "gemini-2.5-flash"
@@ -334,9 +335,15 @@ if st.button("Sinh đề chuẩn + đáp án cách dòng"):
     if not api_key:
         st.warning("Nhập API Key trước khi sinh đề!")
     else:
-        # Gọi đúng tên hàm create_prompt thay vì build_prompt
-        prompt = create_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
-                               so_cau_nb, so_cau_th, so_cau_vd, co_dap_an)
+        # Chuyển đổi lựa chọn radio thành chuỗi hướng dẫn
+        if co_dap_an == "Có đáp án":
+            dan_ap_text = "YÊU CẦU ĐẶC BIỆT: Cuối đề thi phải có PHẦN HƯỚNG DẪN GIẢI CHI TIẾT và ĐÁP ÁN cho từng câu."
+        else:
+            dan_ap_text = "YÊU CẦU ĐẶC BIỆT: KHÔNG hiển thị đáp án và lời giải."
+
+        # Gọi đúng tên hàm create_math_prompt
+        prompt = create_math_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
+                                    so_cau_nb, so_cau_th, so_cau_vd, dan_ap_text)
         
         with st.spinner("Đang sinh đề (Markdown + LaTeX + đáp án cách dòng)..."):
             success, result = generate_questions(api_key, prompt)
