@@ -240,7 +240,7 @@ co_dap_an = st.radio(
 def create_prompt(lop, chuong, bai, so_cau, phan_bo_nl, phan_bo_ds, phan_bo_tl,
                   so_cau_nb, so_cau_th, so_cau_vd, dan_ap):
     prompt = f"""
-Bạn là giáo viên Toán {lop}, sinh đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
+Bạn là giáo viên Toán {lop}, soạn đề kiểm tra theo sách "Kết nối tri thức với cuộc sống".
 - Chương: {', '.join(chuong)}
 - Bài: {', '.join(bai)}
 
@@ -253,24 +253,35 @@ Yêu cầu:
    - Nhận biết: {so_cau_nb}
    - Thông hiểu: {so_cau_th}
    - Vận dụng: {so_cau_vd}
-3. **TẤT CẢ CÔNG THỨC TOÁN PHẢI VIẾT DƯỚI DẠNG LaTeX, đặt trong $$...$$.**
+3. **ĐỊNH DẠNG TOÁN HỌC:** Tất cả công thức toán, biến số ($x, y, z...$) BẮT BUỘC phải viết dưới dạng LaTeX và đặt trong dấu $$. Ví dụ: $$2x^2 - y = 5$$.
 4. Mỗi câu phải gắn nhãn **Mức độ** và **Loại câu hỏi**.
-5. **Đáp án NL/DS**: mỗi đáp án A/B/C/D hoặc Đúng/Sai viết **xuống dòng riêng**, không viết liền nhau và phải là câu hỏi có tình huống.
-6. **Đáp án TL**: đánh số 1,2,3…; mọi công thức toán phải viết dưới dạng LaTeX trong $$...$$.
+5. **ĐỊNH DẠNG ĐÁP ÁN TRẮC NGHIỆM (RẤT QUAN TRỌNG):**
+   - Với câu hỏi trắc nghiệm (NL/DS), các phương án A, B, C, D (hoặc mệnh đề a, b, c, d) **BẮT BUỘC PHẢI XUỐNG DÒNG RIÊNG BIỆT**.
+   - **TUYỆT ĐỐI KHÔNG** viết các đáp án trên cùng một dòng (ví dụ: KHÔNG ĐƯỢC viết "A. ... B. ...").
+   - Sau mỗi đáp án phải xuống dòng ngay lập tức.
+   - Câu hỏi phải có tính huống/ngữ cảnh cụ thể.
+
+6. **Đáp án Tự luận (TL)**: đánh số 1,2,3...; công thức toán viết dạng LaTeX trong $$.
 7. {dan_ap}
-8. Kết quả trả về **Markdown chuẩn**, có thể dùng trực tiếp `st.markdown()`.
+8. Kết quả trả về **Markdown chuẩn**, trình bày thoáng, dễ đọc để dùng trực tiếp `st.markdown()`.
 
-**Ví dụ định dạng đáp án NL/DS tất cả các lớp từ 6 đến 9 các chương, các bài phải theo định dạng dưới này**:
+**VÍ DỤ MẪU VỀ ĐỊNH DẠNG HIỂN THỊ (Hãy làm chính xác theo mẫu này):**
 
-A. Đáp án 1.  
-B. Đáp án 2.  
-C. Đáp án 3.  
-D. Đáp án 4.
+**Câu 1.** Nội dung câu hỏi 1? Mức độ: Nhận biết Loại câu hỏi: NL
+A. $$x = 1$$
+B. $$x = 2$$
+C. $$x = 3$$
+D. $$x = 4$$
+
+**Câu 2.** Nội dung câu hỏi 2? Mức độ: Thông hiểu Loại câu hỏi: NL
+A. Nội dung đáp án A dài...
+B. Nội dung đáp án B dài...
+C. Nội dung đáp án C dài...
+D. Nội dung đáp án D dài...
 
 **Ví dụ định dạng TL**:
-
-1. $$Công thức 1$$  
-2. $$Công thức 2$$
+1. $$S = a + b$$
+2. $$P = x \cdot y$$
 """
     return prompt
 
