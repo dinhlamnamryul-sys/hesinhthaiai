@@ -198,7 +198,6 @@ def create_docx_bytes(text):
 # ===============================
 tab1, tab2, tab3, tab4 = st.tabs([
     "📘 Tổng hợp kiến thức",
-    "📝 Soạn giáo án",
     "🎵 Nhạc Toán",
     "🎧 Đọc văn bản"
 ])
