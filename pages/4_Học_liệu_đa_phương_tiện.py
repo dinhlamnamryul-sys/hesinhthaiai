@@ -149,7 +149,7 @@ bai_options_lop = {
 # 4. HÀM GỌI GEMINI (Đã xử lý lỗi & Model chuẩn)
 # ===============================
 def generate_with_gemini(prompt, api_key, retry=3):
-    MODEL = "gemini-1.5-flash" 
+    MODEL = "gemini-2.5-flash" 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={api_key}"
 
     payload = {
