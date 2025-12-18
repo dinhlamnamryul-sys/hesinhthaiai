@@ -196,7 +196,7 @@ st.markdown(f"""
         -webkit-text-fill-color: transparent; 
     }}
     
-    /* 4. Đa Phương Tiện (Crimson Red) */
+    /* 4. Học Liệu Đa Phương Tiện (Crimson Red) */
     .card-media .card-title {{ 
         background: linear-gradient(45deg, #ff3d00, #b71c1c); 
         -webkit-background-clip: text; 
