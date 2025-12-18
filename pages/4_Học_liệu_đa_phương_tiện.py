@@ -21,21 +21,20 @@ st.title("🎓 Trợ lý Giáo dục Đa năng (Gemini AI)")
 # ===============================
 with st.expander("🔑 Hướng dẫn lấy Google API Key"):
     st.markdown("""
-1. Truy cập: https://aistudio.google.com/app/apikey  
-2. Đăng nhập Gmail  
-3. Nhấn **Create API key**  
-4. Copy API Key  
-⚠️ Không chia sẻ API Key
-""")
+    1. Truy cập: https://aistudio.google.com/app/apikey  
+    2. Đăng nhập Gmail  
+    3. Nhấn **Create API key** 4. Copy API Key  
+    ⚠️ Không chia sẻ API Key
+    """)
 
 api_key = st.text_input("🔐 Google API Key", type="password")
 
 if not api_key:
-    st.warning("⚠️ Vui lòng nhập API Key")
+    st.warning("⚠️ Vui lòng nhập API Key để bắt đầu")
     st.stop()
 
 # ===============================
-# 3. DỮ LIỆU CHƯƠNG – BÀI
+# 3. DỮ LIỆU CHƯƠNG – BÀI (ĐẦY ĐỦ)
 # ===============================
 chuong_options_lop = {
     "Lớp 6": [
@@ -147,10 +146,10 @@ bai_options_lop = {
 }
 
 # ===============================
-# 4. HÀM GỌI GEMINI (XỬ LÝ 503)
+# 4. HÀM GỌI GEMINI (Đã xử lý lỗi & Model chuẩn)
 # ===============================
 def generate_with_gemini(prompt, api_key, retry=3):
-    MODEL = "gemini-2.5-flash" # ổn định hơn
+    MODEL = "gemini-1.5-flash" 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={api_key}"
 
     payload = {
@@ -159,21 +158,26 @@ def generate_with_gemini(prompt, api_key, retry=3):
             "parts": [{"text": prompt}]
         }]
     }
+    
+    headers = {'Content-Type': 'application/json'}
 
     for attempt in range(retry):
         try:
-            response = requests.post(url, json=payload, timeout=60)
-
+            response = requests.post(url, json=payload, headers=headers, timeout=60)
+            
             if response.status_code == 200:
                 data = response.json()
-                return data["candidates"][0]["content"]["parts"][0]["text"]
-
+                if "candidates" in data and len(data["candidates"]) > 0:
+                    return data["candidates"][0]["content"]["parts"][0]["text"]
+                else:
+                    return "⚠️ API trả về nhưng không có nội dung (Safety blocking?)."
+            
             elif response.status_code == 503:
-                time.sleep(2)  # chờ rồi thử lại
-
+                time.sleep(2)  # Chờ rồi thử lại
+            
             else:
-                return f"❌ Lỗi API {response.status_code}\n{response.text}"
-
+                return f"❌ Lỗi API {response.status_code}: {response.text}"
+                
         except Exception as e:
             return f"❌ Lỗi kết nối: {e}"
 
@@ -187,40 +191,44 @@ def create_docx_bytes(text):
     doc.add_heading("TÀI LIỆU TOÁN HỌC (AI)", 0)
     for line in text.split("\n"):
         doc.add_paragraph(line)
-
+    
     buf = BytesIO()
     doc.save(buf)
     buf.seek(0)
     return buf
 
 # ===============================
-# 6. GIAO DIỆN TABS
+# 6. GIAO DIỆN TABS (Đã loại bỏ Soạn giáo án)
 # ===============================
-tab1, tab2, tab3, tab4 = st.tabs([
-    "📘 Tổng hợp kiến thức",
-    "🎵 Nhạc Toán",
+tab1, tab2, tab3 = st.tabs([
+    "📘 Tổng hợp kiến thức", 
+    "🎵 Nhạc Toán", 
     "🎧 Đọc văn bản"
 ])
 
-# -------- TAB 1 ----------
+# -------- TAB 1: TỔNG HỢP KIẾN THỨC ----------
 with tab1:
     c1, c2, c3 = st.columns(3)
     with c1:
-        lop = st.selectbox("Lớp", chuong_options_lop.keys())
+        lop = st.selectbox("Lớp", list(chuong_options_lop.keys()))
     with c2:
         chuong = st.selectbox("Chương", chuong_options_lop[lop])
     with c3:
-        bai = st.selectbox("Bài", bai_options_lop[lop][chuong])
+        # Lấy danh sách bài, xử lý trường hợp không có dữ liệu
+        ds_bai = bai_options_lop.get(lop, {}).get(chuong, ["Bài mở đầu"])
+        if len(ds_bai) == 0: ds_bai = ["Ôn tập chương"] # Fallback
+        bai = st.selectbox("Bài", ds_bai)
 
     if st.button("🚀 Tổng hợp nội dung"):
         prompt = f"""
-Bạn là giáo viên Toán THCS.
-Soạn bài {bai} – {chuong} ({lop})
+        Bạn là giáo viên Toán THCS.
+        Hãy soạn nội dung cho: {bai} – thuộc {chuong} ({lop})
 
-Yêu cầu:
-- Ngắn gọn, dễ hiểu
-- Có: khái niệm, công thức, ví dụ, bài tập
-"""
+        Yêu cầu:
+        1. Trình bày Ngắn gọn, dễ hiểu.
+        2. Có: Khái niệm, Công thức, Ví dụ minh họa, 3 Bài tập tự luyện (có đáp án).
+        3. Sử dụng Markdown để trình bày đẹp.
+        """
         with st.spinner("⏳ Đang tạo nội dung..."):
             text = generate_with_gemini(prompt, api_key)
             st.session_state["math_content"] = text
@@ -228,31 +236,41 @@ Yêu cầu:
             st.download_button(
                 "📥 Tải file Word",
                 create_docx_bytes(text),
-                file_name="Toan_AI.docx"
+                file_name="Toan_AI.docx",
+                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
 
-# -------- TAB 2 ----------
+# -------- TAB 2: NHẠC TOÁN ----------
 with tab2:
-    if "math_content" in st.session_state:
-        if st.button("✍️ Soạn giáo án 5 bước"):
-            prompt = f"Soạn giáo án Toán 5 bước dựa trên:\n{st.session_state['math_content']}"
-            with st.spinner("Đang soạn giáo án..."):
-                st.markdown(generate_with_gemini(prompt, api_key))
-    else:
-        st.info("👉 Vui lòng tạo nội dung ở Tab 1 trước.")
-
-# -------- TAB 3 ----------
-with tab3:
-    style = st.selectbox("Phong cách", ["Rap", "Vè", "Pop"])
-    if st.button("🎤 Sáng tác nhạc Toán"):
-        prompt = f"Viết bài hát Toán phong cách {style} cho bài {bai}"
+    st.header("Sáng tác Nhạc Toán học")
+    style = st.selectbox("Phong cách", ["Rap", "Vè dân gian", "Pop", "Thơ lục bát"])
+    if st.button("🎤 Sáng tác bài hát"):
+        # Lấy thông tin từ Tab 1
+        content_context = st.session_state.get("math_content", f"Bài {bai} - {chuong}")
+        
+        prompt = f"""
+        Hãy viết lời bài hát theo phong cách {style}.
+        Chủ đề: Giúp học sinh nhớ kiến thức toán học của bài: {bai} - {chuong}.
+        Dựa trên nội dung chính: {content_context[:500]}...
+        Yêu cầu: Vui nhộn, dễ thuộc.
+        """
         with st.spinner("Đang sáng tác..."):
             st.markdown(generate_with_gemini(prompt, api_key))
 
-# -------- TAB 4 ----------
-with tab4:
-    tts_text = st.text_area("Nhập văn bản", "Chào các em học sinh!")
+# -------- TAB 3: ĐỌC VĂN BẢN (TTS) ----------
+with tab3:
+    st.header("Chuyển văn bản thành giọng nói")
+    tts_text = st.text_area("Nhập văn bản", "Chào các em học sinh thân mến!")
     if st.button("▶️ Đọc văn bản"):
-        tts = gTTS(text=tts_text, lang="vi")
-        tts.save("voice.mp3")
-        st.audio("voice.mp3")
+        if tts_text.strip():
+            try:
+                with st.spinner("Đang xử lý âm thanh..."):
+                    tts = gTTS(text=tts_text, lang="vi")
+                    # Dùng bộ nhớ đệm (RAM) để không phải lưu file
+                    audio_bytes = BytesIO()
+                    tts.write_to_fp(audio_bytes)
+                    st.audio(audio_bytes, format="audio/mp3")
+            except Exception as e:
+                st.error(f"Lỗi: {e}")
+        else:
+            st.warning("Vui lòng nhập nội dung.")
