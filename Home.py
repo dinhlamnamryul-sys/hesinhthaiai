@@ -74,15 +74,17 @@ st.set_page_config(
 )
 
 # --- 2. TẠO CSS CHO HEADER DỰA TRÊN VIỆC CÓ ẢNH NỀN HAY KHÔNG ---
+# [ĐIỀU CHỈNH QUAN TRỌNG]: Thay đổi độ mờ lớp phủ để ảnh nét hơn
 if base64_image:
     header_css = f"""
     .main-header {{
-        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url("data:image/jpg;base64,{base64_image}");
-        background-size: cover;
-        background-position: center;
+        /* Giảm độ tối từ 0.6 xuống 0.2 để ảnh gốc hiện rõ nét như thật */
+        background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url("data:image/jpg;base64,{base64_image}");
+        background-size: cover; /* Đảm bảo ảnh phủ kín khung */
+        background-position: center center; /* Căn giữa ảnh để lấy trọng tâm */
         background-repeat: no-repeat;
         color: white; 
-        padding: 50px; 
+        padding: 60px 20px; 
         border-radius: 25px; 
         text-align: center;
         box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5); 
@@ -92,10 +94,22 @@ if base64_image:
         position: relative;
         overflow: hidden;
     }}
-    .main-header h1, .main-header h3 {{
+    .main-header h1 {{
         z-index: 10; 
         position: relative;
-        text-shadow: 2px 2px 6px rgba(0,0,0,0.9); 
+        /* Tăng đổ bóng cho chữ để đọc rõ trên nền ảnh sáng */
+        text-shadow: 3px 3px 8px #000000; 
+        font-size: 3.5rem !important;
+    }}
+    .main-header h3 {{
+        z-index: 10; 
+        position: relative;
+        text-shadow: 2px 2px 6px #000000; 
+        font-weight: 600;
+        background-color: rgba(0,0,0,0.3); /* Thêm nền mờ nhẹ riêng cho dòng slogan */
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
     }}
     """
 else:
