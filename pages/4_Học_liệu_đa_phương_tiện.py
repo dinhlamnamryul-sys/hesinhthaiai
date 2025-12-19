@@ -264,7 +264,7 @@ with tab1:
         st.markdown("---")
         
         # Phần Dịch sang H'Mông
-        st.subheader("🌏 Hỗ trợ ngôn ngữ vùng cao")
+        st.subheader("🌏 Dịch sang tiếng H'Mông")
         col_trans_1, col_trans_2 = st.columns([1, 3])
         
         with col_trans_1:
