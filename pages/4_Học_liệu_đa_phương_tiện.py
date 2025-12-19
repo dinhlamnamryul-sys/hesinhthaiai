@@ -149,7 +149,7 @@ bai_options_lop = {
 # 4. HÀM GỌI GEMINI (Đã xử lý lỗi & Model chuẩn)
 # ===============================
 def generate_with_gemini(prompt, api_key, retry=3):
-    MODEL = "gemini-2.5-flash" 
+    MODEL = "gemini-2.5-flash" # Cập nhật lên bản 2.0 mới nhất hoặc dùng 1.5-flash
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={api_key}"
 
     payload = {
@@ -198,7 +198,7 @@ def create_docx_bytes(text):
     return buf
 
 # ===============================
-# 6. GIAO DIỆN TABS (Đã loại bỏ Soạn giáo án)
+# 6. GIAO DIỆN TABS
 # ===============================
 tab1, tab2, tab3 = st.tabs([
     "📘 Tổng hợp kiến thức", 
@@ -206,7 +206,7 @@ tab1, tab2, tab3 = st.tabs([
     "🎧 Đọc văn bản"
 ])
 
-# -------- TAB 1: TỔNG HỢP KIẾN THỨC ----------
+# -------- TAB 1: TỔNG HỢP KIẾN THỨC (Cập nhật dịch H'Mông) ----------
 with tab1:
     c1, c2, c3 = st.columns(3)
     with c1:
@@ -219,7 +219,8 @@ with tab1:
         if len(ds_bai) == 0: ds_bai = ["Ôn tập chương"] # Fallback
         bai = st.selectbox("Bài", ds_bai)
 
-    if st.button("🚀 Tổng hợp nội dung"):
+    # Nút tạo nội dung Tiếng Việt
+    if st.button("🚀 Tổng hợp nội dung (Tiếng Việt)"):
         prompt = f"""
         Bạn là giáo viên Toán THCS.
         Hãy soạn nội dung cho: {bai} – thuộc {chuong} ({lop})
@@ -232,11 +233,55 @@ with tab1:
         with st.spinner("⏳ Đang tạo nội dung..."):
             text = generate_with_gemini(prompt, api_key)
             st.session_state["math_content"] = text
-            st.markdown(text)
+            # Xóa bản dịch cũ nếu tạo bài mới
+            if "hmong_content" in st.session_state:
+                del st.session_state["hmong_content"]
+
+    # Hiển thị nội dung Tiếng Việt nếu đã có
+    if "math_content" in st.session_state:
+        st.subheader("🇻🇳 Nội dung Tiếng Việt")
+        st.markdown(st.session_state["math_content"])
+        
+        st.download_button(
+            "📥 Tải file Word (Tiếng Việt)",
+            create_docx_bytes(st.session_state["math_content"]),
+            file_name="Toan_AI_Vietnamese.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+        
+        st.markdown("---")
+        
+        # Phần Dịch sang H'Mông
+        st.subheader("🌏 Hỗ trợ ngôn ngữ vùng cao")
+        col_trans_1, col_trans_2 = st.columns([1, 3])
+        
+        with col_trans_1:
+            if st.button("🔄 Dịch sang tiếng H'Mông"):
+                trans_prompt = f"""
+                Bạn là một chuyên gia ngôn ngữ và giáo dục vùng cao.
+                Hãy dịch toàn bộ nội dung toán học dưới đây sang tiếng H'Mông (Hmoob).
+                
+                Yêu cầu quan trọng:
+                1. Giữ nguyên toàn bộ các công thức toán học, số liệu và định dạng Markdown/LaTeX.
+                2. Dịch thuật ngữ toán học chính xác nhưng dễ hiểu cho học sinh dân tộc.
+                3. Giữ nguyên cấu trúc bài (Khái niệm, Ví dụ, Bài tập).
+                
+                Nội dung cần dịch:
+                {st.session_state["math_content"]}
+                """
+                with st.spinner("⏳ Đang dịch sang tiếng H'Mông..."):
+                    hmong_text = generate_with_gemini(trans_prompt, api_key)
+                    st.session_state["hmong_content"] = hmong_text
+
+        # Hiển thị kết quả dịch
+        if "hmong_content" in st.session_state:
+            st.markdown("### 🟢 Nội dung tiếng H'Mông (Hmoob)")
+            st.markdown(st.session_state["hmong_content"])
+            
             st.download_button(
-                "📥 Tải file Word",
-                create_docx_bytes(text),
-                file_name="Toan_AI.docx",
+                "📥 Tải file Word (Tiếng H'Mông)",
+                create_docx_bytes(st.session_state["hmong_content"]),
+                file_name="Toan_AI_Hmong.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
 
