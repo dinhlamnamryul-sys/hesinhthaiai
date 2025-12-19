@@ -149,7 +149,7 @@ bai_options_lop = {
 # 4. HÀM GỌI GEMINI (Đã xử lý lỗi & Model chuẩn)
 # ===============================
 def generate_with_gemini(prompt, api_key, retry=3):
-    MODEL = "gemini-2.5-flash" # Cập nhật lên bản 2.0 mới nhất hoặc dùng 1.5-flash
+    MODEL = "gemini-2.0-flash" 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={api_key}"
 
     payload = {
@@ -170,7 +170,7 @@ def generate_with_gemini(prompt, api_key, retry=3):
                 if "candidates" in data and len(data["candidates"]) > 0:
                     return data["candidates"][0]["content"]["parts"][0]["text"]
                 else:
-                    return "⚠️ API trả về nhưng không có nội dung (Safety blocking?)."
+                    return "⚠️ API trả về nhưng không có nội dung."
             
             elif response.status_code == 503:
                 time.sleep(2)  # Chờ rồi thử lại
@@ -190,6 +190,7 @@ def create_docx_bytes(text):
     doc = Document()
     doc.add_heading("TÀI LIỆU TOÁN HỌC (AI)", 0)
     for line in text.split("\n"):
+        # Xử lý đơn giản để tránh lỗi ký tự lạ
         doc.add_paragraph(line)
     
     buf = BytesIO()
@@ -206,7 +207,7 @@ tab1, tab2, tab3 = st.tabs([
     "🎧 Đọc văn bản"
 ])
 
-# -------- TAB 1: TỔNG HỢP KIẾN THỨC (Cập nhật dịch H'Mông) ----------
+# -------- TAB 1: TỔNG HỢP KIẾN THỨC (Cập nhật dịch H'Mông & LaTeX) ----------
 with tab1:
     c1, c2, c3 = st.columns(3)
     with c1:
@@ -221,16 +222,26 @@ with tab1:
 
     # Nút tạo nội dung Tiếng Việt
     if st.button("🚀 Tổng hợp nội dung (Tiếng Việt)"):
+        # --- CẬP NHẬT PROMPT ĐỂ ÉP LATEX ---
         prompt = f"""
         Bạn là giáo viên Toán THCS.
         Hãy soạn nội dung cho: {bai} – thuộc {chuong} ({lop})
 
-        Yêu cầu:
-        1. Trình bày Ngắn gọn, dễ hiểu.
-        2. Có: Khái niệm, Công thức, Ví dụ minh họa, 3 Bài tập tự luyện (có đáp án).
-        3. Sử dụng Markdown để trình bày đẹp.
+        YÊU CẦU ĐỊNH DẠNG QUAN TRỌNG (LATEX):
+        1. **BẮT BUỘC sử dụng LaTeX** cho TẤT CẢ các biểu thức toán học, ký hiệu, biến số và đơn vị đo lường đặc biệt.
+           - Định dạng inline: $ ... $ (Ví dụ: $x^2 + 2x$, $\Delta ABC$, $90^\circ$)
+           - Định dạng block: $$ ... $$ cho các công thức lớn.
+        2. KHÔNG viết công thức dạng văn bản thường (Ví dụ SAI: x bình phương, a/b).
+        3. Sử dụng Markdown để trình bày tiêu đề rõ ràng.
+
+        Nội dung cần có:
+        1. Khái niệm/Lý thuyết cơ bản.
+        2. Công thức trọng tâm (Dùng LaTeX $$...$$).
+        3. Ví dụ minh họa (Giải thích chi tiết).
+        4. 3 Bài tập tự luyện (Có đáp án chi tiết).
         """
-        with st.spinner("⏳ Đang tạo nội dung..."):
+        
+        with st.spinner("⏳ Đang tạo nội dung với định dạng LaTeX..."):
             text = generate_with_gemini(prompt, api_key)
             st.session_state["math_content"] = text
             # Xóa bản dịch cũ nếu tạo bài mới
@@ -240,6 +251,7 @@ with tab1:
     # Hiển thị nội dung Tiếng Việt nếu đã có
     if "math_content" in st.session_state:
         st.subheader("🇻🇳 Nội dung Tiếng Việt")
+        # Streamlit hỗ trợ render LaTeX trong markdown
         st.markdown(st.session_state["math_content"])
         
         st.download_button(
@@ -257,19 +269,21 @@ with tab1:
         
         with col_trans_1:
             if st.button("🔄 Dịch sang tiếng H'Mông"):
+                # --- CẬP NHẬT PROMPT DỊCH ĐỂ GIỮ LATEX ---
                 trans_prompt = f"""
                 Bạn là một chuyên gia ngôn ngữ và giáo dục vùng cao.
-                Hãy dịch toàn bộ nội dung toán học dưới đây sang tiếng H'Mông (Hmoob).
+                Hãy dịch nội dung toán học dưới đây sang tiếng H'Mông (Hmoob).
                 
-                Yêu cầu quan trọng:
-                1. Giữ nguyên toàn bộ các công thức toán học, số liệu và định dạng Markdown/LaTeX.
-                2. Dịch thuật ngữ toán học chính xác nhưng dễ hiểu cho học sinh dân tộc.
-                3. Giữ nguyên cấu trúc bài (Khái niệm, Ví dụ, Bài tập).
+                QUY TẮC BẤT DI BẤT DỊCH:
+                1. **GIỮ NGUYÊN 100%** các đoạn mã LaTeX (trong dấu $...$ hoặc $$...$$). KHÔNG ĐƯỢC DỊCH biến số hay công thức.
+                   - Ví dụ: Giữ nguyên $x$, $y$, $\sqrt{{2}}$, $ABC$.
+                2. Chỉ dịch phần lời dẫn, giải thích sang tiếng H'Mông dễ hiểu cho học sinh bản địa.
+                3. Giữ nguyên cấu trúc Markdown.
                 
                 Nội dung cần dịch:
                 {st.session_state["math_content"]}
                 """
-                with st.spinner("⏳ Đang dịch sang tiếng H'Mông..."):
+                with st.spinner("⏳ Đang dịch sang tiếng H'Mông (Giữ nguyên công thức)..."):
                     hmong_text = generate_with_gemini(trans_prompt, api_key)
                     st.session_state["hmong_content"] = hmong_text
 
