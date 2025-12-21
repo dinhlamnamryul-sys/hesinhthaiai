@@ -432,5 +432,7 @@ if st.button("🚀 Sinh đề theo cấu hình chi tiết", type="primary", use_
                 # --- Tải file markdown về máy ---
                 filename = f"De_{lop}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
                 st.download_button("📥 Tải đề về máy (.md)", data=result, file_name=filename)
+                mime="text/markdown"   # Định dạng chuẩn Markdown
+                )
             else:
                 st.error(result)
