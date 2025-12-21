@@ -427,14 +427,30 @@ if st.button("🚀 Sinh đề theo cấu hình chi tiết", type="primary", use_
             
             if success:
                 st.success("✅ Sinh đề thành công!")
-                st.markdown(result, unsafe_allow_html=True)
+                st.markdown(result)
                 
-                # --- ĐOẠN ĐÃ SỬA ĐỂ TẢI FILE MARKDOWN CHUẨN ---
+                # --- ĐOẠN SỬA: TẢI FILE MD VÀ NÚT LIÊN KẾT CHUYỂN ĐỔI ---
                 filename = f"De_{lop}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
                 
-                st.download_button(
-                    label="📥 Tải đề về máy (.md)",
-                    data=result,           # Nội dung văn bản từ AI
-                    file_name=filename,    # Tên file có đuôi .md
-                    mime="text/markdown"   # Định dạng chuẩn Markdown
-                )
+                # Tạo 2 cột để đặt 2 nút cạnh nhau cho đẹp
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.download_button(
+                        label="📥 1. Tải đề về máy (.md)",
+                        data=result,
+                        file_name=filename,
+                        mime="text/markdown",
+                        use_container_width=True
+                    )
+                
+                with col2:
+                    st.link_button(
+                        label="✨ 2. Chuyển sang Word (CloudConvert)",
+                        url="https://cloudconvert.com/md-to-docx",
+                        help="Sau khi tải file .md, bạn bấm vào đây để chuyển sang file Word nhanh chóng.",
+                        use_container_width=True
+                    )
+                # ------------------------------------------------------
+            else:
+                st.error(result)
