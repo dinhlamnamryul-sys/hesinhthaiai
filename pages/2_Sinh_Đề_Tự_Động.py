@@ -398,8 +398,13 @@ def generate_questions(api_key, prompt):
 
 
 # ===============================
-# 🚀 NÚT BẤM SINH ĐỀ
 # ===============================
+# 🚀 NÚT BẤM SINH ĐỀ (CẬP NHẬT LƯU TRẠNG THÁI)
+# ===============================
+
+# Khởi tạo bộ nhớ tạm nếu chưa có
+if "ket_qua_de_thi" not in st.session_state:
+    st.session_state.ket_qua_de_thi = None
 
 st.markdown("###")
 if st.button("🚀 Sinh đề theo cấu hình chi tiết", type="primary", use_container_width=True):
@@ -408,13 +413,11 @@ if st.button("🚀 Sinh đề theo cấu hình chi tiết", type="primary", use_
     elif not chuong or not bai:
         st.warning("⚠️ Vui lòng chọn Chương và Bài học!")
     else:
-        # Xử lý yêu cầu đáp án
         if co_dap_an == "Có đáp án":
             dan_ap_text = "YÊU CẦU ĐẶC BIỆT: Cuối đề thi phải có PHẦN HƯỚNG DẪN GIẢI CHI TIẾT và ĐÁP ÁN cho từng câu."
         else:
             dan_ap_text = "YÊU CẦU ĐẶC BIỆT: KHÔNG hiển thị đáp án và lời giải."
 
-        # Tạo prompt với các tham số từ Tabs
         prompt = create_math_prompt(lop, chuong, bai,
                                     nl_nb, nl_th, nl_vd,
                                     ds_nb, ds_th, ds_vd,
@@ -424,33 +427,35 @@ if st.button("🚀 Sinh đề theo cấu hình chi tiết", type="primary", use_
         
         with st.spinner("Đang sinh đề... (AI đang suy nghĩ)"):
             success, result = generate_questions(api_key, prompt)
-            
             if success:
+                # Lưu nội dung vào bộ nhớ tạm để không bị mất khi bấm nút tải
+                st.session_state.ket_qua_de_thi = result
                 st.success("✅ Sinh đề thành công!")
-                st.markdown(result)
-                
-                # --- ĐOẠN SỬA: TẢI FILE MD VÀ NÚT LIÊN KẾT CHUYỂN ĐỔI ---
-                filename = f"De_{lop}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-                
-                # Tạo 2 cột để đặt 2 nút cạnh nhau cho đẹp
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.download_button(
-                        label="📥 1. Tải đề về máy (.md)",
-                        data=result,
-                        file_name=filename,
-                        mime="text/markdown",
-                        use_container_width=True
-                    )
-                
-                with col2:
-                    st.link_button(
-                        label="✨ 2. Chuyển sang Word (CloudConvert)",
-                        url="https://cloudconvert.com/md-to-docx",
-                        help="Sau khi tải file .md, bạn bấm vào đây để chuyển sang file Word nhanh chóng.",
-                        use_container_width=True
-                    )
-                # ------------------------------------------------------
             else:
                 st.error(result)
+
+# Hiển thị kết quả từ bộ nhớ tạm (nếu có)
+if st.session_state.ket_qua_de_thi:
+    # 1. Hiển thị đề thi
+    st.markdown("---")
+    st.markdown(st.session_state.ket_qua_de_thi)
+    
+    # 2. Xử lý các nút tải và liên kết
+    filename = f"De_{lop}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.download_button(
+            label="📥 1. Tải đề về máy (.md)",
+            data=st.session_state.ket_qua_de_thi,
+            file_name=filename,
+            mime="text/markdown",
+            use_container_width=True
+        )
+    
+    with col2:
+        st.link_button(
+            label="✨ 2. Chuyển sang Word (CloudConvert)",
+            url="https://cloudconvert.com/md-to-docx",
+            use_container_width=True
+        )
