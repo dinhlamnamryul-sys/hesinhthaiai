@@ -429,10 +429,12 @@ if st.button("🚀 Sinh đề theo cấu hình chi tiết", type="primary", use_
                 st.success("✅ Sinh đề thành công!")
                 st.markdown(result, unsafe_allow_html=True)
                 
-                # --- Tải file markdown về máy ---
+                # --- ĐOẠN ĐÃ SỬA ĐỂ TẢI FILE MARKDOWN CHUẨN ---
                 filename = f"De_{lop}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-                st.download_button("📥 Tải đề về máy (.md)", data=result, file_name=filename)
-                mime="text/markdown"   # Định dạng chuẩn Markdown
+                
+                st.download_button(
+                    label="📥 Tải đề về máy (.md)",
+                    data=result,           # Nội dung văn bản từ AI
+                    file_name=filename,    # Tên file có đuôi .md
+                    mime="text/markdown"   # Định dạng chuẩn Markdown
                 )
-            else:
-                st.error(result)
