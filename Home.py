@@ -67,7 +67,7 @@ else:
 
 # --- 1. CẤU HÌNH TRANG WEB ---
 st.set_page_config(
-    page_title="Hệ thống Trợ lý Giáo dục AI Na Ư",
+    page_title="Hệ thống Trợ lý Giáo dục AI Sam Mứn",
     page_icon=app_icon,
     layout="wide",
     initial_sidebar_state="expanded"
@@ -307,7 +307,7 @@ with st.sidebar:
 st.markdown("""
 <div class="running-text-container">
     <div class="running-text">
-        📢 CHÀO MỪNG ĐẾN VỚI HỆ THỐNG TRỢ LÝ GIÁO DỤC AI NA Ư! SỬ DỤNG AI ĐỂ NÂNG CAO CHẤT LƯỢNG DẠY VÀ HỌC TẠI VÙNG CAO.
+        📢 CHÀO MỪNG ĐẾN VỚI HỆ THỐNG TRỢ LÝ GIÁO DỤC AI SAM MỨN! SỬ DỤNG AI ĐỂ NÂNG CAO CHẤT LƯỢNG DẠY VÀ HỌC TẠI VÙNG CAO.
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -315,7 +315,7 @@ st.markdown("""
 # HEADER CHÍNH
 st.markdown("""
 <div class="main-header">
-    <h1> HỆ THỐNG TRỢ LÝ GIÁO DỤC AI NA Ư</h1>
+    <h1> HỆ THỐNG TRỢ LÝ GIÁO DỤC AI SAM MỨN</h1>
     <h3>"Tri thức - Vươn xa thế giới"</h3>
 </div>
 """, unsafe_allow_html=True)
@@ -361,7 +361,7 @@ with col4:
 # --- 5. CHÂN TRANG (FOOTER) ---
 st.markdown("""
 <div class="footer">
-    <p>👨‍🏫 <b>Nhóm tác giả:</b> Đinh Công Lâm - Lò Văn Hanh - Nguyễn Trọng Dương</p> </b> Trường PTDTBT TH&THCS Na Ư</p>
-    <p style="font-size: 12px; color: #888;">© Năm học 2025 - 2026 - Hệ thống Trợ lý Giáo dục AI Na Ư </p>
+    <p>👨‍🏫 <b>Tác giả:</b> Đinh Công Lâm </p> </b> Trường PTNT TH&THCS Sam Mứn</p>
+    <p style="font-size: 12px; color: #888;">© Năm học 2026 - 2027 - Hệ thống Trợ lý Giáo dục AI Sam Mứn </p>
 </div>
 """, unsafe_allow_html=True)
