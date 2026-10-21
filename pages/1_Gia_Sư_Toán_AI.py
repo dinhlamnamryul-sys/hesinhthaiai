@@ -585,6 +585,7 @@ def tao_de_toan(lop, bai_hoc):
             de_latex = f"Tìm số dư trong phép chia: ${a} : {b}$"
             dap_an = a % b
             goi_y_text = "Thực hiện phép chia và lấy phần dư."
+
  # --- LỚP 7 (ĐÃ SỬA LỖI LOGIC SO SÁNH & HIỂN THỊ) ---
     elif "Lớp 7" in lop:
         question_type = "mcq" # Chuyển toàn bộ sang trắc nghiệm để tránh lỗi nhập liệu
@@ -698,7 +699,7 @@ def tao_de_toan(lop, bai_hoc):
             
             fake1 = f"-{sqrt_val}"           # Sai: Số âm
             fake2 = f"$\\pm {sqrt_val}$"     # Sai: Căn bậc hai đại số
-            fake3 = f"{val}"                  # Sai: Chính nó
+            fake3 = f"{val}"                 # Sai: Chính nó
             
             dap_an = ans_correct
             options = [ans_correct, fake1, fake2, fake3]
@@ -1072,28 +1073,26 @@ def phan_tich_loi_sai(user_ans, true_ans, q_type):
         except: pass
     return hint_msg
 
-# --- DỊCH THUẬT THÔNG MINH (GIỮ NGUYÊN LaTeX) ---
-# Hàm này tách phần text và phần latex, chỉ dịch text.
+# --- DỊCH THUẬT THÔNG MINH (ĐÃ SỬA LỖI TARGET VÀ BẮT LỖI) ---
 def dich_sang_mong_giu_cong_thuc(text):
-    # Tách chuỗi dựa trên dấu $ (ký hiệu LaTeX)
-    # Regex này tách thành: [Text1, $LaTeX1$, Text2, $LaTeX2$...]
-    parts = re.split(r'(\$.*?\$)', text)
+    # Regex re.DOTALL để quét triệt để cả trường hợp công thức rớt dòng
+    parts = re.split(r'(\$.*?\$)', text, flags=re.DOTALL)
     
     translated_parts = []
     for part in parts:
-        # Nếu là phần công thức (bắt đầu và kết thúc bằng $), giữ nguyên
         if part.startswith('$') and part.endswith('$'):
             translated_parts.append(part)
         else:
-            # Nếu là văn bản thường và không rỗng, thì dịch
             if part.strip():
                 try:
-                    trans = GoogleTranslator(source='vi', target='hmn').translate(part)
+                    # SỬA LỖI: Dùng chữ 'hmong' thay vì 'hmn' để tương thích 100% với deep_translator
+                    trans = GoogleTranslator(source='vi', target='hmong').translate(part)
                     translated_parts.append(trans)
-                except:
-                    translated_parts.append(part)
+                except Exception as e:
+                    # SỬA LỖI: Trả về thông báo lỗi rõ ràng nếu API Google chặn hoặc lỗi mạng thay vì âm thầm trả về tiếng Việt
+                    translated_parts.append(f"[{part} - Lỗi dịch: {str(e)}]")
             else:
-                translated_parts.append(part) # Giữ khoảng trắng
+                translated_parts.append(part)
                 
     return "".join(translated_parts)
 
@@ -1246,9 +1245,7 @@ with col_trai:
                 st.markdown(audio_html, unsafe_allow_html=True)
         with col_tool2:
             if st.button("🌏 Dịch H'Mông"):
-                # Sử dụng hàm dịch mới giữ nguyên công thức
                 bd = dich_sang_mong_giu_cong_thuc(st.session_state.de_bai)
-                # Hiển thị bằng markdown để render công thức LaTeX
                 st.info(f"**H'Mông:** {bd}")
 
 with col_phai:
