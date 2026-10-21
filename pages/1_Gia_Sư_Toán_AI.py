@@ -6,8 +6,8 @@ import os
 import pandas as pd
 import io
 import base64
-import re  # Thư viện xử lý chuỗi quan trọng
-from deep_translator import GoogleTranslator
+import re
+import google.generativeai as genai  # Thư viện mới dùng AI Gemini
 from gtts import gTTS
 
 # --- CẤU HÌNH TRANG WEB ---
@@ -304,7 +304,7 @@ def tao_de_toan(lop, bai_hoc):
             dap_an = "4 cạnh"
             options = ["3 cạnh", "4 cạnh", "5 cạnh", "2 cạnh"]
             goi_y_text = "Tứ giác là hình có 4 cạnh."
-        else: # Mặc định cộng trừ
+        else:
             a, b = random.randint(10, 80), random.randint(10, 80)
             de_latex = f"Tính: ${a} + {b}$"
             dap_an = a + b
@@ -622,38 +622,26 @@ def phan_tich_loi_sai(user_ans, true_ans, q_type):
         except: pass
     return hint_msg
 
-# --- DỊCH THUẬT THÔNG MINH (GIỮ NGUYÊN LaTeX) ---
-# Hàm này tách phần text và phần latex, chỉ dịch text.
-# --- DỊCH THUẬT THÔNG MINH (GIỮ NGUYÊN LaTeX - BATCH) ---
-def dich_sang_mong_giu_cong_thuc(text):
-    # Tách chuỗi dựa trên dấu $ (ký hiệu LaTeX)
-    parts = re.split(r'(\$.*?\$)', text)
-    
-    # Gom các phần cần dịch vào một danh sách
-    parts_to_translate = []
-    indices_to_translate = []
-    
-    for i, part in enumerate(parts):
-        # Nếu không phải công thức toán và không rỗng
-        if part.strip() and not (part.startswith('$') and part.endswith('$')):
-            parts_to_translate.append(part)
-            indices_to_translate.append(i)
-            
-    # Gửi 1 yêu cầu dịch duy nhất (Batch)
-    if parts_to_translate:
-        try:
-            translator = GoogleTranslator(source='vi', target='hmn')
-            translated_batch = translator.translate_batch(parts_to_translate)
-            
-            # Lắp ráp bản dịch trở lại vị trí cũ
-            for idx, trans_text in zip(indices_to_translate, translated_batch):
-                # Nếu Google trả về None (lỗi), giữ nguyên bản gốc
-                parts[idx] = trans_text if trans_text else parts[idx]
-        except Exception as e:
-            import streamlit as st
-            st.error(f"Lỗi dịch thuật: Máy chủ Google đang tạm chặn do quá tải. Bạn hãy thử lại sau ít phút nhé!")
-            
-    return "".join(parts)
+# --- DỊCH THUẬT THÔNG MINH BẰNG AI GEMINI ---
+def dich_sang_mong_giu_cong_thuc(text, api_key):
+    if not api_key:
+        return "⚠️ Vui lòng nhập API Key ở thanh menu bên trái để sử dụng chức năng dịch."
+    try:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        prompt = f"""Dịch đoạn văn bản sau sang tiếng H'Mông.
+Yêu cầu quan trọng:
+- Tuyệt đối giữ nguyên vẹn các số, biến số, và công thức Toán học đang được bọc trong ký hiệu $...$
+- Không giải thích gì thêm, chỉ in ra kết quả đã dịch.
+
+Văn bản gốc:
+{text}"""
+        response = model.generate_content(prompt)
+        return response.text.strip()
+    except Exception as e:
+        import streamlit as st
+        st.error(f"Lỗi kết nối API: {e}")
+        return text
 
 # --- TEXT TO SPEECH (XỬ LÝ ĐỌC TOÁN HỌC) ---
 def text_to_speech_html(text, lang='vi'):
@@ -671,10 +659,6 @@ def text_to_speech_html(text, lang='vi'):
     
     # 4. Xử lý biến liền nhau: xy -> x y (để không đọc thành từ vô nghĩa)
     # Thêm khoảng trắng giữa các chữ cái liền nhau trong toán học
-    # Ví dụ: xy -> x y, abc -> a b c
-    # Logic: Tìm 2 chữ cái liền nhau và chèn khoảng trắng
-    # Lưu ý: Chỉ áp dụng cho các biến đơn giản, tránh phá vỡ từ tiếng Việt
-    # Ở đây ta làm đơn giản hóa: thay thế các cụm biến phổ biến trong toán
     vars_math = ["xy", "xyz", "ab", "abc"]
     for v in vars_math:
         if v in clean_text:
@@ -740,6 +724,13 @@ st.markdown(f"""
 with st.sidebar:
     st.markdown("<div style='text-align: center; font-size: 80px;'>🏔️</div>", unsafe_allow_html=True)
     st.markdown("---")
+    
+    # THÊM Ô NHẬP API KEY BÊN THANH MENU
+    st.header("🔑 Cấu hình Dịch Thuật")
+    gemini_api_key = st.text_input("Nhập API Key của Google Gemini:", type="password", help="Dùng để dịch chính xác sang tiếng H'Mông")
+    st.markdown("*(Để lấy API Key miễn phí, hãy lên Google gõ 'Gemini API Key')*")
+    st.markdown("---")
+
     st.header("📚 CHỌN BÀI HỌC")
     
     ds_lop = list(CHUONG_TRINH_HOC.keys())
@@ -804,9 +795,7 @@ with col_trai:
                 st.markdown(audio_html, unsafe_allow_html=True)
         with col_tool2:
             if st.button("🌏 Dịch H'Mông"):
-                # Sử dụng hàm dịch mới giữ nguyên công thức
-                bd = dich_sang_mong_giu_cong_thuc(st.session_state.de_bai)
-                # Hiển thị bằng markdown để render công thức LaTeX
+                bd = dich_sang_mong_giu_cong_thuc(st.session_state.de_bai, gemini_api_key)
                 st.info(f"**H'Mông:** {bd}")
 
 with col_phai:
@@ -855,23 +844,18 @@ with col_phai:
         
         if st.session_state.show_hint:
             st.markdown("---")
-            # --- GỢI Ý TIẾNG VIỆT ---
             st.markdown('<div class="hint-container">', unsafe_allow_html=True)
             st.markdown(f"**💡 Gợi ý (Tiếng Việt):** {st.session_state.goi_y_text}")
             if st.session_state.goi_y_latex: st.latex(st.session_state.goi_y_latex)
             st.markdown('</div>', unsafe_allow_html=True)
             
-            # --- GỢI Ý TIẾNG H'MÔNG (DÙNG HÀM MỚI) ---
-            translation = dich_sang_mong_giu_cong_thuc(st.session_state.goi_y_text)
+            translation = dich_sang_mong_giu_cong_thuc(st.session_state.goi_y_text, gemini_api_key)
             st.markdown('<div class="hmong-hint">', unsafe_allow_html=True)
             st.markdown(f"**🗣️ H'Mông:** {translation}")
-            # Đảm bảo công thức toán học hiển thị giống hệt phần Tiếng Việt
             if st.session_state.goi_y_latex: st.latex(st.session_state.goi_y_latex)
             st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.info("👈 Chọn bài học và nhấn nút 'Tạo câu hỏi mới'.")
 
-# Footer
 st.markdown("---")
 st.caption("© 2025 Trường PTDTBT TH&THCS Na Ư - Bản Mường.")
-
