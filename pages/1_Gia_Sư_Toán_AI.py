@@ -1073,81 +1073,52 @@ def phan_tich_loi_sai(user_ans, true_ans, q_type):
         except: pass
     return hint_msg
 
-# --- DỊCH THUẬT THÔNG MINH (ĐÃ SỬA LỖI TARGET VÀ BẮT LỖI) ---
+# --- DỊCH THUẬT THÔNG MINH (ĐÃ FIX LỖI TOO MANY REQUESTS) ---
 def dich_sang_mong_giu_cong_thuc(text):
-    # Regex re.DOTALL để quét triệt để cả trường hợp công thức rớt dòng
+    # 1. Tách các phần tử bằng regex
     parts = re.split(r'(\$.*?\$)', text, flags=re.DOTALL)
     
-    translated_parts = []
+    # Nếu không có công thức toán học nào, dịch toàn bộ chuỗi luôn 1 lần
+    if len(parts) == 1:
+        try:
+            return GoogleTranslator(source='vi', target='hmong').translate(text)
+        except Exception as e:
+            return f"[{text} - Lỗi dịch: {str(e)}]"
+
+    # 2. Thay thế tạm thời công thức bằng các placeholder (ví dụ: __MATH0__, __MATH1__)
+    math_dict = {}
+    text_to_translate = ""
+    math_index = 0
+    
     for part in parts:
         if part.startswith('$') and part.endswith('$'):
-            translated_parts.append(part)
+            placeholder = f" __MATH{math_index}__ "
+            math_dict[placeholder.strip()] = part # Lưu lại công thức
+            text_to_translate += placeholder
+            math_index += 1
         else:
-            if part.strip():
-                try:
-                    # SỬA LỖI: Dùng chữ 'hmong' thay vì 'hmn' để tương thích 100% với deep_translator
-                    trans = GoogleTranslator(source='vi', target='hmong').translate(part)
-                    translated_parts.append(trans)
-                except Exception as e:
-                    # SỬA LỖI: Trả về thông báo lỗi rõ ràng nếu API Google chặn hoặc lỗi mạng thay vì âm thầm trả về tiếng Việt
-                    translated_parts.append(f"[{part} - Lỗi dịch: {str(e)}]")
-            else:
-                translated_parts.append(part)
-                
-    return "".join(translated_parts)
+            text_to_translate += part
 
-# --- TEXT TO SPEECH (XỬ LÝ ĐỌC TOÁN HỌC) ---
-def text_to_speech_html(text, lang='vi'):
-    # 1. Loại bỏ ký tự LaTeX bao quanh
-    clean_text = text.replace("$", "")
-    
-    # 2. Xử lý đọc Phân số: \frac{a}{b} -> a phần b
-    clean_text = re.sub(r'\\frac\{(.+?)\}\{(.+?)\}', r'\1 phần \2', clean_text)
-    
-    # 3. Xử lý đọc Số mũ và Biến số (QUAN TRỌNG)
-    # x^2 -> x bình phương, x^3 -> x lập phương, x^n -> x mũ n
-    clean_text = re.sub(r'(\w)\^2', r'\1 bình phương ', clean_text)
-    clean_text = re.sub(r'(\w)\^3', r'\1 lập phương ', clean_text)
-    clean_text = re.sub(r'(\w)\^(\d+)', r'\1 mũ \2 ', clean_text) # x^5 -> x mũ 5
-    
-    # 4. Xử lý biến liền nhau: xy -> x y (để không đọc thành từ vô nghĩa)
-    # Thêm khoảng trắng giữa các chữ cái liền nhau trong toán học
-    # Ví dụ: xy -> x y, abc -> a b c
-    # Logic: Tìm 2 chữ cái liền nhau và chèn khoảng trắng
-    # Lưu ý: Chỉ áp dụng cho các biến đơn giản, tránh phá vỡ từ tiếng Việt
-    # Ở đây ta làm đơn giản hóa: thay thế các cụm biến phổ biến trong toán
-    vars_math = ["xy", "xyz", "ab", "abc"]
-    for v in vars_math:
-        if v in clean_text:
-            spaced_v = " ".join(list(v))
-            clean_text = clean_text.replace(v, spaced_v)
+    # 3. Gửi request dịch 1 lần duy nhất cho toàn bộ chuỗi
+    try:
+        translated_text = GoogleTranslator(source='vi', target='hmong').translate(text_to_translate)
+    except Exception as e:
+         # Trả về lỗi nếu Google Translate vẫn từ chối (có thể do IP bị block tạm thời)
+         return f"[Lỗi dịch toàn bộ: {str(e)}]"
 
-    # 5. Bảng thay thế ký hiệu sang tiếng Việt
-    replacements = {
-        "\\begin{cases}": "hệ phương trình ",
-        "\\end{cases}": "",
-        "\\\\": " và ",
-        "\\times": " nhân ",
-        "\\cdot": " nhân ",
-        ":": " chia ",
-        "+": " cộng ",
-        "-": " trừ ",
-        "\\le": " nhỏ hơn hoặc bằng ",
-        "\\ge": " lớn hơn hoặc bằng ",
-        "\\neq": " khác ",
-        "\\approx": " xấp xỉ ",
-        "\\circ": " độ ",
-        "\\hat": " góc ",
-        "\\sqrt": " căn bậc hai của ",
-        "\\pm": " cộng trừ ",
-        "\\pi": " pi ",
-        ">": " lớn hơn ",
-        "<": " nhỏ hơn ",
-        "=": " bằng "
-    }
-    
-    for k, v in replacements.items():
-        clean_text = clean_text.replace(k, v)
+    # 4. Khôi phục lại các công thức toán học từ placeholder
+    # Xóa bớt khoảng trắng dư thừa do API dịch sinh ra xung quanh placeholder
+    for placeholder, original_math in math_dict.items():
+        # Tìm và thay thế placeholder (có thể Google Translate làm thay đổi viết hoa/thường hoặc thêm khoảng trắng)
+        # Sử dụng regex để tìm kiếm an toàn hơn
+        pattern = re.compile(re.escape(placeholder), re.IGNORECASE)
+        # Nếu không tìm thấy bằng regex có khoảng trắng, thử tìm không có khoảng trắng
+        if not pattern.search(translated_text):
+            pattern = re.compile(re.escape(placeholder.strip()), re.IGNORECASE)
+            
+        translated_text = pattern.sub(original_math, translated_text)
+
+    return translated_text
     
     # Dọn dẹp dấu ngoặc thừa
     clean_text = clean_text.replace("{", "").replace("}", "")
