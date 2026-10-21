@@ -6,8 +6,8 @@ import os
 import pandas as pd
 import io
 import base64
-import re
-import google.generativeai as genai  # Thư viện mới dùng AI Gemini
+import re  
+import requests  # Thư viện để gọi API trực tiếp
 from gtts import gTTS
 
 # --- CẤU HÌNH TRANG WEB ---
@@ -622,13 +622,17 @@ def phan_tich_loi_sai(user_ans, true_ans, q_type):
         except: pass
     return hint_msg
 
-# --- DỊCH THUẬT THÔNG MINH BẰNG AI GEMINI ---
+# --- DỊCH THUẬT THÔNG MINH BẰNG AI GEMINI (API TRỰC TIẾP) ---
 def dich_sang_mong_giu_cong_thuc(text, api_key):
     if not api_key:
         return "⚠️ Vui lòng nhập API Key ở thanh menu bên trái để sử dụng chức năng dịch."
     try:
-        genai.configure(api_key=api_key)
+        # Sử dụng đúng Model Gemini 2.5 Flash và cấu trúc URL
         MODEL = "gemini-2.5-flash"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={api_key}"
+        
+        headers = {'Content-Type': 'application/json'}
+        
         prompt = f"""Dịch đoạn văn bản sau sang tiếng H'Mông.
 Yêu cầu quan trọng:
 - Tuyệt đối giữ nguyên vẹn các số, biến số, và công thức Toán học đang được bọc trong ký hiệu $...$
@@ -636,11 +640,32 @@ Yêu cầu quan trọng:
 
 Văn bản gốc:
 {text}"""
-        response = model.generate_content(prompt)
-        return response.text.strip()
+        
+        # Đóng gói dữ liệu gửi đi theo chuẩn của Google
+        payload = {
+            "contents": [{
+                "parts": [{"text": prompt}]
+            }]
+        }
+        
+        # Gửi request trực tiếp
+        response = requests.post(url, headers=headers, json=payload)
+        
+        # Kiểm tra nếu API trả về lỗi (sai key, hết hạn mức...)
+        if response.status_code != 200:
+            import streamlit as st
+            st.error(f"Lỗi từ Google: {response.text}")
+            return text
+            
+        data = response.json()
+        
+        # Bóc tách text đã dịch từ kết quả JSON
+        translated_text = data['candidates'][0]['content']['parts'][0]['text']
+        return translated_text.strip()
+        
     except Exception as e:
         import streamlit as st
-        st.error(f"Lỗi kết nối API: {e}")
+        st.error(f"Lỗi hệ thống: {e}")
         return text
 
 # --- TEXT TO SPEECH (XỬ LÝ ĐỌC TOÁN HỌC) ---
