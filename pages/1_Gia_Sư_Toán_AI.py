@@ -640,7 +640,9 @@ def dich_sang_mong_giu_cong_thuc(text):
                 try:
                     trans = GoogleTranslator(source='vi', target='hmn').translate(part)
                     translated_parts.append(trans)
-                except:
+                except Exception as e:
+                    import streamlit as st
+                    st.error(f"Lỗi dịch thuật: {e}")
                     translated_parts.append(part)
             else:
                 translated_parts.append(part) # Giữ khoảng trắng
