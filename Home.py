@@ -277,7 +277,7 @@ with st.sidebar:
     with col_logo2:
         st.image(sidebar_logo, width=150)
     
-    st.markdown("<h3 style='text-align: center; color: #b71c1c; margin-top: 10px; font-weight: 900;'>TRƯỜNG PTDTBT<br>TH&THCS NA Ư</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center; color: #b71c1c; margin-top: 10px; font-weight: 900;'>TRƯỜNG PTNT<br>TH&THCS SAM MỨN</h3>", unsafe_allow_html=True)
     st.markdown("---")
     st.markdown("### 🚀 Menu Chức Năng")
 
