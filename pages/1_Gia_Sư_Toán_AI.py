@@ -624,30 +624,36 @@ def phan_tich_loi_sai(user_ans, true_ans, q_type):
 
 # --- DỊCH THUẬT THÔNG MINH (GIỮ NGUYÊN LaTeX) ---
 # Hàm này tách phần text và phần latex, chỉ dịch text.
+# --- DỊCH THUẬT THÔNG MINH (GIỮ NGUYÊN LaTeX - BATCH) ---
 def dich_sang_mong_giu_cong_thuc(text):
     # Tách chuỗi dựa trên dấu $ (ký hiệu LaTeX)
-    # Regex này tách thành: [Text1, $LaTeX1$, Text2, $LaTeX2$...]
     parts = re.split(r'(\$.*?\$)', text)
     
-    translated_parts = []
-    for part in parts:
-        # Nếu là phần công thức (bắt đầu và kết thúc bằng $), giữ nguyên
-        if part.startswith('$') and part.endswith('$'):
-            translated_parts.append(part)
-        else:
-            # Nếu là văn bản thường và không rỗng, thì dịch
-            if part.strip():
-                try:
-                    trans = GoogleTranslator(source='vi', target='hmn').translate(part)
-                    translated_parts.append(trans)
-                except Exception as e:
-                    import streamlit as st
-                    st.error(f"Lỗi dịch thuật: {e}")
-                    translated_parts.append(part)
-            else:
-                translated_parts.append(part) # Giữ khoảng trắng
-                
-    return "".join(translated_parts)
+    # Gom các phần cần dịch vào một danh sách
+    parts_to_translate = []
+    indices_to_translate = []
+    
+    for i, part in enumerate(parts):
+        # Nếu không phải công thức toán và không rỗng
+        if part.strip() and not (part.startswith('$') and part.endswith('$')):
+            parts_to_translate.append(part)
+            indices_to_translate.append(i)
+            
+    # Gửi 1 yêu cầu dịch duy nhất (Batch)
+    if parts_to_translate:
+        try:
+            translator = GoogleTranslator(source='vi', target='hmn')
+            translated_batch = translator.translate_batch(parts_to_translate)
+            
+            # Lắp ráp bản dịch trở lại vị trí cũ
+            for idx, trans_text in zip(indices_to_translate, translated_batch):
+                # Nếu Google trả về None (lỗi), giữ nguyên bản gốc
+                parts[idx] = trans_text if trans_text else parts[idx]
+        except Exception as e:
+            import streamlit as st
+            st.error(f"Lỗi dịch thuật: Máy chủ Google đang tạm chặn do quá tải. Bạn hãy thử lại sau ít phút nhé!")
+            
+    return "".join(parts)
 
 # --- TEXT TO SPEECH (XỬ LÝ ĐỌC TOÁN HỌC) ---
 def text_to_speech_html(text, lang='vi'):
