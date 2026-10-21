@@ -628,7 +628,7 @@ def dich_sang_mong_giu_cong_thuc(text, api_key):
         return "⚠️ Vui lòng nhập API Key ở thanh menu bên trái để sử dụng chức năng dịch."
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        MODEL = "gemini-2.5-flash"
         prompt = f"""Dịch đoạn văn bản sau sang tiếng H'Mông.
 Yêu cầu quan trọng:
 - Tuyệt đối giữ nguyên vẹn các số, biến số, và công thức Toán học đang được bọc trong ký hiệu $...$
