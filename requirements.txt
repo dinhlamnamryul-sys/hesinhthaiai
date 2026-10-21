@@ -6,7 +6,7 @@ python-docx
 reportlab
 matplotlib
 requests
-deep-translator
+deep-translator>=1.11.4
 google-genai
 google-auth
 google-auth-oauthlib
