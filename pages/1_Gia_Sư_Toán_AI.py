@@ -883,4 +883,4 @@ with col_phai:
         st.info("👈 Chọn bài học và nhấn nút 'Tạo câu hỏi mới'.")
 
 st.markdown("---")
-st.caption("© 2025 Trường PTDTBT TH&THCS Na Ư - Bản Mường.")
+st.caption("© 2026 Trường PTNT TH&THCS Sam Mứn")
