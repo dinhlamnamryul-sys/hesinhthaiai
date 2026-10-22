@@ -738,7 +738,7 @@ st.markdown(f"""
 <div class="hmong-header-container">
     <div class="hmong-top-bar">SỞ GIÁO DỤC VÀ ĐÀO TỈNH ĐIỆN BIÊN</div>
     <div class="hmong-main-title">
-        <h1>🏫 TRƯỜNG PTDTBT TH&THCS NA Ư</h1>
+        <h1>🏫 TRƯỜNG PTNT TH&THCS Sam Mứn</h1>
         <h2>🚀 GIA SƯ TOÁN AI - BẢN MƯỜNG</h2>
         <div class="visit-counter">Lượt truy cập: {st.session_state.visit_count}</div>
     </div>
